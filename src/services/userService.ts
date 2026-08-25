@@ -45,9 +45,14 @@ export const getRecommendedUsers = async (): Promise<User[]> => {
           
           return true;
         });
+
+        // Xáo trộn mảng ngẫu nhiên (Fisher-Yates shuffle via sort)
+        recommended = recommended.sort(() => Math.random() - 0.5);
+
         resolve(recommended);
       } else {
-        resolve(users);
+        // Nếu không đăng nhập, xáo trộn danh sách gốc
+        resolve([...users].sort(() => Math.random() - 0.5));
       }
     }, 500);
   });
