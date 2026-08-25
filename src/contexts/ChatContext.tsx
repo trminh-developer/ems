@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
 import { Conversation, Message, MessageType } from '../models';
 import { messageService } from '../services';
 
@@ -51,11 +51,11 @@ export const ChatContext = createContext<ChatContextType | undefined>(undefined)
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     dispatch({ type: 'LOAD_CONVERSATIONS_START' });
     const conversations = await messageService.getConversations();
     dispatch({ type: 'LOAD_CONVERSATIONS_SUCCESS', payload: conversations });
-  };
+  }, []);
 
   const selectConversation = async (conversationId: string) => {
     const conversation = state.conversations.find(c => c.id === conversationId);

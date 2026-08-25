@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
 import { Match } from '../models';
 import { matchService } from '../services';
 
@@ -49,11 +49,11 @@ export const MatchContext = createContext<MatchContextType | undefined>(undefine
 export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(matchReducer, initialState);
 
-  const loadMatches = async () => {
+  const loadMatches = useCallback(async () => {
     dispatch({ type: 'LOAD_MATCHES_START' });
     const matches = await matchService.getMatches();
     dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
-  };
+  }, []);
 
   const likeUser = async (userId: string) => {
     const result = await matchService.likeUser(userId);
