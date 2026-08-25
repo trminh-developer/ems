@@ -23,7 +23,9 @@ const ProfileView = () => {
     education: '',
     avatar: '',
     coverPhoto: '',
-    interests: [] as any[]
+    dateOfBirth: '',
+    interests: [] as any[],
+    isVerified: false
   });
   const [newInterest, setNewInterest] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -46,17 +48,20 @@ const ProfileView = () => {
           education: currentUser.education || '',
           avatar: currentUser.avatar || '',
           coverPhoto: currentUser.coverPhoto || '',
-          interests: currentUser.interests || []
+          dateOfBirth: currentUser.dateOfBirth || '',
+          interests: currentUser.interests || [],
+          isVerified: currentUser.isVerified || false
         });
       } else {
-        setUser({ id, firstName: 'Bob', lastName: 'Smith', bio: 'Hello world', interests: ['Music', 'Travel'] });
+        setUser({ id, firstName: 'Bob', lastName: 'Smith', bio: 'Hello world', interests: ['Music', 'Travel'], isVerified: false });
       }
       setIsLoading(false);
     }, 500);
   }, [id, isOwnProfile, currentUser]);
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setEditForm({ ...editForm, [e.target.name]: value });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'avatar' | 'coverPhoto') => {
@@ -70,12 +75,31 @@ const ProfileView = () => {
     }
   };
 
+  const guessIconForInterest = (name: string): string => {
+    const n = name.toLowerCase();
+    if (n.includes('nhạc') || n.includes('hát') || n.includes('đàn') || n.includes('music')) return 'bi-music-note-beamed';
+    if (n.includes('game') || n.includes('trò chơi')) return 'bi-controller';
+    if (n.includes('sách') || n.includes('đọc') || n.includes('book') || n.includes('truyện')) return 'bi-book';
+    if (n.includes('thể thao') || n.includes('bóng') || n.includes('chạy') || n.includes('bơi')) return 'bi-activity';
+    if (n.includes('nấu ăn') || n.includes('ăn') || n.includes('uống') || n.includes('cafe')) return 'bi-cup-hot';
+    if (n.includes('du lịch') || n.includes('khám phá') || n.includes('phượt') || n.includes('travel')) return 'bi-airplane';
+    if (n.includes('phim') || n.includes('movie') || n.includes('cinema')) return 'bi-film';
+    if (n.includes('chụp ảnh') || n.includes('ảnh') || n.includes('photo') || n.includes('camera')) return 'bi-camera';
+    if (n.includes('code') || n.includes('lập trình') || n.includes('công nghệ') || n.includes('tech')) return 'bi-laptop';
+    if (n.includes('mua sắm') || n.includes('shop')) return 'bi-bag-heart';
+    if (n.includes('thú cưng') || n.includes('chó') || n.includes('mèo') || n.includes('pet')) return 'bi-balloon-heart';
+    if (n.includes('ngủ') || n.includes('sleep')) return 'bi-moon-stars';
+    
+    // Default fallback icon
+    return 'bi-star';
+  };
+
   const handleAddInterest = () => {
     if (newInterest.trim()) {
       const interestObj = {
         id: Date.now().toString(),
         name: newInterest.trim(),
-        icon: 'bi-star',
+        icon: guessIconForInterest(newInterest.trim()),
         category: 'lifestyle'
       };
       setEditForm({ ...editForm, interests: [...editForm.interests, interestObj] });
@@ -102,7 +126,9 @@ const ProfileView = () => {
         education: editForm.education,
         avatar: editForm.avatar,
         coverPhoto: editForm.coverPhoto,
+        dateOfBirth: editForm.dateOfBirth,
         interests: editForm.interests,
+        isVerified: editForm.isVerified,
         location: {
           ...currentUser.location,
           city: editForm.city,
@@ -167,12 +193,27 @@ const ProfileView = () => {
       >
         <div className="row">
           <div className="col-md-6 mb-3">
-            <Input label="Tên" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
+            <label className="form-label">Tên</label>
+            <input type="text" className="form-control" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
           </div>
           <div className="col-md-6 mb-3">
-            <Input label="Họ" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
+            <label className="form-label">Họ</label>
+            <input type="text" className="form-control" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
           </div>
         </div>
+
+        <div className="mb-3">
+          <label className="form-label">Ngày sinh (Dùng để tính tuổi)</label>
+          <input 
+            type="date" 
+            className="form-control" 
+            name="dateOfBirth" 
+            value={editForm.dateOfBirth} 
+            onChange={handleEditChange} 
+            max={new Date().toISOString().split("T")[0]} // Không cho phép chọn ngày tương lai
+          />
+        </div>
+
         <div className="row">
           <div className="col-md-6 mb-3">
             <Input label="Thành phố" name="city" value={editForm.city} onChange={handleEditChange} />

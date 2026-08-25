@@ -34,13 +34,21 @@ export const Navbar: React.FC = () => {
 
   const toggleDarkMode = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsDarkMode(!isDarkMode);
-    // Real implementation would toggle a class on document.body here
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    if (newDarkMode) {
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-bs-theme');
+    }
   };
 
   const toggleLanguage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLanguage(language === 'vi' ? 'en' : 'vi');
+    const newLang = language === 'vi' ? 'en' : 'vi';
+    setLanguage(newLang);
+    // Alert user since we don't have a full i18n system yet
+    alert(`Đã đổi ngôn ngữ sang: ${newLang === 'vi' ? 'Tiếng Việt' : 'English'}`);
   };
 
   return (

@@ -23,7 +23,11 @@ export const login = async (email: string, password: string): Promise<User> => {
       const users = getUsersList();
       const user = users.find(u => u.email === email);
       if (user) {
-        // If we want to check password, we could check here. For now, any password works for an existing email.
+        // Auto-verify admin account
+        if (user.email === 'trminhlaptrinhvien@gmail.com' && !user.isVerified) {
+          user.isVerified = true;
+          saveUsersList(users);
+        }
         resolve(user);
       } else {
         reject(new Error('Tài khoản chưa được đăng ký! Vui lòng đăng ký tài khoản.'));
@@ -58,6 +62,7 @@ export const register = async (data: any): Promise<User> => {
           relationshipGoal: RelationshipGoal.NOT_SURE,
           isOnline: true,
           lastActive: new Date().toISOString(),
+          isVerified: data.email === 'trminhlaptrinhvien@gmail.com',
         };
         
         users.push(newUser);

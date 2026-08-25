@@ -11,7 +11,7 @@ export const InterestBadge: React.FC<InterestBadgeProps> = ({ interest, variant 
   
   return (
     <span className={`interest-badge badge rounded-pill px-3 py-2 fw-normal d-flex align-items-center gap-2 ${bgClass}`}>
-      {interest.icon && <span>{interest.icon}</span>}
+      {interest.icon && <i className={`bi ${interest.icon}`}></i>}
       <span>{interest.name}</span>
     </span>
   );
