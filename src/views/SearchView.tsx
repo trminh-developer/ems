@@ -15,44 +15,50 @@ const SearchView = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    setHasSearched(true);
-    try {
-      // Get all users and filter locally for robust searching
-      let allUsers = await userService.getUsers();
-      
-      const q = query.toLowerCase().trim();
-      const filtered = allUsers.filter(u => {
-        // Query match
-        const matchName = u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q);
-        const matchBio = u.bio?.toLowerCase().includes(q);
-        const matchQuery = q ? (matchName || matchBio) : true;
+  // Real-time automatic search effect
+  React.useEffect(() => {
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        let allUsers = await userService.getUsers();
         
-        // Gender match
-        const matchGender = gender === 'all' || u.gender === gender;
+        const q = query.toLowerCase().trim();
+        const filtered = allUsers.filter(u => {
+          const matchName = u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q);
+          const matchBio = u.bio?.toLowerCase().includes(q);
+          const matchQuery = q ? (matchName || matchBio) : true;
+          const matchGender = gender === 'all' || u.gender === gender;
+          const age = calculateAge(u.dateOfBirth);
+          const matchAge = age >= ageMin && age <= ageMax;
+          const matchOnline = onlineStatus === 'all' ? true : onlineStatus === 'online' ? u.isOnline : !u.isOnline;
+          
+          return matchQuery && matchGender && matchAge && matchOnline;
+        });
         
-        // Age match
-        const age = calculateAge(u.dateOfBirth);
-        const matchAge = age >= ageMin && age <= ageMax;
+        setResults(filtered);
+        if (q || gender !== 'all' || ageMin !== 18 || ageMax !== 60 || onlineStatus !== 'all') {
+          setHasSearched(true);
+        } else {
+          setHasSearched(false);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
 
-        // Online Status match (The "AI" filter)
-        const matchOnline = onlineStatus === 'all' 
-          ? true 
-          : onlineStatus === 'online' 
-            ? u.isOnline 
-            : !u.isOnline;
-        
-        return matchQuery && matchGender && matchAge && matchOnline;
-      });
-      
-      setResults(filtered);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsSearching(false);
-    }
+    // Add a tiny debounce for typing
+    const timeoutId = setTimeout(() => {
+      performSearch();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [query, gender, ageMin, ageMax, onlineStatus]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // The useEffect already handles the search automatically
   };
 
   const handleClear = () => {
