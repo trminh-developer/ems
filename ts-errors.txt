@@ -1,0 +1,153 @@
+﻿src/components/dating/DiscoverCard.tsx(4,8): error TS2613: Module '"D:/MINH_IT25B/Year 2/HocKy3/React/DoAn/dating_app/src/components/user/InterestBadge"' has no default export. Did you mean to use 'import { InterestBadge } from "D:/MINH_IT25B/Year 2/HocKy3/React/DoAn/dating_app/src/components/user/InterestBadge"' instead?
+src/components/dating/MatchCard.tsx(13,25): error TS2749: 'React.memo' refers to a value, but is being used as a type here. Did you mean 'typeof React.memo'?
+src/components/dating/MatchCard.tsx(13,78): error TS2339: Property 'match' does not exist on type '{}'.
+src/components/dating/MatchCard.tsx(13,85): error TS2339: Property 'onMessage' does not exist on type '{}'.
+src/components/dating/MatchCard.tsx(13,96): error TS2339: Property 'onClick' does not exist on type '{}'.
+src/components/dating/MatchModal.tsx(29,116): error TS2322: Type '{ src: string; alt: string; size: "xl"; className: string; style: { width: string; height: string; }; }' is not assignable to type 'IntrinsicAttributes & AvatarProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & AvatarProps'.
+src/components/dating/MatchModal.tsx(32,153): error TS2322: Type '{ src: string; alt: string; size: "xl"; className: string; style: { width: string; height: string; }; }' is not assignable to type 'IntrinsicAttributes & AvatarProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & AvatarProps'.
+src/components/messaging/ConversationItem.tsx(14,32): error TS2749: 'React.memo' refers to a value, but is being used as a type here. Did you mean 'typeof React.memo'?
+src/components/messaging/ConversationItem.tsx(14,92): error TS2339: Property 'conversation' does not exist on type '{}'.
+src/components/messaging/ConversationItem.tsx(14,106): error TS2339: Property 'isActive' does not exist on type '{}'.
+src/components/messaging/ConversationItem.tsx(14,116): error TS2339: Property 'onClick' does not exist on type '{}'.
+src/components/messaging/ConversationItem.tsx(14,125): error TS2339: Property 'currentUserId' does not exist on type '{}'.
+src/components/messaging/ConversationItem.tsx(16,52): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/messaging/MessageBubble.tsx(10,29): error TS2749: 'React.memo' refers to a value, but is being used as a type here. Did you mean 'typeof React.memo'?
+src/components/messaging/MessageBubble.tsx(10,86): error TS2339: Property 'message' does not exist on type '{}'.
+src/components/messaging/MessageBubble.tsx(10,95): error TS2339: Property 'isSent' does not exist on type '{}'.
+src/components/notification/NotificationItem.tsx(11,32): error TS2749: 'React.memo' refers to a value, but is being used as a type here. Did you mean 'typeof React.memo'?
+src/components/notification/NotificationItem.tsx(11,92): error TS2339: Property 'notification' does not exist on type '{}'.
+src/components/notification/NotificationItem.tsx(11,106): error TS2339: Property 'onClick' does not exist on type '{}'.
+src/components/user/ProfileHeader.tsx(32,74): error TS2322: Type '{ src: string; alt: string; size: "xl"; style: { width: string; height: string; }; }' is not assignable to type 'IntrinsicAttributes & AvatarProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & AvatarProps'.
+src/components/user/UserCard.tsx(6,8): error TS2613: Module '"D:/MINH_IT25B/Year 2/HocKy3/React/DoAn/dating_app/src/components/user/InterestBadge"' has no default export. Did you mean to use 'import { InterestBadge } from "D:/MINH_IT25B/Year 2/HocKy3/React/DoAn/dating_app/src/components/user/InterestBadge"' instead?
+src/data/users.ts(20,15): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(20,30): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(20,45): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(54,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(54,32): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(54,47): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(73,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(73,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(73,45): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(92,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(92,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(92,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(111,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(111,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(111,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(130,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(130,32): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(130,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(149,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(149,32): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(149,47): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(168,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(168,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(168,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(187,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(187,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(187,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(206,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(206,32): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(206,47): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(225,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(225,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(225,45): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(244,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(244,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(244,46): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(263,17): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(263,31): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/data/users.ts(263,45): error TS2322: Type 'Interest | undefined' is not assignable to type 'Interest'.
+  Type 'undefined' is not assignable to type 'Interest'.
+src/services/authService.ts(2,10): error TS2724: '"../data"' has no exported member named 'mockCurrentUser'. Did you mean 'currentUser'?
+src/services/matchService.ts(2,10): error TS2305: Module '"../data"' has no exported member 'mockMatches'.
+src/services/messageService.ts(2,10): error TS2724: '"../data"' has no exported member named 'mockConversations'. Did you mean 'conversations'?
+src/services/messageService.ts(2,29): error TS2724: '"../data"' has no exported member named 'mockMessages'. Did you mean 'messages'?
+src/services/messageService.ts(12,50): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/services/notificationService.ts(2,10): error TS2724: '"../data"' has no exported member named 'mockNotifications'. Did you mean 'notifications'?
+src/services/notificationService.ts(25,40): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/services/profileService.ts(2,10): error TS2305: Module '"../data"' has no exported member 'mockUsers'.
+src/services/profileService.ts(7,35): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/services/profileService.ts(26,35): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/services/searchService.ts(2,10): error TS2305: Module '"../data"' has no exported member 'mockUsers'.
+src/services/userService.ts(2,10): error TS2305: Module '"../data"' has no exported member 'mockUsers'.
+src/services/userService.ts(13,35): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/services/userService.ts(23,32): error TS7006: Parameter 'u' implicitly has an 'any' type.
+src/views/DiscoverView.tsx(53,12): error TS2739: Type '{ user: any; }' is missing the following properties from type 'DiscoverCardProps': onLike, onDislike, onSuperLike, onViewProfile
+src/views/DiscoverView.tsx(68,21): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/DiscoverView.tsx(72,10): error TS2739: Type '{ match: Match; onClose: () => void; }' is missing the following properties from type 'MatchModalProps': isOpen, onSendMessage, onKeepDiscovering
+src/views/HomeView.tsx(83,31): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/HomeView.tsx(106,31): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/HomeView.tsx(129,49): error TS2339: Property 'name' does not exist on type 'Conversation'.
+src/views/HomeView.tsx(138,29): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/HomeView.tsx(160,31): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/MatchesView.tsx(24,21): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/MatchesView.tsx(28,10): error TS2739: Type '{ match: Match; onClose: () => void; }' is missing the following properties from type 'MatchModalProps': isOpen, onSendMessage, onKeepDiscovering
+src/views/MessagesView.tsx(27,15): error TS2322: Type '(id: string) => void' is not assignable to type '(conversation: Conversation) => void'.
+  Types of parameters 'id' and 'conversation' are incompatible.
+    Type 'Conversation' is not assignable to type 'string'.
+src/views/MessagesView.tsx(31,27): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/MessagesView.tsx(40,17): error TS2322: Type '{ conversation: Conversation; onBack: () => void; }' is not assignable to type 'IntrinsicAttributes & ChatHeaderProps'.
+  Property 'conversation' does not exist on type 'IntrinsicAttributes & ChatHeaderProps'.
+src/views/MessagesView.tsx(43,16): error TS2741: Property 'currentUserId' is missing in type '{ messages: Message[]; }' but required in type 'MessageListProps'.
+src/views/MessagesView.tsx(44,29): error TS2322: Type '(conversationId: string, content: string, type?: MessageType | undefined) => Promise<void>' is not assignable to type '(content: string) => void'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/views/MessagesView.tsx(48,27): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/NotificationsView.tsx(27,61): error TS2322: Type '{ notifications: Notification[]; onRead: (id: string) => Promise<void>; }' is not assignable to type 'IntrinsicAttributes & NotificationListProps'.
+  Property 'onRead' does not exist on type 'IntrinsicAttributes & NotificationListProps'.
+src/views/NotificationsView.tsx(30,27): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/ProfileView.tsx(39,40): error TS2322: Type 'string' is not assignable to type 'Interest'.
+src/views/SearchView.tsx(90,31): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.
+src/views/SearchView.tsx(94,27): error TS2322: Type '{ message: string; }' is not assignable to type 'IntrinsicAttributes & EmptyStateProps'.
+  Property 'message' does not exist on type 'IntrinsicAttributes & EmptyStateProps'.

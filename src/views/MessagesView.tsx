@@ -1,0 +1,60 @@
+import React, { useState } from 'react';
+import { ConversationList, ChatHeader, MessageList, MessageInput } from '../components/messaging';
+import { EmptyState, Loading } from '../components/common';
+import { useChat } from '../hooks/useChat';
+import { useAuth } from '../hooks/useAuth';
+
+const MessagesView = () => {
+  const { conversations, activeConversation, messages, isLoading, selectConversation, sendMessage } = useChat();
+  const { user } = useAuth();
+  const [showList, setShowList] = useState(true);
+
+  if (isLoading) return <Loading text="Đang tải tin nhắn..." />;
+
+  const handleSelectConversation = (conversation: any) => {
+    selectConversation(conversation.id);
+    if (window.innerWidth < 768) {
+      setShowList(false);
+    }
+  };
+
+  return (
+    <div className="messages-layout h-100 fade-in hc-card overflow-hidden">
+      <div className="row g-0 h-100">
+        <div className={`col-md-4 border-end h-100 d-flex flex-column ${!showList ? 'd-none d-md-flex' : ''}`}>
+          {conversations && conversations.length > 0 ? (
+            <ConversationList 
+              conversations={conversations} 
+              activeId={activeConversation?.id} 
+              onSelect={handleSelectConversation} 
+              currentUserId={user?.id || ''}
+            />
+          ) : (
+            <div className="p-4 flex-grow-1 d-flex align-items-center justify-content-center">
+              <EmptyState icon="bi bi-chat" title="No conversations yet 💬" description="" />
+            </div>
+          )}
+        </div>
+
+        <div className={`col-md-8 h-100 d-flex flex-column ${showList ? 'd-none d-md-flex' : ''}`}>
+          {activeConversation ? (
+            <>
+              <ChatHeader 
+                user={activeConversation.participants?.find((p: any) => p.id !== user?.id) || activeConversation.participants?.[0] || user!} 
+                onBack={() => setShowList(true)} 
+              />
+              <MessageList messages={messages} currentUserId={user?.id || ''} />
+              <MessageInput onSend={(content) => sendMessage(activeConversation.id, content)} />
+            </>
+          ) : (
+            <div className="flex-grow-1 d-flex align-items-center justify-content-center">
+              <EmptyState icon="bi bi-chat-dots" title="Chọn một cuộc trò chuyện để bắt đầu" description="" />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MessagesView;

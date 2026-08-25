@@ -1,0 +1,11 @@
+export { default as LoginView } from './auth/LoginView';
+export { default as RegisterView } from './auth/RegisterView';
+export { default as ForgotPasswordView } from './auth/ForgotPasswordView';
+export { default as HomeView } from './HomeView';
+export { default as DiscoverView } from './DiscoverView';
+export { default as SearchView } from './SearchView';
+export { default as MatchesView } from './MatchesView';
+export { default as MessagesView } from './MessagesView';
+export { default as ProfileView } from './ProfileView';
+export { default as NotificationsView } from './NotificationsView';
+export { default as SettingsView } from './SettingsView';
