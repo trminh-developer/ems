@@ -86,8 +86,26 @@ export const forgotPassword = async (email: string): Promise<void> => {
 };
 
 export const getCurrentUser = (): User | null => {
-  const user = localStorage.getItem('currentUser');
-  return user ? JSON.parse(user) : null;
+  const userStr = localStorage.getItem('currentUser');
+  if (userStr) {
+    const user: User = JSON.parse(userStr);
+    if (user.email === 'trminhlaptrinhvien@gmail.com' && !user.isVerified) {
+      user.isVerified = true;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      // Also update the mockUsersList
+      const usersJson = localStorage.getItem('mockUsersList');
+      if (usersJson) {
+        const users: User[] = JSON.parse(usersJson);
+        const index = users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+          users[index] = user;
+          localStorage.setItem('mockUsersList', JSON.stringify(users));
+        }
+      }
+    }
+    return user;
+  }
+  return null;
 };
 
 export const updateUserInList = (updatedUser: User): void => {

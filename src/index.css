@@ -73,6 +73,36 @@
   --hc-mobile-nav-height: 64px;
 }
 
+[data-bs-theme="dark"] {
+  --hc-body-bg: #121212;
+  --hc-card-bg: #1e1e1e;
+  --hc-border: #333333;
+  --hc-text: #e0e0e0;
+  --hc-text-secondary: #aaaaaa;
+  --hc-text-muted: #777777;
+  --hc-sidebar-bg: #1a1a1a;
+  --hc-sidebar-text: #888888;
+  --hc-sidebar-active: #ffffff;
+}
+
+/* Override hardcoded Bootstrap utilities for Dark Mode */
+[data-bs-theme="dark"] .bg-white, 
+[data-bs-theme="dark"] .bg-light {
+  background-color: var(--hc-card-bg) !important;
+}
+
+[data-bs-theme="dark"] .text-dark {
+  color: var(--hc-text) !important;
+}
+
+[data-bs-theme="dark"] .border,
+[data-bs-theme="dark"] .border-top,
+[data-bs-theme="dark"] .border-bottom,
+[data-bs-theme="dark"] .border-start,
+[data-bs-theme="dark"] .border-end {
+  border-color: var(--hc-border) !important;
+}
+
 /* ===================================================
    Base Reset & Typography
    =================================================== */
