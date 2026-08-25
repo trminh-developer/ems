@@ -1,76 +1,67 @@
 import { User, Gender, RelationshipGoal } from '../models';
-import { currentUser, users as mockUsers } from '../data';
-
-// Helper to get users list from local storage
-const getUsersList = (): User[] => {
-  const usersJson = localStorage.getItem('mockUsersList');
-  if (usersJson) {
-    return JSON.parse(usersJson);
-  }
-  // Initialize with the hardcoded mock users
-  localStorage.setItem('mockUsersList', JSON.stringify(mockUsers));
-  return mockUsers;
-};
-
-// Helper to save users list
-const saveUsersList = (users: User[]) => {
-  localStorage.setItem('mockUsersList', JSON.stringify(users));
-};
+import { supabase } from '../config/supabase';
 
 export const login = async (email: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const users = getUsersList();
-      const user = users.find(u => u.email === email);
-      if (user) {
-        // Auto-verify admin account
-        if (user.email === 'trminhlaptrinhvien@gmail.com' && !user.isVerified) {
-          user.isVerified = true;
-          saveUsersList(users);
-        }
-        resolve(user);
-      } else {
-        reject(new Error('Tài khoản chưa được đăng ký! Vui lòng đăng ký tài khoản.'));
-      }
-    }, 400);
-  });
+  // Query from real database
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
+
+  if (error || !data) {
+    throw new Error('Tài khoản chưa được đăng ký! Vui lòng đăng ký tài khoản.');
+  }
+
+  // Auto-verify admin account logic
+  if (data.email === 'trminhlaptrinhvien@gmail.com' && !data.is_verified) {
+    await supabase.from('users').update({ is_verified: true }).eq('id', data.id);
+    data.is_verified = true;
+  }
+
+  return mapDatabaseUserToModel(data);
 };
 
 export const register = async (data: any): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const users = getUsersList();
-      const userExists = users.some(u => u.email === data.email);
-      
-      if (userExists) {
-        reject(new Error('Email này đã được sử dụng! Vui lòng đăng nhập.'));
-      } else {
-        const newUser: User = {
-          id: 'user_' + new Date().getTime(),
-          username: data.email.split('@')[0],
-          email: data.email,
-          firstName: data.firstName || 'Người dùng',
-          lastName: data.lastName || 'Mới',
-          avatar: `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 90)}.jpg`,
-          coverPhoto: '',
-          gender: Gender.OTHER,
-          dateOfBirth: '2000-01-01',
-          location: { city: 'Hà Nội', country: 'Việt Nam' },
-          bio: 'Thành viên mới',
-          interests: [],
-          photos: [],
-          relationshipGoal: RelationshipGoal.NOT_SURE,
-          isOnline: true,
-          lastActive: new Date().toISOString(),
-          isVerified: data.email === 'trminhlaptrinhvien@gmail.com',
-        };
-        
-        users.push(newUser);
-        saveUsersList(users);
-        resolve(newUser);
-      }
-    }, 400);
-  });
+  // Check if exists
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', data.email)
+    .single();
+
+  if (existingUser) {
+    throw new Error('Email này đã được sử dụng! Vui lòng đăng nhập.');
+  }
+
+  // Create new user in DB
+  const newUser = {
+    email: data.email,
+    username: data.email.split('@')[0],
+    first_name: data.firstName || 'Người dùng',
+    last_name: data.lastName || 'Mới',
+    avatar: `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 90)}.jpg`,
+    gender: 'OTHER',
+    date_of_birth: '2000-01-01',
+    city: 'Hà Nội',
+    country: 'Việt Nam',
+    bio: 'Thành viên mới',
+    relationship_goal: 'NOT_SURE',
+    is_online: true,
+    is_verified: data.email === 'trminhlaptrinhvien@gmail.com'
+  };
+
+  const { data: createdUser, error } = await supabase
+    .from('users')
+    .insert([newUser])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error('Lỗi khi đăng ký tài khoản: ' + error.message);
+  }
+
+  return mapDatabaseUserToModel(createdUser);
 };
 
 export const logout = async (): Promise<void> => {
@@ -85,42 +76,74 @@ export const forgotPassword = async (email: string): Promise<void> => {
   });
 };
 
+// Vẫn giữ lại local/session storage cho session hiện tại trên thiết bị
 export const getCurrentUser = (): User | null => {
   const sessionUser = sessionStorage.getItem('currentUser');
   const localUser = localStorage.getItem('currentUser');
   const userStr = sessionUser || localUser;
   
   if (userStr) {
-    const user: User = JSON.parse(userStr);
-    if (user.email === 'trminhlaptrinhvien@gmail.com' && !user.isVerified) {
-      user.isVerified = true;
-      if (sessionUser) {
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
-      } else {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-      }
-      
-      // Also update the mockUsersList
-      const usersJson = localStorage.getItem('mockUsersList');
-      if (usersJson) {
-        const users: User[] = JSON.parse(usersJson);
-        const index = users.findIndex(u => u.id === user.id);
-        if (index !== -1) {
-          users[index] = user;
-          localStorage.setItem('mockUsersList', JSON.stringify(users));
-        }
-      }
-    }
-    return user;
+    return JSON.parse(userStr);
   }
   return null;
 };
 
-export const updateUserInList = (updatedUser: User): void => {
-  const users = getUsersList();
-  const index = users.findIndex(u => u.id === updatedUser.id);
-  if (index !== -1) {
-    users[index] = updatedUser;
-    saveUsersList(users);
+export const updateUserInList = async (updatedUser: User): Promise<void> => {
+  // Update in real database
+  const { error } = await supabase
+    .from('users')
+    .update({
+      first_name: updatedUser.firstName,
+      last_name: updatedUser.lastName,
+      avatar: updatedUser.avatar,
+      cover_photo: updatedUser.coverPhoto,
+      gender: updatedUser.gender,
+      date_of_birth: updatedUser.dateOfBirth,
+      city: updatedUser.location.city,
+      country: updatedUser.location.country,
+      latitude: updatedUser.location.latitude,
+      longitude: updatedUser.location.longitude,
+      bio: updatedUser.bio,
+      profession: updatedUser.profession,
+      education: updatedUser.education,
+      photos: updatedUser.photos,
+      relationship_goal: updatedUser.relationshipGoal,
+      is_online: updatedUser.isOnline,
+      is_verified: updatedUser.isVerified
+    })
+    .eq('id', updatedUser.id);
+    
+  if (error) {
+    console.error('Failed to update user in DB', error);
   }
+};
+
+// Helper function to map snake_case DB fields to camelCase TS models
+const mapDatabaseUserToModel = (dbUser: any): User => {
+  return {
+    id: dbUser.id,
+    username: dbUser.username,
+    email: dbUser.email,
+    firstName: dbUser.first_name,
+    lastName: dbUser.last_name,
+    avatar: dbUser.avatar,
+    coverPhoto: dbUser.cover_photo,
+    gender: dbUser.gender as Gender,
+    dateOfBirth: dbUser.date_of_birth,
+    location: {
+      city: dbUser.city,
+      country: dbUser.country,
+      latitude: dbUser.latitude,
+      longitude: dbUser.longitude
+    },
+    bio: dbUser.bio,
+    profession: dbUser.profession,
+    education: dbUser.education,
+    photos: dbUser.photos || [],
+    interests: [], // We'd need to fetch these from user_interests table if needed
+    relationshipGoal: dbUser.relationship_goal as RelationshipGoal,
+    isOnline: dbUser.is_online,
+    lastActive: dbUser.last_active,
+    isVerified: dbUser.is_verified
+  };
 };
