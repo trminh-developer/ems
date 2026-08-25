@@ -22,7 +22,6 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
         
         <h5 className="mb-1 fw-bold">
           {user.firstName} {user.lastName}, {age}
-          {user.isVerified && <i className="bi bi-patch-check-fill text-primary ms-1" style={{ fontSize: '0.9rem' }}></i>}
         </h5>
         
         <p className="text-muted small mb-2 d-flex align-items-center gap-1">
