@@ -18,19 +18,30 @@ export const seedDatabase = async () => {
     const { error: interestError } = await supabase.from('interests').upsert(interestsData);
     if (interestError) throw interestError;
 
-    // 2. Map old string IDs to new valid UUIDs for Users
+    // 2. Fetch existing users from DB to map by email
+    const { data: existingDbUsers, error: fetchError } = await supabase.from('users').select('id, email');
+    if (fetchError) throw fetchError;
+
+    const emailToDbId = new Map<string, string>();
+    existingDbUsers?.forEach(u => emailToDbId.set(u.email, u.id));
+
+    // 3. Map old string IDs to valid UUIDs
     const idMap = new Map<string, string>();
-    const getUUID = (oldId: string) => {
+    const getUUID = (oldId: string, email: string) => {
+      // If email exists in DB, use that exact UUID to prevent UNIQUE constraint violation!
+      if (emailToDbId.has(email)) {
+        return emailToDbId.get(email)!;
+      }
+      // Otherwise, generate a new one
       if (!idMap.has(oldId)) {
         idMap.set(oldId, crypto.randomUUID());
       }
       return idMap.get(oldId)!;
     };
 
-    // 3. Seed Users
+    // 4. Seed Users
     console.log('Seeding users...');
     
-    // Đọc từ localStorage để giữ lại các tài khoản mà user đã đăng ký
     let usersToSeed = users;
     const localUsersStr = localStorage.getItem('mockUsersList');
     if (localUsersStr) {
@@ -46,7 +57,7 @@ export const seedDatabase = async () => {
     }
 
     const usersData = usersToSeed.map(u => ({
-      id: getUUID(u.id),
+      id: getUUID(u.id, u.email),
       email: u.email,
       username: u.username,
       first_name: u.firstName || u.lastName || 'User',
@@ -72,14 +83,14 @@ export const seedDatabase = async () => {
     const { error: usersError } = await supabase.from('users').upsert(usersData);
     if (usersError) throw usersError;
 
-    // 4. Seed User Interests (Many-to-Many)
+    // 5. Seed User Interests (Many-to-Many)
     console.log('Seeding user interests...');
     const userInterestsData: any[] = [];
     usersToSeed.forEach(u => {
       if (u.interests) {
         u.interests.forEach(i => {
           userInterestsData.push({
-            user_id: getUUID(u.id),
+            user_id: getUUID(u.id, u.email),
             interest_id: i.id
           });
         });
