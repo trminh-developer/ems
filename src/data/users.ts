@@ -36,6 +36,41 @@ export const currentUser: Profile = {
 };
 
 export const users: User[] = [
+  {
+    id: 'user_admin',
+    username: 'trminh',
+    email: 'trminhlaptrinhvien@gmail.com',
+    firstName: 'Trần',
+    lastName: 'Minh',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
+    coverPhoto: 'https://picsum.photos/800/400?admin',
+    gender: Gender.MALE,
+    dateOfBirth: '1995-01-01',
+    location: {
+      city: 'Hà Nội',
+      country: 'Việt Nam',
+      latitude: 21.0285,
+      longitude: 105.8542
+    },
+    bio: 'Software Engineer & Admin của ứng dụng này. Thích viết code và khám phá công nghệ mới!',
+    profession: 'Software Engineer',
+    education: 'Đại học Bách Khoa',
+    photos: [
+      'https://picsum.photos/400/400?a1',
+      'https://picsum.photos/400/400?a2'
+    ],
+    interests: [],
+    relationshipGoal: RelationshipGoal.LONG_TERM,
+    isOnline: true,
+    lastActive: new Date().toISOString(),
+    isVerified: true,
+    datingPreference: {
+      preferredGender: [Gender.FEMALE],
+      ageRange: { min: 18, max: 30 },
+      maxDistance: 100,
+      relationshipGoal: RelationshipGoal.LONG_TERM
+    }
+  },
   currentUser,
   {
     id: 'u1',
