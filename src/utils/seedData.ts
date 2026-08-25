@@ -29,27 +29,43 @@ export const seedDatabase = async () => {
 
     // 3. Seed Users
     console.log('Seeding users...');
-    const usersData = users.map(u => ({
+    
+    // Đọc từ localStorage để giữ lại các tài khoản mà user đã đăng ký
+    let usersToSeed = users;
+    const localUsersStr = localStorage.getItem('mockUsersList');
+    if (localUsersStr) {
+      try {
+        const localUsers = JSON.parse(localUsersStr);
+        if (Array.isArray(localUsers) && localUsers.length > 0) {
+          usersToSeed = localUsers;
+          console.log('Đã tìm thấy tài khoản trong máy, tiến hành đẩy tài khoản này lên Supabase!');
+        }
+      } catch (e) {
+        console.warn('Không thể đọc dữ liệu từ máy:', e);
+      }
+    }
+
+    const usersData = usersToSeed.map(u => ({
       id: getUUID(u.id),
       email: u.email,
       username: u.username,
-      first_name: u.firstName,
-      last_name: u.lastName,
-      avatar: u.avatar,
+      first_name: u.firstName || u.lastName || 'User',
+      last_name: u.lastName || '',
+      avatar: u.avatar || '',
       cover_photo: u.coverPhoto || null,
-      gender: u.gender,
-      date_of_birth: u.dateOfBirth,
-      city: u.location.city,
-      country: u.location.country,
-      latitude: u.location.latitude || null,
-      longitude: u.location.longitude || null,
-      bio: u.bio,
+      gender: u.gender || 'OTHER',
+      date_of_birth: u.dateOfBirth || '2000-01-01',
+      city: u.location?.city || '',
+      country: u.location?.country || '',
+      latitude: u.location?.latitude || null,
+      longitude: u.location?.longitude || null,
+      bio: u.bio || '',
       profession: u.profession || null,
       education: u.education || null,
       photos: u.photos || [],
-      relationship_goal: u.relationshipGoal,
-      is_online: u.isOnline,
-      last_active: u.lastActive,
+      relationship_goal: u.relationshipGoal || 'NOT_SURE',
+      is_online: (u as any).is_online !== undefined ? (u as any).is_online : (u.isOnline || false),
+      last_active: u.lastActive || new Date().toISOString(),
       is_verified: u.isVerified || false
     }));
 
@@ -59,7 +75,7 @@ export const seedDatabase = async () => {
     // 4. Seed User Interests (Many-to-Many)
     console.log('Seeding user interests...');
     const userInterestsData: any[] = [];
-    users.forEach(u => {
+    usersToSeed.forEach(u => {
       if (u.interests) {
         u.interests.forEach(i => {
           userInterestsData.push({
