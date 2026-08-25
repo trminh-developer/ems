@@ -38,7 +38,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 };
 
 export interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
@@ -61,11 +61,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe: boolean = false) => {
     dispatch({ type: 'LOGIN_START' });
     try {
       const user = await authService.login(email, password);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      if (rememberMe) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      } else {
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+      }
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
@@ -77,7 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'LOGIN_START' });
     try {
       const user = await authService.register(data);
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem('currentUser', JSON.stringify(user)); // Default to local for register
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
@@ -88,11 +92,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     await authService.logout();
     localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
     dispatch({ type: 'LOGOUT' });
   };
 
   const updateUser = (user: User) => {
-    localStorage.setItem('currentUser', JSON.stringify(user));
+    if (sessionStorage.getItem('currentUser')) {
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
     authService.updateUserInList(user);
     dispatch({ type: 'UPDATE_USER', payload: user });
   };

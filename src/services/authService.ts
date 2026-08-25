@@ -86,12 +86,20 @@ export const forgotPassword = async (email: string): Promise<void> => {
 };
 
 export const getCurrentUser = (): User | null => {
-  const userStr = localStorage.getItem('currentUser');
+  const sessionUser = sessionStorage.getItem('currentUser');
+  const localUser = localStorage.getItem('currentUser');
+  const userStr = sessionUser || localUser;
+  
   if (userStr) {
     const user: User = JSON.parse(userStr);
     if (user.email === 'trminhlaptrinhvien@gmail.com' && !user.isVerified) {
       user.isVerified = true;
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      if (sessionUser) {
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+      } else {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      }
+      
       // Also update the mockUsersList
       const usersJson = localStorage.getItem('mockUsersList');
       if (usersJson) {
