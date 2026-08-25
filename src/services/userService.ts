@@ -27,7 +27,29 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 
 export const getRecommendedUsers = async (): Promise<User[]> => {
   return new Promise((resolve) => {
-    setTimeout(() => resolve(users), 500);
+    setTimeout(() => {
+      // Lấy user hiện tại từ local storage để lọc sở thích
+      const currentUserStr = localStorage.getItem('currentUser');
+      if (currentUserStr) {
+        const currentUser = JSON.parse(currentUserStr);
+        const preferredGenders = currentUser.datingPreference?.preferredGender || [];
+        
+        let recommended = users.filter((u: User) => {
+          // Bỏ qua chính mình
+          if (u.id === currentUser.id) return false;
+          
+          // Lọc theo giới tính mong muốn (nếu có set)
+          if (preferredGenders.length > 0 && !preferredGenders.includes(u.gender)) {
+            return false;
+          }
+          
+          return true;
+        });
+        resolve(recommended);
+      } else {
+        resolve(users);
+      }
+    }, 500);
   });
 };
 
