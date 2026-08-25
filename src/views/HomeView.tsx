@@ -3,26 +3,42 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMatches } from '../hooks/useMatches';
 import { useChat } from '../hooks/useChat';
+import { userService } from '../services';
+import { User } from '../models';
 import { UserCard } from '../components/user';
 import { MatchCard } from '../components/dating';
-import { Loading, EmptyState } from '../components/common';
+import { Loading, EmptyState, Avatar } from '../components/common';
 
 const HomeView = () => {
   const { user } = useAuth();
-  const { matches, isLoading: matchesLoading } = useMatches();
-  const { conversations, isLoading: chatLoading } = useChat();
-  const [recommendedUsers, setRecommendedUsers] = useState<any[]>([]);
-  const [nearbyUsers, setNearbyUsers] = useState<any[]>([]);
+  const { matches, isLoading: matchesLoading, loadMatches } = useMatches();
+  const { conversations, isLoading: chatLoading, loadConversations } = useChat();
+  const [recommendedUsers, setRecommendedUsers] = useState<User[]>([]);
+  const [nearbyUsers, setNearbyUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Mock data loading
-    setTimeout(() => {
-      setRecommendedUsers([{ id: '1', name: 'Alice', age: 24 }, { id: '2', name: 'Bob', age: 26 }, { id: '3', name: 'Charlie', age: 23 }, { id: '4', name: 'Diana', age: 25 }]);
-      setNearbyUsers([{ id: '5', name: 'Eve', age: 22 }, { id: '6', name: 'Frank', age: 28 }, { id: '7', name: 'Grace', age: 24 }]);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    const loadData = async () => {
+      try {
+        const [recUsers, nearUsers] = await Promise.all([
+          userService.getRecommendedUsers(),
+          userService.getNearbyUsers()
+        ]);
+        setRecommendedUsers(recUsers);
+        setNearbyUsers(nearUsers);
+        
+        // Also ensure contexts are loaded
+        if (matches.length === 0) loadMatches();
+        if (conversations.length === 0) loadConversations();
+      } catch (error) {
+        console.error("Error loading home data", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [loadMatches, loadConversations]); // matches.length and conversations.length omitted to prevent infinite loops, they load once.
 
   if (isLoading || matchesLoading || chatLoading) {
     return <Loading text="Đang tải..." />;
@@ -123,7 +139,11 @@ const HomeView = () => {
                   {conversations.slice(0, 3).map(c => (
                     <li key={c.id} className="list-group-item d-flex align-items-center border-0 px-0">
                       <div className="me-3">
-                        <img src="https://via.placeholder.com/50" className="rounded-circle" alt="avatar" />
+                        <Avatar 
+                          src={c.participants?.find((p: any) => p.id !== user?.id)?.avatar || ''} 
+                          alt={c.participants?.find((p: any) => p.id !== user?.id)?.firstName || 'User'} 
+                          size="md" 
+                        />
                       </div>
                       <div className="flex-grow-1">
                         <h6 className="mb-0">{c.participants?.find((p: any) => p.id !== user?.id)?.firstName || 'User'}</h6>
@@ -150,10 +170,10 @@ const HomeView = () => {
               <div className="row">
                 {nearbyUsers.length > 0 ? (
                   nearbyUsers.map(u => (
-                    <div key={u.id} className="col-4 text-center">
-                      <img src="https://via.placeholder.com/60" className="rounded-circle mb-2" alt="avatar" />
-                      <h6 className="mb-0 text-truncate">{u.name}</h6>
-                      <small className="text-muted">{u.distance || '2 km'}</small>
+                    <div key={u.id} className="col-4 text-center cursor-pointer">
+                      <Avatar src={u.avatar || ''} alt={u.firstName} size="md" isOnline={u.isOnline} className="mb-2" />
+                      <h6 className="mb-0 text-truncate">{u.firstName}</h6>
+                      <small className="text-muted">Gần đây</small>
                     </div>
                   ))
                 ) : (

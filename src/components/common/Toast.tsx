@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 
 interface ToastProps {
+  show?: boolean;
   message: string;
   type?: 'success' | 'error' | 'warning' | 'info';
   onClose: () => void;
@@ -8,19 +9,22 @@ interface ToastProps {
 }
 
 const Toast: React.FC<ToastProps> = ({ 
+  show = true,
   message, 
   type = 'info', 
   onClose,
   duration = 3000 
 }) => {
   useEffect(() => {
-    if (duration > 0) {
+    if (show && duration > 0) {
       const timer = setTimeout(() => {
         onClose();
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [show, duration, onClose]);
+
+  if (!show) return null;
 
   const borderClass = {
     success: 'border-success',

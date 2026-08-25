@@ -17,16 +17,31 @@ const NotificationsView = lazy(() => import('../views/NotificationsView'));
 const SettingsView = lazy(() => import('../views/SettingsView'));
 
 const ProtectedRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <Loading text="Đang tải..." />;
+  }
+  
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <Loading text="Đang tải..." />;
+  }
+  
+  return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
 const AppRoutes = () => (
   <Suspense fallback={<Loading text="Đang tải..." />}>
     <Routes>
-      <Route path="/login" element={<LoginView />} />
-      <Route path="/register" element={<RegisterView />} />
-      <Route path="/forgot-password" element={<ForgotPasswordView />} />
+      <Route path="/login" element={<AuthRoute><LoginView /></AuthRoute>} />
+      <Route path="/register" element={<AuthRoute><RegisterView /></AuthRoute>} />
+      <Route path="/forgot-password" element={<AuthRoute><ForgotPasswordView /></AuthRoute>} />
       
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>

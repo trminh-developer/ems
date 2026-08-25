@@ -32,6 +32,16 @@ const RegisterView = () => {
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
+      // Reset form data when error occurs (e.g., user already registered)
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        gender: 'male',
+        dateOfBirth: ''
+      });
     }
   };
 

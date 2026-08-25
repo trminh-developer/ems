@@ -1,24 +1,50 @@
 import React, { useState } from 'react';
 import { UserCard } from '../components/user';
 import { Input, Button, EmptyState, Loading } from '../components/common';
+import { userService } from '../services';
+import { User } from '../models';
+import { calculateAge } from '../utils/helpers';
 
 const SearchView = () => {
   const [query, setQuery] = useState('');
   const [gender, setGender] = useState('all');
   const [ageMin, setAgeMin] = useState(18);
   const [ageMax, setAgeMax] = useState(60);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
     setHasSearched(true);
-    setTimeout(() => {
-      setResults([{ id: '1', name: 'Alice', age: 24 }]);
+    try {
+      // Get all users and filter locally for robust searching
+      let allUsers = await userService.getUsers();
+      
+      const q = query.toLowerCase().trim();
+      const filtered = allUsers.filter(u => {
+        // Query match
+        const matchName = u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q);
+        const matchBio = u.bio?.toLowerCase().includes(q);
+        const matchQuery = q ? (matchName || matchBio) : true;
+        
+        // Gender match
+        const matchGender = gender === 'all' || u.gender === gender;
+        
+        // Age match
+        const age = calculateAge(u.dateOfBirth);
+        const matchAge = age >= ageMin && age <= ageMax;
+        
+        return matchQuery && matchGender && matchAge;
+      });
+      
+      setResults(filtered);
+    } catch (error) {
+      console.error(error);
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
   const handleClear = () => {

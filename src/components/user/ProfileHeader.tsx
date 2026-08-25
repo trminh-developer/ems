@@ -29,7 +29,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
       
       <div className="px-4 pb-4 position-relative">
         <div className="profile-avatar-wrapper position-absolute bg-white p-1 rounded-circle shadow-sm" style={{ top: '-60px', left: '20px' }}>
-          <Avatar src={user.avatar || ''} alt={user.firstName} size="xl" style={{ width: '120px', height: '120px' }} />
+          <Avatar src={user.avatar || ''} alt={user.firstName} size="xl" />
         </div>
         
         <div className="d-flex justify-content-end pt-3 pb-2 gap-2">

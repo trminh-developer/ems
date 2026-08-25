@@ -2,22 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { DiscoverCard, MatchModal } from '../components/dating';
 import { Button, Loading, EmptyState } from '../components/common';
 import { useMatches } from '../hooks/useMatches';
+import { userService } from '../services';
+import { User } from '../models';
 
 const DiscoverView = () => {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { likeUser, dislikeUser, superLikeUser, showMatchModal, newMatch, closeMatchModal } = useMatches();
 
   useEffect(() => {
-    setTimeout(() => {
-      setUsers([
-        { id: '1', name: 'Alice', age: 24, bio: 'Love hiking and reading.', photos: ['https://via.placeholder.com/300x400'] },
-        { id: '2', name: 'Bob', age: 26, bio: 'Tech enthusiast.', photos: ['https://via.placeholder.com/300x400'] },
-        { id: '3', name: 'Charlie', age: 23, bio: 'Coffee lover.', photos: ['https://via.placeholder.com/300x400'] }
-      ]);
-      setIsLoading(false);
-    }, 1000);
+    const fetchUsers = async () => {
+      try {
+        const recommended = await userService.getRecommendedUsers();
+        setUsers(recommended);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUsers();
   }, []);
 
   const handleNext = () => {
@@ -25,20 +30,23 @@ const DiscoverView = () => {
   };
 
   const handleLike = async () => {
-    if (currentIndex >= users.length) return;
-    await likeUser(users[currentIndex].id);
+    const user = users[currentIndex];
+    if (!user) return;
+    await likeUser(user.id);
     handleNext();
   };
 
   const handleDislike = async () => {
-    if (currentIndex >= users.length) return;
-    await dislikeUser(users[currentIndex].id);
+    const user = users[currentIndex];
+    if (!user) return;
+    await dislikeUser(user.id);
     handleNext();
   };
 
   const handleSuperLike = async () => {
-    if (currentIndex >= users.length) return;
-    await superLikeUser(users[currentIndex].id);
+    const user = users[currentIndex];
+    if (!user) return;
+    await superLikeUser(user.id);
     handleNext();
   };
 

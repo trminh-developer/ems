@@ -600,15 +600,19 @@ a:hover {
   display: inline-block;
 }
 
-.user-avatar img {
+img.user-avatar {
   border-radius: var(--hc-radius-circle);
   object-fit: cover;
 }
 
-.user-avatar-sm img { width: 32px; height: 32px; }
-.user-avatar-md img { width: 48px; height: 48px; }
-.user-avatar-lg img { width: 64px; height: 64px; }
-.user-avatar-xl img { width: 96px; height: 96px; }
+div.user-avatar {
+  border-radius: var(--hc-radius-circle);
+}
+
+.user-avatar-sm { width: 32px; height: 32px; }
+.user-avatar-md { width: 48px; height: 48px; }
+.user-avatar-lg { width: 64px; height: 64px; }
+.user-avatar-xl { width: 120px; height: 120px; }
 
 .online-indicator {
   position: absolute;

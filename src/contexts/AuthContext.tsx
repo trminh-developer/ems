@@ -93,6 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUser = (user: User) => {
     localStorage.setItem('currentUser', JSON.stringify(user));
+    authService.updateUserInList(user);
     dispatch({ type: 'UPDATE_USER', payload: user });
   };
 
