@@ -10,6 +10,7 @@ const SearchView = () => {
   const [gender, setGender] = useState('all');
   const [ageMin, setAgeMin] = useState(18);
   const [ageMax, setAgeMax] = useState(60);
+  const [onlineStatus, setOnlineStatus] = useState('all');
   const [results, setResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -35,8 +36,15 @@ const SearchView = () => {
         // Age match
         const age = calculateAge(u.dateOfBirth);
         const matchAge = age >= ageMin && age <= ageMax;
+
+        // Online Status match (The "AI" filter)
+        const matchOnline = onlineStatus === 'all' 
+          ? true 
+          : onlineStatus === 'online' 
+            ? u.isOnline 
+            : !u.isOnline;
         
-        return matchQuery && matchGender && matchAge;
+        return matchQuery && matchGender && matchAge && matchOnline;
       });
       
       setResults(filtered);
@@ -52,6 +60,7 @@ const SearchView = () => {
     setGender('all');
     setAgeMin(18);
     setAgeMax(60);
+    setOnlineStatus('all');
     setResults([]);
     setHasSearched(false);
   };
@@ -76,6 +85,15 @@ const SearchView = () => {
                   <option value="all">Tất cả</option>
                   <option value="male">Nam</option>
                   <option value="female">Nữ</option>
+                </select>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Trạng thái (AI Lọc)</label>
+                <select className="form-select" value={onlineStatus} onChange={e => setOnlineStatus(e.target.value)}>
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="online">🟢 Đang Online</option>
+                  <option value="offline">⚪ Đang Offline</option>
                 </select>
               </div>
 
