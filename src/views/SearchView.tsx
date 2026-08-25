@@ -106,9 +106,25 @@ const SearchView = () => {
               <div className="mb-3">
                 <label className="form-label">Độ tuổi</label>
                 <div className="d-flex align-items-center gap-2">
-                  <Input type="number" value={ageMin.toString()} onChange={e => setAgeMin(Number(e.target.value))} min="18" />
+                  <Input 
+                    type="text" 
+                    value={ageMin.toString()} 
+                    onChange={e => {
+                      const val = parseInt(e.target.value.replace(/\D/g, ''));
+                      setAgeMin(isNaN(val) ? 0 : val);
+                    }} 
+                    placeholder="Min" 
+                  />
                   <span>-</span>
-                  <Input type="number" value={ageMax.toString()} onChange={e => setAgeMax(Number(e.target.value))} max="100" />
+                  <Input 
+                    type="text" 
+                    value={ageMax.toString()} 
+                    onChange={e => {
+                      const val = parseInt(e.target.value.replace(/\D/g, ''));
+                      setAgeMax(isNaN(val) ? 0 : val);
+                    }} 
+                    placeholder="Max" 
+                  />
                 </div>
               </div>
 
