@@ -24,7 +24,7 @@ export const login = async (email: string, password: string): Promise<User> => {
     data.is_verified = true;
   }
 
-  return mapDatabaseUserToModel(data);
+  return await fetchUserWithPrefs(data);
 };
 
 export const register = async (data: any): Promise<User> => {
@@ -67,7 +67,7 @@ export const register = async (data: any): Promise<User> => {
     throw new Error('Lỗi khi đăng ký tài khoản: ' + error.message);
   }
 
-  return mapDatabaseUserToModel(createdUser);
+  return await fetchUserWithPrefs(createdUser);
 };
 
 export const logout = async (): Promise<void> => {
@@ -149,24 +149,25 @@ export const refreshUser = async (userId: string): Promise<User | null> => {
     .single();
 
   if (error || !data) return null;
-  return mapDatabaseUserToModel(data);
+  return await fetchUserWithPrefs(data);
 };
 
 export const updateUserInList = async (updatedUser: User): Promise<void> => {
-  // Update in real database
+  // 1. Update bảng users
   const { error } = await supabase
     .from('users')
     .update({
+      username: updatedUser.username,
       first_name: updatedUser.firstName,
       last_name: updatedUser.lastName,
       avatar: updatedUser.avatar,
       cover_photo: updatedUser.coverPhoto,
       gender: updatedUser.gender,
       date_of_birth: updatedUser.dateOfBirth,
-      city: updatedUser.location.city,
-      country: updatedUser.location.country,
-      latitude: updatedUser.location.latitude,
-      longitude: updatedUser.location.longitude,
+      city: updatedUser.location?.city,
+      country: updatedUser.location?.country,
+      latitude: updatedUser.location?.latitude,
+      longitude: updatedUser.location?.longitude,
       bio: updatedUser.bio,
       profession: updatedUser.profession,
       education: updatedUser.education,
@@ -180,10 +181,27 @@ export const updateUserInList = async (updatedUser: User): Promise<void> => {
   if (error) {
     console.error('Failed to update user in DB', error);
   }
+
+  // 2. Đồng bộ dating preferences vào bảng user_preferences
+  if (updatedUser.datingPreference) {
+    const { error: prefError } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: updatedUser.id,
+        preferred_gender: updatedUser.datingPreference.preferredGender || [],
+        age_min: updatedUser.datingPreference.ageRange?.min || 18,
+        age_max: updatedUser.datingPreference.ageRange?.max || 99,
+        max_distance: updatedUser.datingPreference.maxDistance || 50
+      });
+
+    if (prefError) {
+      console.error('Failed to update preferences in DB', prefError);
+    }
+  }
 };
 
 // Helper function to map snake_case DB fields to camelCase TS models
-const mapDatabaseUserToModel = (dbUser: any): User => {
+const mapDatabaseUserToModel = (dbUser: any, dbPrefs?: any): User => {
   return {
     id: dbUser.id,
     username: dbUser.username,
@@ -204,10 +222,33 @@ const mapDatabaseUserToModel = (dbUser: any): User => {
     profession: dbUser.profession,
     education: dbUser.education,
     photos: dbUser.photos || [],
-    interests: [], // We'd need to fetch these from user_interests table if needed
+    interests: [],
     relationshipGoal: dbUser.relationship_goal as RelationshipGoal,
     isOnline: dbUser.is_online,
     lastActive: dbUser.last_active,
-    isVerified: dbUser.is_verified
+    isVerified: dbUser.is_verified,
+    datingPreference: dbPrefs ? {
+      preferredGender: dbPrefs.preferred_gender || [],
+      ageRange: {
+        min: dbPrefs.age_min || 18,
+        max: dbPrefs.age_max || 99
+      },
+      maxDistance: dbPrefs.max_distance || 50,
+      relationshipGoal: dbUser.relationship_goal as RelationshipGoal
+    } : undefined
   };
+};
+
+// Helper: fetch user + preferences together
+const fetchUserWithPrefs = async (query: any): Promise<User> => {
+  const dbUser = query;
+  
+  // Fetch preferences
+  const { data: prefs } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', dbUser.id)
+    .single();
+
+  return mapDatabaseUserToModel(dbUser, prefs);
 };
