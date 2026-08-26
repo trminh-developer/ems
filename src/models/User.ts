@@ -29,4 +29,5 @@ export interface User {
   lastActive: string;
   isVerified?: boolean;
   datingPreference?: DatingPreference;
+  matchPercentage?: number;
 }

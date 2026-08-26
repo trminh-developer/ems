@@ -65,11 +65,24 @@ export const likeUser = async (userId: string): Promise<{ matched: boolean; matc
   const currentUser = getCurrentUser();
   if (!currentUser) return { matched: false };
 
-  // For this simple mock, any like has a 30% chance to match
-  const isMatch = Math.random() > 0.7;
+  // Lưu lượt thích vào bảng user_likes
+  await supabase.from('user_likes').upsert([{
+    user_id: currentUser.id,
+    target_id: userId,
+    is_super_like: false
+  }]);
+
+  // Kiểm tra xem đối phương đã like mình chưa (Reciprocal like)
+  const { data: theirLike } = await supabase
+    .from('user_likes')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('target_id', currentUser.id)
+    .single();
+
+  const isMatch = !!theirLike;
   
   if (isMatch) {
-    // Check if user exists
     const { data: matchedUserData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -78,27 +91,34 @@ export const likeUser = async (userId: string): Promise<{ matched: boolean; matc
       
     if (userError) return { matched: false };
     
+    // Random match percentage nếu chưa có
+    const matchPercentage = Math.floor(Math.random() * (99 - 70 + 1)) + 70;
+
     const newMatch = {
       user_id: currentUser.id,
       matched_user_id: userId,
-      match_percentage: Math.floor(Math.random() * 30) + 70, // 70-99%
+      match_percentage: matchPercentage,
       is_new: true
     };
     
-    const { data, error } = await supabase
-      .from('matches')
-      .insert([newMatch])
-      .select()
-      .single();
+    const { data, error } = await supabase.from('matches').insert([newMatch]).select().single();
       
     if (!error && data) {
-      // Create reciprocal match for the other user
       await supabase.from('matches').insert([{
         user_id: userId,
         matched_user_id: currentUser.id,
-        match_percentage: newMatch.match_percentage,
+        match_percentage: matchPercentage,
         is_new: true
       }]);
+      
+      // Tạo phòng chat mới
+      const { data: chatData } = await supabase.from('conversations').insert([{}]).select().single();
+      if (chatData) {
+        await supabase.from('conversation_participants').insert([
+          { conversation_id: chatData.id, user_id: currentUser.id },
+          { conversation_id: chatData.id, user_id: userId }
+        ]);
+      }
       
       return { 
         matched: true, 
@@ -108,6 +128,36 @@ export const likeUser = async (userId: string): Promise<{ matched: boolean; matc
   }
   
   return { matched: false };
+};
+
+export const getWhoLikedMe = async (): Promise<User[]> => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return [];
+  
+  const { data, error } = await supabase
+    .from('user_likes')
+    .select(`
+      users!user_likes_user_id_fkey (*)
+    `)
+    .eq('target_id', currentUser.id);
+    
+  if (error || !data) return [];
+  return data.map((item: any) => mapDatabaseUserToModel(item.users));
+};
+
+export const getWhoILiked = async (): Promise<User[]> => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return [];
+  
+  const { data, error } = await supabase
+    .from('user_likes')
+    .select(`
+      users!user_likes_target_id_fkey (*)
+    `)
+    .eq('user_id', currentUser.id);
+    
+  if (error || !data) return [];
+  return data.map((item: any) => mapDatabaseUserToModel(item.users));
 };
 
 export const dislikeUser = async (userId: string): Promise<void> => {

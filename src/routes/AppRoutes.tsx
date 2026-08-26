@@ -11,6 +11,7 @@ const HomeView = lazy(() => import('../views/HomeView'));
 const DiscoverView = lazy(() => import('../views/DiscoverView'));
 const SearchView = lazy(() => import('../views/SearchView'));
 const MatchesView = lazy(() => import('../views/MatchesView'));
+const LikesView = lazy(() => import('../views/LikesView'));
 const MessagesView = lazy(() => import('../views/MessagesView'));
 const ProfileView = lazy(() => import('../views/ProfileView'));
 const NotificationsView = lazy(() => import('../views/NotificationsView'));
@@ -50,6 +51,7 @@ const AppRoutes = () => (
           <Route path="/discover" element={<DiscoverView />} />
           <Route path="/search" element={<SearchView />} />
           <Route path="/matches" element={<MatchesView />} />
+          <Route path="/likes" element={<LikesView />} />
           <Route path="/messages" element={<MessagesView />} />
           <Route path="/feed" element={<FeedView />} />
           <Route path="/profile" element={<ProfileView />} />

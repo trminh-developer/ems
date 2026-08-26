@@ -48,6 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
             <i className="bi bi-heart fs-5"></i>
             <span className="fw-medium">Matches</span>
           </NavLink>
+          <NavLink to="/likes" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
+            <i className="bi bi-stars fs-5 text-warning"></i>
+            <span className="fw-medium">Lượt thích</span>
+          </NavLink>
           <NavLink to="/messages" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center justify-content-between px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <div className="d-flex align-items-center gap-3">
               <i className="bi bi-chat-dots fs-5"></i>

@@ -70,11 +70,18 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 export const getRecommendedUsers = async (): Promise<User[]> => {
   // Lấy user hiện tại từ local storage để lọc sở thích
   const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-  let query = supabase.from('users').select('*');
+  let query = supabase.from('users').select('*, user_interests(interest_id)');
+  
+  let currentUserInterests: string[] = [];
   
   if (currentUserStr) {
     const currentUser = JSON.parse(currentUserStr);
     const preferredGenders = currentUser.datingPreference?.preferredGender || [];
+    
+    // Thu thập interest IDs của user hiện tại
+    if (currentUser.interests) {
+      currentUserInterests = currentUser.interests.map((i: any) => i.id || i);
+    }
     
     // Bỏ qua chính mình
     query = query.neq('id', currentUser.id);
@@ -92,8 +99,27 @@ export const getRecommendedUsers = async (): Promise<User[]> => {
     return [];
   }
   
+  const users = data.map((dbUser: any) => {
+    const user = mapDatabaseUserToModel(dbUser);
+    
+    // Tính toán Match Percentage dựa trên số interest trùng
+    let matchPercentage = 60; // Base score
+    if (dbUser.user_interests && currentUserInterests.length > 0) {
+      const otherInterests = dbUser.user_interests.map((ui: any) => ui.interest_id);
+      const commonCount = otherInterests.filter((id: string) => currentUserInterests.includes(id)).length;
+      
+      // Mỗi sở thích chung cộng thêm 8%, tối đa 99%
+      matchPercentage = Math.min(99, matchPercentage + (commonCount * 8));
+    } else {
+      // Nếu không có dữ liệu, random từ 60-95%
+      matchPercentage = Math.floor(Math.random() * (95 - 60 + 1)) + 60;
+    }
+    
+    user.matchPercentage = matchPercentage;
+    return user;
+  });
+  
   // Xáo trộn mảng ngẫu nhiên
-  const users = data.map(mapDatabaseUserToModel);
   return users.sort(() => Math.random() - 0.5);
 };
 
@@ -101,4 +127,31 @@ export const getNearbyUsers = async (): Promise<User[]> => {
   const { data, error } = await supabase.from('users').select('*').limit(15);
   if (error) return [];
   return data.map(mapDatabaseUserToModel);
+};
+
+export const blockUser = async (userId: string): Promise<boolean> => {
+  const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  if (!currentUserStr) return false;
+  const currentUser = JSON.parse(currentUserStr);
+  
+  const { error } = await supabase.from('user_blocks').insert([{
+    blocker_id: currentUser.id,
+    blocked_id: userId
+  }]);
+  
+  return !error;
+};
+
+export const reportUser = async (userId: string, reason: string): Promise<boolean> => {
+  const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  if (!currentUserStr) return false;
+  const currentUser = JSON.parse(currentUserStr);
+  
+  const { error } = await supabase.from('user_reports').insert([{
+    reporter_id: currentUser.id,
+    reported_id: userId,
+    reason: reason
+  }]);
+  
+  return !error;
 };

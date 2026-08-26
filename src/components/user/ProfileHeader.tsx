@@ -49,6 +49,18 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
                   <i className="bi bi-heart-fill me-2"></i> Like
                 </Button>
               )}
+              
+              <div className="dropdown">
+                <button className="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <i className="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul className="dropdown-menu dropdown-menu-end shadow">
+                  <li><button className="dropdown-item text-danger" onClick={() => alert('Đã báo cáo người dùng này')}>Báo cáo (Report)</button></li>
+                  <li><button className="dropdown-item" onClick={() => alert('Đã chặn người dùng này')}>Chặn (Block)</button></li>
+                  <li><hr className="dropdown-divider" /></li>
+                  <li><button className="dropdown-item text-muted" onClick={() => alert('Đã hủy tương hợp')}>Hủy tương hợp (Unmatch)</button></li>
+                </ul>
+              </div>
             </>
           )}
         </div>
