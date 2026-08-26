@@ -2,7 +2,7 @@ import emailjs from '@emailjs/browser';
 
 // ĐIỀN CÁC THÔNG SỐ CỦA BẠN VÀO ĐÂY:
 const SERVICE_ID = 'service_dating_app';
-const TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // Bạn thiếu mã này! (Thường có dạng template_xxxxx)
+const TEMPLATE_ID = 'template_zmtcivw';
 const PUBLIC_KEY = 'i5qg-l3f5Uw9ACREj';
 
 export const sendOTPEmail = async (toEmail: string, otpCode: string) => {
