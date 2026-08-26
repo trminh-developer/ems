@@ -5,3 +5,4 @@ export * as matchService from './matchService';
 export * as messageService from './messageService';
 export * as notificationService from './notificationService';
 export * as searchService from './searchService';
+export * as feedService from './feedService';

@@ -15,6 +15,7 @@ const MessagesView = lazy(() => import('../views/MessagesView'));
 const ProfileView = lazy(() => import('../views/ProfileView'));
 const NotificationsView = lazy(() => import('../views/NotificationsView'));
 const SettingsView = lazy(() => import('../views/SettingsView'));
+const FeedView = lazy(() => import('../views/FeedView'));
 
 const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,6 +51,7 @@ const AppRoutes = () => (
           <Route path="/search" element={<SearchView />} />
           <Route path="/matches" element={<MatchesView />} />
           <Route path="/messages" element={<MessagesView />} />
+          <Route path="/feed" element={<FeedView />} />
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/profile/:id" element={<ProfileView />} />
           <Route path="/notifications" element={<NotificationsView />} />
