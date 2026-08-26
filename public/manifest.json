@@ -3,11 +3,14 @@
   "short_name": "HeartConnect",
   "description": "Ứng dụng kết bạn và hẹn hò trực tuyến. Tìm kiếm người bạn đồng hành lý tưởng.",
   "start_url": "/",
-  "display": "standalone",
+  "scope": "/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#ff6b6b",
   "lang": "vi",
+  "id": "/",
   "icons": [
     {
       "src": "/favicon.svg",
