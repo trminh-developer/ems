@@ -46,6 +46,12 @@ export const getUserById = async (id: string): Promise<User | null> => {
   return mapDatabaseUserToModel(data);
 };
 
+export const getUserByUsername = async (username: string): Promise<User | null> => {
+  const { data, error } = await supabase.from('users').select('*').eq('username', username).single();
+  if (error || !data) return null;
+  return mapDatabaseUserToModel(data);
+};
+
 export const searchUsers = async (query: string): Promise<User[]> => {
   const q = query.toLowerCase();
   // We use ilike for case-insensitive search in PostgreSQL

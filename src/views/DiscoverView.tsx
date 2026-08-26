@@ -65,7 +65,7 @@ const DiscoverView = () => {
             onLike={handleLike}
             onDislike={handleDislike}
             onSuperLike={handleSuperLike}
-            onViewProfile={() => navigate(`/profile/${currentUser.id}`)}
+            onViewProfile={() => navigate(`/profile/${currentUser.username || currentUser.id}`)}
           />
           
           <div className="discover-actions d-flex justify-content-center gap-4 mt-4">

@@ -151,7 +151,7 @@ const SearchView = () => {
                   <div className="row">
                     {results.map(u => (
                       <div key={u.id} className="col-md-4 col-6 mb-3">
-                        <UserCard user={u} onClick={() => navigate(`/profile/${u.id}`)} />
+                        <UserCard user={u} onClick={() => navigate(`/profile/${u.username || u.id}`)} />
                       </div>
                     ))}
                   </div>

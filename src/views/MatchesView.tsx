@@ -18,7 +18,7 @@ const MatchesView = () => {
         <div className="row">
           {matches.map(m => (
             <div key={m.id} className="col-6 col-md-4 col-lg-3 mb-4">
-              <MatchCard match={m} onMessage={() => navigate(`/messages`)} onClick={() => navigate(`/profile/${m.matchedUser.id}`)} />
+              <MatchCard match={m} onMessage={() => navigate(`/messages`)} onClick={() => navigate(`/profile/${m.matchedUser.username || m.matchedUser.id}`)} />
             </div>
           ))}
         </div>

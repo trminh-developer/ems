@@ -93,7 +93,7 @@ const HomeView = () => {
                 {recommendedUsers.length > 0 ? (
                   recommendedUsers.map(u => (
                     <div key={u.id} className="col-md-3 col-6 mb-3">
-                      <UserCard user={u} onClick={() => navigate(`/profile/${u.id}`)} />
+                      <UserCard user={u} onClick={() => navigate(`/profile/${u.username || u.id}`)} />
                     </div>
                   ))
                 ) : (
@@ -116,7 +116,7 @@ const HomeView = () => {
                 {matches && matches.length > 0 ? (
                   matches.map(m => (
                     <div key={m.id} className="me-3" style={{ minWidth: '150px' }}>
-                      <MatchCard match={m} onMessage={() => navigate('/messages')} onClick={() => navigate(`/profile/${m.matchedUser.id}`)} />
+                      <MatchCard match={m} onMessage={() => navigate('/messages')} onClick={() => navigate(`/profile/${m.matchedUser.username || m.matchedUser.id}`)} />
                     </div>
                   ))
                 ) : (
@@ -171,7 +171,7 @@ const HomeView = () => {
               <div className="row">
                 {nearbyUsers.length > 0 ? (
                   nearbyUsers.map(u => (
-                    <div key={u.id} className="col-4 text-center cursor-pointer" onClick={() => navigate(`/profile/${u.id}`)}>
+                    <div key={u.id} className="col-4 text-center cursor-pointer" onClick={() => navigate(`/profile/${u.username || u.id}`)}>
                       <Avatar src={u.avatar || ''} alt={u.firstName} size="md" isOnline={u.isOnline} className="mb-2" />
                       <h6 className="mb-0 text-truncate">{u.firstName}</h6>
                       <small className="text-muted">Gần đây</small>

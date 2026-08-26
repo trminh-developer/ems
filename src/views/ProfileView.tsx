@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
+import { userService } from '../services';
 import { interests as predefinedInterests } from '../data';
 
 const ProfileView = () => {
@@ -30,33 +31,44 @@ const ProfileView = () => {
   const [newInterest, setNewInterest] = useState('');
   const [showToast, setShowToast] = useState(false);
   
-  const isOwnProfile = !id || id === currentUser?.id;
+  const isOwnProfile = !id || id === currentUser?.username || id === currentUser?.id;
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Mock user fetching
-    setTimeout(() => {
-      if (isOwnProfile && currentUser) {
-        setUser(currentUser);
-        setEditForm({
-          firstName: currentUser.firstName || '',
-          lastName: currentUser.lastName || '',
-          bio: currentUser.bio || '',
-          city: currentUser.location?.city || '',
-          country: currentUser.location?.country || '',
-          profession: currentUser.profession || '',
-          education: currentUser.education || '',
-          avatar: currentUser.avatar || '',
-          coverPhoto: currentUser.coverPhoto || '',
-          dateOfBirth: currentUser.dateOfBirth || '',
-          interests: currentUser.interests || [],
-          isVerified: currentUser.isVerified || false
-        });
-      } else {
-        setUser({ id, firstName: 'Bob', lastName: 'Smith', bio: 'Hello world', interests: ['Music', 'Travel'], isVerified: false });
+    const fetchUser = async () => {
+      setIsLoading(true);
+      try {
+        if (isOwnProfile && currentUser) {
+          setUser(currentUser);
+          setEditForm({
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || '',
+            bio: currentUser.bio || '',
+            city: currentUser.location?.city || '',
+            country: currentUser.location?.country || '',
+            profession: currentUser.profession || '',
+            education: currentUser.education || '',
+            avatar: currentUser.avatar || '',
+            coverPhoto: currentUser.coverPhoto || '',
+            dateOfBirth: currentUser.dateOfBirth || '',
+            interests: currentUser.interests || [],
+            isVerified: currentUser.isVerified || false
+          });
+        } else if (id) {
+          let fetchedUser = await userService.getUserByUsername(id);
+          if (!fetchedUser) {
+            fetchedUser = await userService.getUserById(id);
+          }
+          if (fetchedUser) setUser(fetchedUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }, 500);
+    };
+    
+    fetchUser();
   }, [id, isOwnProfile, currentUser]);
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
