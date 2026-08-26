@@ -13,8 +13,21 @@ export const Navbar: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // For dark mode & language simulation
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [language, setLanguage] = useState('vi');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('hc_theme') === 'dark';
+  });
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('hc_lang') || 'vi';
+  });
+
+  // Apply initial theme on mount
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-bs-theme');
+    }
+  }, []);
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -36,6 +49,7 @@ export const Navbar: React.FC = () => {
     e.stopPropagation();
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
+    localStorage.setItem('hc_theme', newDarkMode ? 'dark' : 'light');
     if (newDarkMode) {
       document.documentElement.setAttribute('data-bs-theme', 'dark');
     } else {
@@ -47,6 +61,7 @@ export const Navbar: React.FC = () => {
     e.stopPropagation();
     const newLang = language === 'vi' ? 'en' : 'vi';
     setLanguage(newLang);
+    localStorage.setItem('hc_lang', newLang);
     // Alert user since we don't have a full i18n system yet
     alert(`Đã đổi ngôn ngữ sang: ${newLang === 'vi' ? 'Tiếng Việt' : 'English'}`);
   };
