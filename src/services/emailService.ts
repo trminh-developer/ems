@@ -1,13 +1,13 @@
 import emailjs from '@emailjs/browser';
 
 // ĐIỀN CÁC THÔNG SỐ CỦA BẠN VÀO ĐÂY:
-const SERVICE_ID = 'YOUR_SERVICE_ID'; // Thay bằng Service ID của bạn
-const TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // Thay bằng Template ID của bạn
-const PUBLIC_KEY = 'YOUR_PUBLIC_KEY'; // Thay bằng Public Key của bạn
+const SERVICE_ID = 'service_dating_app';
+const TEMPLATE_ID = 'YOUR_TEMPLATE_ID'; // Bạn thiếu mã này! (Thường có dạng template_xxxxx)
+const PUBLIC_KEY = 'i5qg-l3f5Uw9ACREj';
 
 export const sendOTPEmail = async (toEmail: string, otpCode: string) => {
-  if (SERVICE_ID === 'YOUR_SERVICE_ID') {
-    console.warn('Bạn chưa cấu hình EmailJS! Đang log OTP ra console thay vì gửi email.');
+  if (SERVICE_ID === 'YOUR_SERVICE_ID' || TEMPLATE_ID === 'YOUR_TEMPLATE_ID') {
+    console.warn('Bạn chưa cấu hình đủ EmailJS! Đang log OTP ra console thay vì gửi email.');
     console.log(`[EmailJS MOCK] Gửi tới: ${toEmail} | OTP: ${otpCode}`);
     return true; // Giả lập thành công
   }
