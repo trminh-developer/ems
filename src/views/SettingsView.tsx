@@ -28,6 +28,20 @@ const SettingsView = () => {
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editUsername, setEditUsername] = useState(user?.username || "");
 
+  useEffect(() => {
+    if (user) {
+      setOnlineStatus(user.isOnline ?? true);
+      setPreferredGender(user.datingPreference?.preferredGender?.[0] || Gender.FEMALE);
+      setAgeMin(user.datingPreference?.ageRange?.min || 18);
+      setAgeMax(user.datingPreference?.ageRange?.max || 30);
+      setMaxDistance(user.datingPreference?.maxDistance || 20);
+      setRelationshipGoal(user.relationshipGoal || RelationshipGoal.NOT_SURE);
+      if (!isEditingUsername) {
+        setEditUsername(user.username || "");
+      }
+    }
+  }, [user]);
+
   // Helper to trigger save and show toast
   const saveChanges = (updatedFields: any) => {
     if (user) {
