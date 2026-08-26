@@ -73,6 +73,7 @@ export const register = async (data: any): Promise<User> => {
 export const logout = async (): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(() => resolve(), 300);
+  });
 };
 
 export const forgotPassword = async (email: string): Promise<string> => {
