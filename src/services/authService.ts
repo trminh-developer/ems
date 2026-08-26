@@ -141,6 +141,17 @@ export const getCurrentUser = (): User | null => {
   return null;
 };
 
+export const refreshUser = async (userId: string): Promise<User | null> => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error || !data) return null;
+  return mapDatabaseUserToModel(data);
+};
+
 export const updateUserInList = async (updatedUser: User): Promise<void> => {
   // Update in real database
   const { error } = await supabase

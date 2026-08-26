@@ -50,10 +50,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    const initAuth = () => {
-      const user = authService.getCurrentUser();
-      if (user) {
-        dispatch({ type: 'LOGIN_SUCCESS', payload: user });
+    const initAuth = async () => {
+      const cachedUser = authService.getCurrentUser();
+      if (cachedUser) {
+        // Hiển thị dữ liệu cache trước để không bị loading lâu
+        dispatch({ type: 'LOGIN_SUCCESS', payload: cachedUser });
+        
+        // Sau đó đồng bộ dữ liệu mới nhất từ Supabase
+        try {
+          const freshUser = await authService.refreshUser(cachedUser.id);
+          if (freshUser) {
+            // Cập nhật lại storage và state
+            if (sessionStorage.getItem('currentUser')) {
+              sessionStorage.setItem('currentUser', JSON.stringify(freshUser));
+            } else {
+              localStorage.setItem('currentUser', JSON.stringify(freshUser));
+            }
+            dispatch({ type: 'UPDATE_USER', payload: freshUser });
+          }
+        } catch (err) {
+          console.warn('Không thể đồng bộ từ Supabase, dùng dữ liệu cache:', err);
+        }
       } else {
         dispatch({ type: 'LOGIN_FAILURE' });
       }
