@@ -79,6 +79,14 @@ export const Navbar: React.FC = () => {
       </div>
 
       <div className="navbar-actions d-flex align-items-center gap-3 gap-md-4">
+        <button 
+          className="btn btn-link text-dark p-0 text-decoration-none" 
+          title="Tải lại dữ liệu"
+          onClick={() => window.location.reload()}
+        >
+          <i className="bi bi-arrow-clockwise fs-5"></i>
+        </button>
+
         <Link to="/notifications" className="text-dark position-relative text-decoration-none">
           <i className="bi bi-bell fs-5"></i>
           {unreadCount > 0 && (
