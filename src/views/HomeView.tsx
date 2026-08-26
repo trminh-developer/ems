@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useMatches } from '../hooks/useMatches';
 import { useChat } from '../hooks/useChat';
@@ -10,6 +10,7 @@ import { MatchCard } from '../components/dating';
 import { Loading, EmptyState, Avatar } from '../components/common';
 
 const HomeView = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { matches, isLoading: matchesLoading, loadMatches } = useMatches();
   const { conversations, isLoading: chatLoading, loadConversations } = useChat();
@@ -92,7 +93,7 @@ const HomeView = () => {
                 {recommendedUsers.length > 0 ? (
                   recommendedUsers.map(u => (
                     <div key={u.id} className="col-md-3 col-6 mb-3">
-                      <UserCard user={u} />
+                      <UserCard user={u} onClick={() => navigate(`/profile/${u.id}`)} />
                     </div>
                   ))
                 ) : (
@@ -115,7 +116,7 @@ const HomeView = () => {
                 {matches && matches.length > 0 ? (
                   matches.map(m => (
                     <div key={m.id} className="me-3" style={{ minWidth: '150px' }}>
-                      <MatchCard match={m} onMessage={() => {}} onClick={() => {}} />
+                      <MatchCard match={m} onMessage={() => navigate('/messages')} onClick={() => navigate(`/profile/${m.matchedUser.id}`)} />
                     </div>
                   ))
                 ) : (
@@ -170,7 +171,7 @@ const HomeView = () => {
               <div className="row">
                 {nearbyUsers.length > 0 ? (
                   nearbyUsers.map(u => (
-                    <div key={u.id} className="col-4 text-center cursor-pointer">
+                    <div key={u.id} className="col-4 text-center cursor-pointer" onClick={() => navigate(`/profile/${u.id}`)}>
                       <Avatar src={u.avatar || ''} alt={u.firstName} size="md" isOnline={u.isOnline} className="mb-2" />
                       <h6 className="mb-0 text-truncate">{u.firstName}</h6>
                       <small className="text-muted">Gần đây</small>

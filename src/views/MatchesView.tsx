@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MatchCard, MatchModal } from '../components/dating';
 import { Loading, EmptyState } from '../components/common';
 import { useMatches } from '../hooks/useMatches';
 
 const MatchesView = () => {
+  const navigate = useNavigate();
   const { matches, isLoading, showMatchModal, newMatch, closeMatchModal } = useMatches();
 
   if (isLoading) return <Loading text="Đang tải tương hợp..." />;
@@ -16,7 +18,7 @@ const MatchesView = () => {
         <div className="row">
           {matches.map(m => (
             <div key={m.id} className="col-6 col-md-4 col-lg-3 mb-4">
-              <MatchCard match={m} onMessage={() => {}} onClick={() => {}} />
+              <MatchCard match={m} onMessage={() => navigate(`/messages`)} onClick={() => navigate(`/profile/${m.matchedUser.id}`)} />
             </div>
           ))}
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DiscoverCard, MatchModal } from '../components/dating';
 import { Button, Loading, EmptyState } from '../components/common';
 import { useMatches } from '../hooks/useMatches';
@@ -6,6 +7,7 @@ import { userService } from '../services';
 import { User } from '../models';
 
 const DiscoverView = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,7 +65,7 @@ const DiscoverView = () => {
             onLike={handleLike}
             onDislike={handleDislike}
             onSuperLike={handleSuperLike}
-            onViewProfile={() => {}}
+            onViewProfile={() => navigate(`/profile/${currentUser.id}`)}
           />
           
           <div className="discover-actions d-flex justify-content-center gap-4 mt-4">

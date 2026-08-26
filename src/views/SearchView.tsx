@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserCard } from '../components/user';
 import { Input, Button, EmptyState, Loading } from '../components/common';
 import { userService } from '../services';
@@ -6,6 +7,7 @@ import { User } from '../models';
 import { calculateAge } from '../utils/helpers';
 
 const SearchView = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [gender, setGender] = useState('all');
   const [ageMin, setAgeMin] = useState(18);
@@ -149,7 +151,7 @@ const SearchView = () => {
                   <div className="row">
                     {results.map(u => (
                       <div key={u.id} className="col-md-4 col-6 mb-3">
-                        <UserCard user={u} />
+                        <UserCard user={u} onClick={() => navigate(`/profile/${u.id}`)} />
                       </div>
                     ))}
                   </div>
