@@ -33,7 +33,7 @@ export const useFeed = (userId?: string) => {
 
     if (error) {
       console.error('Error uploading media:', error);
-      return null;
+      throw new Error(`Lỗi upload ảnh/video: ${error.message}`);
     }
 
     const { data } = supabase.storage.from('status_media').getPublicUrl(filePath);

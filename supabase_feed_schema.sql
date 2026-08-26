@@ -37,9 +37,9 @@ ALTER TABLE public.status_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.status_comments ENABLE ROW LEVEL SECURITY;
 
 -- 5. Tạo Policies TẠM THỜI cho phép đọc/ghi công khai (Để dễ dev, sau này có thể siết lại)
-CREATE POLICY "Cho phép tất cả thao tác trên statuses" ON public.statuses FOR ALL USING (true);
-CREATE POLICY "Cho phép tất cả thao tác trên status_likes" ON public.status_likes FOR ALL USING (true);
-CREATE POLICY "Cho phép tất cả thao tác trên status_comments" ON public.status_comments FOR ALL USING (true);
+CREATE POLICY "Cho phép tất cả thao tác trên statuses" ON public.statuses FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Cho phép tất cả thao tác trên status_likes" ON public.status_likes FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Cho phép tất cả thao tác trên status_comments" ON public.status_comments FOR ALL USING (true) WITH CHECK (true);
 
 -- 6. Storage Bucket cho hình ảnh/video của status
 INSERT INTO storage.buckets (id, name, public) 
