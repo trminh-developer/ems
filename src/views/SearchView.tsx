@@ -24,9 +24,9 @@ const SearchView = () => {
         
         const q = query.toLowerCase().trim();
         const filtered = allUsers.filter(u => {
-          const matchUsername = u.username?.toLowerCase().includes(q);
-          const matchName = u.firstName.toLowerCase().includes(q) || u.lastName.toLowerCase().includes(q);
-          const matchBio = u.bio?.toLowerCase().includes(q);
+          const matchUsername = (u.username || '').toLowerCase().includes(q);
+          const matchName = (u.firstName || '').toLowerCase().includes(q) || (u.lastName || '').toLowerCase().includes(q);
+          const matchBio = (u.bio || '').toLowerCase().includes(q);
           const matchQuery = q ? (matchName || matchBio || matchUsername) : true;
           const matchGender = gender === 'all' || u.gender === gender;
           const age = calculateAge(u.dateOfBirth);
