@@ -1,19 +1,53 @@
-# React + Vite
+# Dating App (Vite + React) 💖
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dating App là một ứng dụng hẹn hò trực tuyến hiện đại, được xây dựng với mục tiêu mang lại trải nghiệm kết nối và tương tác mượt mà cho người dùng. Ứng dụng cung cấp các tính năng từ cơ bản đến nâng cao như vuốt tương hợp, nhắn tin theo thời gian thực và chia sẻ khoảnh khắc qua Bảng tin (Social Feed).
 
-Currently, two official plugins are available:
+## 🚀 Tính năng nổi bật
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Khám phá & Tương hợp (Swipe & Match):** Thuật toán hiển thị thẻ hồ sơ trực quan. Quẹt phải để thích, quẹt trái để bỏ qua. Hỗ trợ Super Like.
+- **Bảng tin (Social Feed):** Đăng tải trạng thái, chia sẻ hình ảnh/video, tương tác (Thích, Bình luận) với những người dùng khác trong cộng đồng.
+- **Nhắn tin (Chat):** Trò chuyện trực tiếp với những người đã tương hợp.
+- **Quản lý Hồ sơ:** Tùy chỉnh thông tin cá nhân, cập nhật Avatar, ảnh bìa, thêm thẻ sở thích (Interests).
+- **Xác thực an toàn:** Đăng ký, Đăng nhập, và Khôi phục mật khẩu thông qua mã OTP bảo mật.
+- **Dark Mode:** Tích hợp chế độ tối ưu hóa cho mắt khi sử dụng vào ban đêm.
+- **Đa ngôn ngữ:** Hỗ trợ chuyển đổi ngôn ngữ linh hoạt.
 
-## React Compiler
+## 🛠 Công nghệ sử dụng
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **Frontend:** React.js, Vite, TypeScript
+- **Styling:** Bootstrap 5, CSS thuần, Bootstrap Icons
+- **Quản lý trạng thái:** React Context API + Custom Hooks
+- **Routing:** React Router DOM (Lazy Loading)
+- **Backend/Database:** Supabase (PostgreSQL, Storage, RLS)
+- **Email Service:** EmailJS
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+## 📦 Hướng dẫn cài đặt & Chạy dự án
 
-## Expanding the ESLint configuration
+1. **Clone repository:**
+   ```bash
+   git clone https://gitlab.com/trminh-developer/dating-app.git
+   cd dating-app
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. **Cài đặt thư viện:**
+   ```bash
+   npm install
+   ```
+
+3. **Cấu hình biến môi trường:**
+   - Tạo file `.env` ở thư mục gốc của dự án.
+   - Tham khảo cấu hình cần thiết từ đội ngũ phát triển.
+
+4. **Chạy server phát triển:**
+   ```bash
+   npm run dev
+   ```
+   Ứng dụng sẽ chạy tại: `http://localhost:5173`
+
+5. **Build cho môi trường Production:**
+   ```bash
+   npm run build
+   ```
+
+## 🔒 Bản quyền & Bảo mật
+Toàn bộ mã nguồn cốt lõi, thiết kế cơ sở dữ liệu và thuật toán ghép đôi của dự án đều là tài sản nội bộ và được bảo mật tuyệt đối. Vui lòng không sao chép hoặc phân phối với mục đích thương mại mà không có sự cho phép.
