@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { Status, StatusComment, User } from '../models';
 import { userService } from './index';
+import * as authService from './authService';
 
 // Fetch statuses with their authors
 export const getStatuses = async (userId?: string): Promise<Status[]> => {
@@ -23,7 +24,9 @@ export const getStatuses = async (userId?: string): Promise<Status[]> => {
   }
 
   // Check if current user has liked
-  const currentUserId = JSON.parse(localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser') || '{}').id;
+  const currentUser = authService.getCurrentUser();
+  if (!currentUser) throw new Error('Not logged in');
+  const currentUserId = currentUser.id;
   
   let userLikes: string[] = [];
   if (currentUserId) {

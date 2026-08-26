@@ -41,37 +41,41 @@ export interface AuthContextType extends AuthState {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (user: User) => void;
+  updateUser: (user: User) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// localStorage chỉ lưu userId để biết đang đăng nhập, KHÔNG lưu data user
+const SESSION_KEY = 'hc_session_uid';
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
+  // Khi mở app: kiểm tra session → fetch data MỚI NHẤT từ Supabase
   useEffect(() => {
     const initAuth = async () => {
-      const cachedUser = authService.getCurrentUser();
-      if (cachedUser) {
-        // Hiển thị dữ liệu cache trước để không bị loading lâu
-        dispatch({ type: 'LOGIN_SUCCESS', payload: cachedUser });
-        
-        // Sau đó đồng bộ dữ liệu mới nhất từ Supabase
+      const userId = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+      if (userId) {
         try {
-          const freshUser = await authService.refreshUser(cachedUser.id);
+          const freshUser = await authService.refreshUser(userId);
           if (freshUser) {
-            // Cập nhật lại storage và state
-            if (sessionStorage.getItem('currentUser')) {
-              sessionStorage.setItem('currentUser', JSON.stringify(freshUser));
-            } else {
-              localStorage.setItem('currentUser', JSON.stringify(freshUser));
-            }
-            dispatch({ type: 'UPDATE_USER', payload: freshUser });
+            authService.setCurrentUser(freshUser);
+            dispatch({ type: 'LOGIN_SUCCESS', payload: freshUser });
+          } else {
+            // User không tồn tại trên server → xóa session
+            localStorage.removeItem(SESSION_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
+            authService.setCurrentUser(null);
+            dispatch({ type: 'LOGIN_FAILURE' });
           }
         } catch (err) {
-          console.warn('Không thể đồng bộ từ Supabase, dùng dữ liệu cache:', err);
+          console.error('Lỗi kết nối Supabase:', err);
+          authService.setCurrentUser(null);
+          dispatch({ type: 'LOGIN_FAILURE' });
         }
       } else {
+        authService.setCurrentUser(null);
         dispatch({ type: 'LOGIN_FAILURE' });
       }
     };
@@ -82,11 +86,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'LOGIN_START' });
     try {
       const user = await authService.login(email, password);
+      // Chỉ lưu userId, KHÔNG lưu toàn bộ data
       if (rememberMe) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        localStorage.setItem(SESSION_KEY, user.id);
       } else {
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
+        sessionStorage.setItem(SESSION_KEY, user.id);
       }
+      authService.setCurrentUser(user);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
@@ -98,7 +104,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'LOGIN_START' });
     try {
       const user = await authService.register(data);
-      localStorage.setItem('currentUser', JSON.stringify(user)); // Default to local for register
+      localStorage.setItem(SESSION_KEY, user.id);
+      authService.setCurrentUser(user);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
     } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
@@ -108,19 +115,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     await authService.logout();
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
+    // Xóa cả key cũ nếu còn sót
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('currentUser');
+    authService.setCurrentUser(null);
     dispatch({ type: 'LOGOUT' });
   };
 
-  const updateUser = (user: User) => {
-    if (sessionStorage.getItem('currentUser')) {
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
-    } else {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+  // Cập nhật: ghi lên Supabase TRƯỚC → sau đó mới cập nhật UI
+  const updateUser = async (user: User) => {
+    try {
+      await authService.updateUserInList(user);
+      authService.setCurrentUser(user);
+      dispatch({ type: 'UPDATE_USER', payload: user });
+    } catch (err) {
+      console.error('Lỗi lưu dữ liệu lên server:', err);
+      throw err;
     }
-    authService.updateUserInList(user);
-    dispatch({ type: 'UPDATE_USER', payload: user });
   };
 
   return (

@@ -130,15 +130,15 @@ export const resetPassword = async (email: string, newPassword: string): Promise
 };
 
 // Vẫn giữ lại local/session storage cho session hiện tại trên thiết bị
+// Biến lưu trữ user trong RAM (thay vì localStorage)
+let currentUserCache: User | null = null;
+
+export const setCurrentUser = (user: User | null) => {
+  currentUserCache = user;
+};
+
 export const getCurrentUser = (): User | null => {
-  const sessionUser = sessionStorage.getItem('currentUser');
-  const localUser = localStorage.getItem('currentUser');
-  const userStr = sessionUser || localUser;
-  
-  if (userStr) {
-    return JSON.parse(userStr);
-  }
-  return null;
+  return currentUserCache;
 };
 
 export const refreshUser = async (userId: string): Promise<User | null> => {

@@ -1,5 +1,6 @@
 import { User, Gender, RelationshipGoal } from '../models';
 import { supabase } from '../config/supabase';
+import * as authService from './authService';
 
 // Helper function to map snake_case DB fields to camelCase TS models
 const mapDatabaseUserToModel = (dbUser: any): User => {
@@ -69,13 +70,12 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 
 export const getRecommendedUsers = async (): Promise<User[]> => {
   // Lấy user hiện tại từ local storage để lọc sở thích
-  const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
+  const currentUser = authService.getCurrentUser();
   let query = supabase.from('users').select('*, user_interests(interest_id)');
   
   let currentUserInterests: string[] = [];
   
-  if (currentUserStr) {
-    const currentUser = JSON.parse(currentUserStr);
+  if (currentUser) {
     const preferredGenders = currentUser.datingPreference?.preferredGender || [];
     
     // Thu thập interest IDs của user hiện tại
@@ -130,9 +130,8 @@ export const getNearbyUsers = async (): Promise<User[]> => {
 };
 
 export const blockUser = async (userId: string): Promise<boolean> => {
-  const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-  if (!currentUserStr) return false;
-  const currentUser = JSON.parse(currentUserStr);
+  const currentUser = authService.getCurrentUser();
+  if (!currentUser) return false;
   
   const { error } = await supabase.from('user_blocks').insert([{
     blocker_id: currentUser.id,
@@ -143,9 +142,8 @@ export const blockUser = async (userId: string): Promise<boolean> => {
 };
 
 export const reportUser = async (userId: string, reason: string): Promise<boolean> => {
-  const currentUserStr = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-  if (!currentUserStr) return false;
-  const currentUser = JSON.parse(currentUserStr);
+  const currentUser = authService.getCurrentUser();
+  if (!currentUser) return false;
   
   const { error } = await supabase.from('user_reports').insert([{
     reporter_id: currentUser.id,
