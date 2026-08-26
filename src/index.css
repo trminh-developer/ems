@@ -6,6 +6,11 @@
 /* Bootstrap Import */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
+/* Tắt kéo xuống reload trang trên mobile (Pull-to-refresh) */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
 /* ===================================================
    CSS Custom Properties (Design Tokens)
    =================================================== */
