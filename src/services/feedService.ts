@@ -43,14 +43,14 @@ export const getStatuses = async (userId?: string): Promise<Status[]> => {
     likesCount: item.likes_count,
     commentsCount: item.comments_count,
     hasLiked: userLikes.includes(item.id),
-    user: {
+    user: item.users ? {
       id: item.users.id,
       username: item.users.username,
       firstName: item.users.first_name,
       lastName: item.users.last_name,
       avatar: item.users.avatar,
       isOnline: item.users.is_online
-    } as User
+    } : undefined
   }));
 };
 
@@ -151,12 +151,12 @@ export const getComments = async (statusId: string): Promise<StatusComment[]> =>
     userId: item.user_id,
     content: item.content,
     createdAt: item.created_at,
-    user: {
+    user: item.users ? {
       id: item.users.id,
       username: item.users.username,
       firstName: item.users.first_name,
       lastName: item.users.last_name,
       avatar: item.users.avatar
-    } as User
+    } : undefined
   }));
 };

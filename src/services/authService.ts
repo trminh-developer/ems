@@ -1,5 +1,6 @@
 import { User, Gender, RelationshipGoal } from '../models';
 import { supabase } from '../config/supabase';
+import { emailService } from './index';
 
 export const login = async (email: string, password: string): Promise<User> => {
   // Query from real database
@@ -72,7 +73,6 @@ export const register = async (data: any): Promise<User> => {
 export const logout = async (): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(() => resolve(), 300);
-  });
 };
 
 export const forgotPassword = async (email: string): Promise<string> => {
@@ -93,7 +93,9 @@ export const forgotPassword = async (email: string): Promise<string> => {
 
   if (error) throw new Error('Không thể tạo mã OTP. Vui lòng thử lại sau.');
   
-  // Trả về OTP để mock hiển thị trên màn hình
+  // 4. Gửi email
+  await emailService.sendOTPEmail(email, otp);
+  
   return otp;
 };
 

@@ -19,9 +19,7 @@ const ForgotPasswordView = () => {
     setIsLoading(true);
     setError('');
     try {
-      const generatedOtp = await authService.forgotPassword(email);
-      // MOCK: In a real app this is sent via email. Here we show it via alert for demo purposes.
-      alert(`[DEMO ONLY] MÃ OTP CỦA BẠN LÀ: ${generatedOtp}`);
+      await authService.forgotPassword(email);
       setStep(2);
     } catch (err: any) {
       setError(err.message);
