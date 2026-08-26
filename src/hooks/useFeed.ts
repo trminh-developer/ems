@@ -50,14 +50,19 @@ export const useFeed = (userId?: string) => {
       if (url) mediaUrls.push(url);
     }
 
-    const newStatus = await feedService.createStatus(user.id, content, mediaUrls);
-    
-    if (newStatus) {
-      setStatuses(prev => [newStatus, ...prev]);
+    try {
+      const newStatus = await feedService.createStatus(user.id, content, mediaUrls);
+      
+      if (newStatus) {
+        setStatuses(prev => [newStatus, ...prev]);
+      }
+      
+      setIsUploading(false);
+      return newStatus;
+    } catch (error: any) {
+      setIsUploading(false);
+      throw error;
     }
-    
-    setIsUploading(false);
-    return newStatus;
   };
 
   const toggleLike = async (statusId: string) => {

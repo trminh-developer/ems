@@ -31,12 +31,16 @@ export const CreateStatus: React.FC = () => {
   const handleSubmit = async () => {
     if (!content.trim() && files.length === 0) return;
     
-    const success = await createStatus(content, files);
-    if (success) {
-      setContent('');
-      setFiles([]);
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
-      setPreviewUrls([]);
+    try {
+      const success = await createStatus(content, files);
+      if (success) {
+        setContent('');
+        setFiles([]);
+        previewUrls.forEach(url => URL.revokeObjectURL(url));
+        setPreviewUrls([]);
+      }
+    } catch (error: any) {
+      alert(`Lỗi khi đăng bài: ${error.message}\n\nGợi ý: Hãy đăng xuất và đăng nhập lại nếu bạn đang dùng tài khoản cũ (ID không phải UUID).`);
     }
   };
 

@@ -63,7 +63,7 @@ export const createStatus = async (userId: string, content: string, mediaUrls: s
 
   if (error || !data) {
     console.error('Error creating status:', error);
-    return null;
+    throw new Error(error?.message || 'Không thể tạo bài viết');
   }
 
   // Fetch full user data for the response
