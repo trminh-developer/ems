@@ -88,7 +88,7 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onCl
         <button 
           className={`btn flex-grow-1 ${type !== 'text' ? 'btn-hc-primary' : 'btn-outline-secondary'}`}
           onClick={() => {
-            if (fileInputRef.current) fileInputRef.current.click();
+            if (type === 'text') setType('image');
           }}
         >
           <i className="bi bi-image me-2"></i> Ảnh/Video
@@ -133,12 +133,22 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onCl
           </div>
         ) : previewUrl ? (
           type === 'video' ? (
-            <video src={previewUrl} controls className="w-100 h-100 object-fit-contain" />
+            <video src={previewUrl} controls className="w-100 h-100 object-fit-contain" onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.click();
+            }} style={{ cursor: 'pointer' }} title="Nhấn để đổi video khác" />
           ) : (
-            <img src={previewUrl} alt="Preview" className="w-100 h-100 object-fit-contain" />
+            <img src={previewUrl} alt="Preview" className="w-100 h-100 object-fit-contain" onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.click();
+            }} style={{ cursor: 'pointer' }} title="Nhấn để đổi ảnh khác" />
           )
         ) : (
-          <div className="text-white text-center">
+          <div 
+            className="text-white text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center" 
+            style={{ cursor: 'pointer' }}
+            onClick={() => {
+              if (fileInputRef.current) fileInputRef.current.click();
+            }}
+          >
             <i className="bi bi-plus-circle fs-1 mb-2"></i>
             <p>Chọn ảnh hoặc video để hiển thị</p>
           </div>
