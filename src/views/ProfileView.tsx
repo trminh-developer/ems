@@ -213,10 +213,12 @@ const ProfileView = () => {
         </div>
 
         <div className="col-md-8">
-          <div className="hc-card p-4">
-            <h5 className="mb-3">Thư viện ảnh</h5>
-            <ProfileGallery photos={user.photos || []} />
-          </div>
+          {user.photos && user.photos.length > 0 && (
+            <div className="hc-card p-4">
+              <h5 className="mb-3">Thư viện ảnh</h5>
+              <ProfileGallery photos={user.photos} />
+            </div>
+          )}
         </div>
       </div>
 

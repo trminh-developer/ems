@@ -18,7 +18,7 @@ export const currentUser: Profile = {
   profession: 'Lập trình viên',
   education: 'Đại học Bách Khoa',
   interests: [interests[19]!, interests[12]!, interests[3]!],
-  photos: ['https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=800&q=80', 'https://picsum.photos/200/300'],
+  photos: [],
   relationshipGoal: RelationshipGoal.LONG_TERM,
   isOnline: true,
   lastActive: new Date().toISOString(),
@@ -55,10 +55,7 @@ export const users: User[] = [
     bio: 'Software Engineer & Admin của ứng dụng này. Thích viết code và khám phá công nghệ mới!',
     profession: 'Software Engineer',
     education: 'Đại học Bách Khoa',
-    photos: [
-      'https://picsum.photos/400/400?a1',
-      'https://picsum.photos/400/400?a2'
-    ],
+    photos: [],
     interests: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: true,
@@ -87,7 +84,7 @@ export const users: User[] = [
     profession: 'Thiết kế đồ họa',
     education: 'ĐH Kiến Trúc',
     interests: [interests[12]!, interests[16]!, interests[11]!],
-    photos: ['https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -106,7 +103,7 @@ export const users: User[] = [
     bio: 'Cuối tuần thích ở nhà cày phim hoặc nấu ăn. Người nội tâm nhưng dễ gần.',
     profession: 'Kế toán',
     interests: [interests[6]!, interests[9]!, interests[0]!],
-    photos: ['https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.SHORT_TERM,
     isOnline: false,
     lastActive: '2023-10-01T14:30:00Z'
@@ -125,7 +122,7 @@ export const users: User[] = [
     bio: 'Dam mê thể thao, đặc biệt là bóng đá. Cuối tuần hay đi phượt.',
     profession: 'Kinh doanh tự do',
     interests: [interests[3]!, interests[21]!, interests[14]!],
-    photos: ['https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.FRIENDSHIP,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -144,7 +141,7 @@ export const users: User[] = [
     bio: 'Yêu thơ ca, thích sự nhẹ nhàng và lãng mạn.',
     profession: 'Giáo viên',
     interests: [interests[6]!, interests[16]!, interests[8]!],
-    photos: ['https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: false,
     lastActive: '2023-10-02T09:15:00Z'
@@ -163,7 +160,7 @@ export const users: User[] = [
     bio: 'Chàng trai IT ít nói, thích nghe nhạc lofi và code đêm.',
     profession: 'Dev',
     interests: [interests[19]!, interests[0]!, interests[18]!],
-    photos: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.NOT_SURE,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -182,7 +179,7 @@ export const users: User[] = [
     bio: 'Mới ra trường, đang tìm kiếm cơ hội mới và những người bạn mới.',
     profession: 'Marketing',
     interests: [interests[10]!, interests[11]!, interests[12]!],
-    photos: ['https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.FRIENDSHIP,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -201,7 +198,7 @@ export const users: User[] = [
     bio: 'Đam mê công việc nhưng cũng muốn có thời gian cho gia đình nhỏ.',
     profession: 'Quản lý',
     interests: [interests[7]!, interests[12]!, interests[20]!],
-    photos: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: false,
     lastActive: '2023-09-28T22:00:00Z'
@@ -220,7 +217,7 @@ export const users: User[] = [
     bio: 'Yêu biển, thích đi dạo bờ biển mỗi sáng sớm.',
     profession: 'Hướng dẫn viên du lịch',
     interests: [interests[5]!, interests[13]!, interests[23]!],
-    photos: ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.SHORT_TERM,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -239,7 +236,7 @@ export const users: User[] = [
     bio: 'Không khí lạnh làm con người ta xích lại gần nhau hơn. Cùng đi cafe nhé.',
     profession: 'Barista',
     interests: [interests[11]!, interests[16]!, interests[1]!],
-    photos: ['https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: false,
     lastActive: '2023-10-03T08:00:00Z'
@@ -258,7 +255,7 @@ export const users: User[] = [
     bio: 'Người con gái miền Tây chân chất, thích làm vườn và nấu ăn.',
     profession: 'Bác sĩ thú y',
     interests: [interests[9]!, interests[2]!, interests[6]!],
-    photos: ['https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.LONG_TERM,
     isOnline: true,
     lastActive: new Date().toISOString()
@@ -277,7 +274,7 @@ export const users: User[] = [
     bio: 'Thích đọc sách về khởi nghiệp, mong tìm người có cùng chí hướng.',
     profession: 'Sinh viên',
     interests: [interests[6]!, interests[20]!, interests[8]!],
-    photos: ['https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.FRIENDSHIP,
     isOnline: false,
     lastActive: '2023-10-04T12:00:00Z'
@@ -296,7 +293,7 @@ export const users: User[] = [
     bio: 'Gen Z năng động, thích nhảy múa và tham gia các hoạt động xã hội.',
     profession: 'Sinh viên',
     interests: [interests[1]!, interests[4]!, interests[12]!],
-    photos: ['https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?auto=format&fit=crop&w=800&q=80'],
+    photos: [],
     relationshipGoal: RelationshipGoal.NOT_SURE,
     isOnline: true,
     lastActive: new Date().toISOString()
