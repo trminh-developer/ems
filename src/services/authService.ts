@@ -12,6 +12,10 @@ export const login = async (email: string, password: string): Promise<User> => {
   if (error || !data) {
     throw new Error('Tài khoản chưa được đăng ký! Vui lòng đăng ký tài khoản.');
   }
+  
+  if (data.password && data.password !== password) {
+    throw new Error('Mật khẩu không chính xác!');
+  }
 
   // Auto-verify admin account logic
   if (data.email === 'trminhlaptrinhvien@gmail.com' && !data.is_verified) {
@@ -48,7 +52,8 @@ export const register = async (data: any): Promise<User> => {
     bio: 'Thành viên mới',
     relationship_goal: 'NOT_SURE',
     is_online: true,
-    is_verified: data.email === 'trminhlaptrinhvien@gmail.com'
+    is_verified: data.email === 'trminhlaptrinhvien@gmail.com',
+    password: data.password || 'password123'
   };
 
   const { data: createdUser, error } = await supabase
@@ -70,10 +75,55 @@ export const logout = async (): Promise<void> => {
   });
 };
 
-export const forgotPassword = async (email: string): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 300);
+export const forgotPassword = async (email: string): Promise<string> => {
+  // 1. Kiểm tra email có tồn tại không
+  const { data: user } = await supabase.from('users').select('id').eq('email', email).single();
+  if (!user) throw new Error('Email không tồn tại trong hệ thống!');
+
+  // 2. Tạo mã OTP 6 số
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 phút
+
+  // 3. Lưu vào DB (Upsert)
+  const { error } = await supabase.from('password_resets').upsert({
+    email,
+    otp,
+    expires_at: expiresAt
   });
+
+  if (error) throw new Error('Không thể tạo mã OTP. Vui lòng thử lại sau.');
+  
+  // Trả về OTP để mock hiển thị trên màn hình
+  return otp;
+};
+
+export const verifyOTP = async (email: string, otp: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('password_resets')
+    .select('*')
+    .eq('email', email)
+    .eq('otp', otp)
+    .single();
+
+  if (error || !data) throw new Error('Mã OTP không chính xác!');
+  
+  if (new Date(data.expires_at) < new Date()) {
+    throw new Error('Mã OTP đã hết hạn!');
+  }
+
+  return true;
+};
+
+export const resetPassword = async (email: string, newPassword: string): Promise<void> => {
+  const { error } = await supabase
+    .from('users')
+    .update({ password: newPassword })
+    .eq('email', email);
+
+  if (error) throw new Error('Lỗi khi đặt lại mật khẩu!');
+  
+  // Xóa OTP sau khi dùng
+  await supabase.from('password_resets').delete().eq('email', email);
 };
 
 // Vẫn giữ lại local/session storage cho session hiện tại trên thiết bị
