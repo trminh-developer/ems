@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
-import { userService } from '../services';
+import { userService, authService } from '../services';
+import { supabase } from '../config/supabase';
 import { interests as predefinedInterests } from '../data';
 
 const ProfileView = () => {
@@ -76,14 +77,36 @@ const ProfileView = () => {
     setEditForm({ ...editForm, [e.target.name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'avatar' | 'coverPhoto') => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'avatar' | 'coverPhoto') => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditForm({ ...editForm, [fieldName]: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+        return;
+      }
+      
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `profiles/${user?.id || 'guest'}_${fileName}`;
+
+        const { error } = await supabase.storage
+          .from('status_media') // Tái sử dụng bucket này cho tiện
+          .upload(filePath, file);
+
+        if (error) {
+          console.error('Error uploading profile media:', error);
+          alert(`Lỗi upload ảnh: ${error.message}`);
+          return;
+        }
+
+        const { data } = supabase.storage.from('status_media').getPublicUrl(filePath);
+        
+        setEditForm({ ...editForm, [fieldName]: data.publicUrl });
+      } catch (err: any) {
+        console.error(err);
+        alert('Có lỗi xảy ra khi tải ảnh lên!');
+      }
     }
   };
 
