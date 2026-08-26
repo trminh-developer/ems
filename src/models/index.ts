@@ -8,3 +8,4 @@ export * from './Message';
 export * from './Conversation';
 export * from './Notification';
 export * from './Feed';
+export * from './Story';

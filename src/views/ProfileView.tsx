@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
-import { userService, authService } from '../services';
+import { userService, authService, feedService } from '../services';
 import { supabase } from '../config/supabase';
 import { interests as predefinedInterests } from '../data';
 
@@ -12,6 +12,7 @@ const ProfileView = () => {
   const { user: currentUser, updateUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
   
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -62,6 +63,20 @@ const ProfileView = () => {
           }
           if (fetchedUser) setUser(fetchedUser);
         }
+        
+        // Fetch statuses to populate gallery
+        const targetUserId = isOwnProfile && currentUser ? currentUser.id : (id || '');
+        if (targetUserId) {
+          const statuses = await feedService.getStatuses(targetUserId);
+          const allPhotos = statuses.reduce<string[]>((acc, status) => {
+            if (status.mediaUrls && status.mediaUrls.length > 0) {
+              return [...acc, ...status.mediaUrls];
+            }
+            return acc;
+          }, []);
+          setGalleryPhotos(allPhotos);
+        }
+
       } catch (error) {
         console.error("Error fetching user profile", error);
       } finally {
@@ -213,10 +228,10 @@ const ProfileView = () => {
         </div>
 
         <div className="col-md-8">
-          {user.photos && user.photos.length > 0 && (
+          {galleryPhotos && galleryPhotos.length > 0 && (
             <div className="hc-card p-4">
               <h5 className="mb-3">Thư viện ảnh</h5>
-              <ProfileGallery photos={user.photos} />
+              <ProfileGallery photos={galleryPhotos} />
             </div>
           )}
         </div>

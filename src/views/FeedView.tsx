@@ -1,5 +1,6 @@
 import React from 'react';
 import { CreateStatus, StatusCard } from '../components/feed';
+import { StoryTray } from '../components/story';
 import { useFeed } from '../hooks';
 import { Loading, EmptyState } from '../components/common';
 
@@ -11,6 +12,8 @@ const FeedView = () => {
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8 col-xl-6">
           <h2 className="mb-4 fw-bold">Bảng tin</h2>
+          
+          <StoryTray />
           
           <CreateStatus />
           
