@@ -1,5 +1,5 @@
 import React from 'react';
-import { Message, MessageStatus } from '../../models';
+import { Message, MessageStatus, MessageType } from '../../models';
 import { formatTime } from '../../utils/helpers';
 
 interface MessageBubbleProps {
@@ -24,7 +24,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
         className={`message-bubble p-3 rounded-4 shadow-sm position-relative ${isSent ? 'message-bubble-sent bg-primary text-white rounded-bottom-end-0' : 'message-bubble-received bg-white text-dark rounded-bottom-start-0 border'}`}
         style={{ maxWidth: '75%' }}
       >
-        <p className="mb-1 text-break">{message.content}</p>
+        {message.type === 'image' || message.type === MessageType.IMAGE ? (
+          <div className="mb-2">
+            <img src={message.content} alt="Sent image" className="img-fluid rounded" style={{ maxHeight: '300px' }} />
+          </div>
+        ) : (
+          <p className="mb-1 text-break">{message.content}</p>
+        )}
         <div className={`d-flex align-items-center justify-content-end small ${isSent ? 'text-white-50' : 'text-muted'}`} style={{ fontSize: '0.7rem' }}>
           <span>{formatTime(message.timestamp)}</span>
           {renderStatus()}
