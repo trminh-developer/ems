@@ -227,15 +227,15 @@ const mapDatabaseUserToModel = (dbUser: any, dbPrefs?: any): User => {
     isOnline: dbUser.is_online,
     lastActive: dbUser.last_active,
     isVerified: dbUser.is_verified,
-    datingPreference: dbPrefs ? {
-      preferredGender: dbPrefs.preferred_gender || [],
+    datingPreference: {
+      preferredGender: dbPrefs?.preferred_gender || [],
       ageRange: {
-        min: dbPrefs.age_min || 18,
-        max: dbPrefs.age_max || 99
+        min: dbPrefs?.age_min || 18,
+        max: dbPrefs?.age_max || 99
       },
-      maxDistance: dbPrefs.max_distance || 50,
+      maxDistance: dbPrefs?.max_distance || 50,
       relationshipGoal: dbUser.relationship_goal as RelationshipGoal
-    } : undefined
+    }
   };
 };
 

@@ -23,21 +23,13 @@ export const useFeed = (userId?: string) => {
   }, [loadStatuses]);
 
   const uploadMedia = async (file: File): Promise<string | null> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${user?.id || 'guest'}/${uuidv4()}_${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('status_media')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error('Error uploading media:', error);
-      throw new Error(`Lỗi upload ảnh/video: ${error.message}`);
-    }
-
-    const { data } = supabase.storage.from('status_media').getPublicUrl(filePath);
-    return data.publicUrl;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const createStatus = async (content: string, files: File[]) => {

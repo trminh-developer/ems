@@ -96,28 +96,17 @@ const ProfileView = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn! Vui lòng chọn ảnh dưới 5MB.');
+        alert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.');
         return;
       }
       
       try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `profiles/${user?.id || 'guest'}_${fileName}`;
-
-        const { error } = await supabase.storage
-          .from('status_media') // Tái sử dụng bucket này cho tiện
-          .upload(filePath, file);
-
-        if (error) {
-          console.error('Error uploading profile media:', error);
-          alert(`Lỗi upload ảnh: ${error.message}`);
-          return;
-        }
-
-        const { data } = supabase.storage.from('status_media').getPublicUrl(filePath);
-        
-        setEditForm({ ...editForm, [fieldName]: data.publicUrl });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          // Lưu ảnh dưới dạng chuỗi Base64 thẳng vào Database (không cần dùng Bucket)
+          setEditForm({ ...editForm, [fieldName]: reader.result as string });
+        };
+        reader.readAsDataURL(file);
       } catch (err: any) {
         console.error(err);
         alert('Có lỗi xảy ra khi tải ảnh lên!');

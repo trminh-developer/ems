@@ -44,21 +44,13 @@ export const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onCl
       let mediaUrl = undefined;
       
       if (file) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `story_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `stories/${user.id}/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('status_media') // Tái sử dụng bucket này
-          .upload(filePath, file);
-          
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('status_media')
-          .getPublicUrl(filePath);
-          
-        mediaUrl = publicUrl;
+        mediaUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
       }
       
       await storyService.createStory(user.id, type, mediaUrl, type === 'text' ? textContent : undefined, type === 'text' ? bgColor : undefined);
