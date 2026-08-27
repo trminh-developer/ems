@@ -16,11 +16,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
   const age = calculateAge(user.dateOfBirth);
 
   return (
-    <div className="profile-header bg-white shadow-sm rounded-bottom-4 mb-4 overflow-hidden">
+    <div className="profile-header bg-white shadow-sm rounded-bottom-4 mb-4 overflow-hidden mx-auto" style={{ maxWidth: '95%' }}>
       <div 
         className="profile-cover w-100 bg-secondary" 
         style={{ 
-          height: '200px', 
+          height: '280px', 
           backgroundImage: user.coverPhoto ? `url(${user.coverPhoto})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
@@ -49,18 +49,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
                   <i className="bi bi-heart-fill me-2"></i> Like
                 </Button>
               )}
-              
-              <div className="dropdown">
-                <button className="btn btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <i className="bi bi-three-dots-vertical"></i>
-                </button>
-                <ul className="dropdown-menu dropdown-menu-end shadow">
-                  <li><button className="dropdown-item text-danger" onClick={() => alert('Đã báo cáo người dùng này')}>Báo cáo (Report)</button></li>
-                  <li><button className="dropdown-item" onClick={() => alert('Đã chặn người dùng này')}>Chặn (Block)</button></li>
-                  <li><hr className="dropdown-divider" /></li>
-                  <li><button className="dropdown-item text-muted" onClick={() => alert('Đã hủy tương hợp')}>Hủy tương hợp (Unmatch)</button></li>
-                </ul>
-              </div>
             </>
           )}
         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
-import { Button, Loading, Modal, Input, Toast } from '../components/common';
+import { Button, Loading, Modal, Input, Toast, ImageCropperModal } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
 import { userService, authService, feedService } from '../services';
 import { supabase } from '../config/supabase';
@@ -32,6 +32,12 @@ const ProfileView = () => {
   });
   const [newInterest, setNewInterest] = useState('');
   const [showToast, setShowToast] = useState(false);
+  
+  // Crop states
+  const [cropImageSrc, setCropImageSrc] = useState<string>('');
+  const [cropField, setCropField] = useState<'avatar' | 'coverPhoto' | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [cropAspect, setCropAspect] = useState(1);
   
   const isOwnProfile = !id || id === currentUser?.username || id === currentUser?.id;
   const navigate = useNavigate();
@@ -103,15 +109,28 @@ const ProfileView = () => {
       try {
         const reader = new FileReader();
         reader.onloadend = () => {
-          // Lưu ảnh dưới dạng chuỗi Base64 thẳng vào Database (không cần dùng Bucket)
-          setEditForm({ ...editForm, [fieldName]: reader.result as string });
+          setCropImageSrc(reader.result as string);
+          setCropField(fieldName);
+          // Set aspect ratio: 1:1 for avatar, roughly 3:1 for cover (chiều rộng ngắn 1 chút, chiều dài to hơn 1 xí)
+          setCropAspect(fieldName === 'avatar' ? 1 : 2.5);
+          setIsCropModalOpen(true);
+          
+          // Clear input so same file can be selected again
+          e.target.value = '';
         };
         reader.readAsDataURL(file);
       } catch (err: any) {
         console.error(err);
-        alert('Có lỗi xảy ra khi tải ảnh lên!');
+        alert('Có lỗi xảy ra khi đọc ảnh!');
       }
     }
+  };
+
+  const handleCropComplete = (croppedBase64: string) => {
+    if (cropField) {
+      setEditForm({ ...editForm, [cropField]: croppedBase64 });
+    }
+    setIsCropModalOpen(false);
   };
 
   const guessIconForInterest = (name: string): string => {
@@ -289,7 +308,7 @@ const ProfileView = () => {
           <label className="form-label">Ảnh bìa (Cover)</label>
           <div className="d-flex flex-column gap-2">
             {editForm.coverPhoto && (
-              <img src={editForm.coverPhoto} alt="Cover" className="rounded border w-100" style={{ height: 80, objectFit: 'cover' }} />
+              <img src={editForm.coverPhoto} alt="Cover" className="rounded border" style={{ width: '80%', height: '140px', objectFit: 'cover', margin: '0 auto' }} />
             )}
             <input 
               type="file" 
@@ -355,6 +374,17 @@ const ProfileView = () => {
           <Button variant="primary" onClick={handleSaveProfile}>Lưu thay đổi</Button>
         </div>
       </Modal>
+
+      {/* Crop Modal */}
+      {isCropModalOpen && cropImageSrc && (
+        <ImageCropperModal
+          isOpen={isCropModalOpen}
+          onClose={() => setIsCropModalOpen(false)}
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCropComplete}
+          aspect={cropAspect}
+        />
+      )}
 
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
         <Toast show={showToast} message="Đã cập nhật hồ sơ!" type="success" onClose={() => setShowToast(false)} />
