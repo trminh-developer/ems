@@ -44,7 +44,14 @@ const MessagesView = () => {
                 onBack={() => setShowList(true)} 
               />
               <MessageList messages={messages} currentUserId={user?.id || ''} />
-              <MessageInput onSend={(content) => sendMessage(activeConversation.id, content)} />
+              <MessageInput onSend={(content) => {
+                if (content.startsWith('[IMAGE]')) {
+                  // It's an image base64
+                  sendMessage(activeConversation.id, content.substring(7), 'image' as any);
+                } else {
+                  sendMessage(activeConversation.id, content);
+                }
+              }} />
             </>
           ) : (
             <div className="flex-grow-1 d-flex align-items-center justify-content-center">
