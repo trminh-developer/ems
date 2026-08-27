@@ -11,7 +11,12 @@ export const MobileNavigation: React.FC = () => {
         <NavLink to="/discover" className={({ isActive }) => `mobile-nav-link text-decoration-none d-flex flex-column align-items-center gap-1 ${isActive ? 'text-danger' : 'text-muted'}`}>
           <i className="bi bi-compass fs-4"></i>
         </NavLink>
-
+        <NavLink to="/matches" className={({ isActive }) => `mobile-nav-link text-decoration-none d-flex flex-column align-items-center gap-1 ${isActive ? 'text-danger' : 'text-muted'}`}>
+          <i className="bi bi-heart fs-4"></i>
+        </NavLink>
+        <NavLink to="/feed" className={({ isActive }) => `mobile-nav-link text-decoration-none d-flex flex-column align-items-center gap-1 ${isActive ? 'text-danger' : 'text-muted'}`}>
+          <i className="bi bi-journal-text fs-4"></i>
+        </NavLink>
         <NavLink to="/messages" className={({ isActive }) => `mobile-nav-link text-decoration-none d-flex flex-column align-items-center gap-1 ${isActive ? 'text-danger' : 'text-muted'}`}>
           <i className="bi bi-chat-dots fs-4"></i>
         </NavLink>
