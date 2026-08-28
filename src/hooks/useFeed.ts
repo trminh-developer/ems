@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { feedService } from '../services';
 import { Status, StatusComment } from '../models';
 import { useAuth } from './useAuth';
-import { supabase } from '../config/supabase';
-import { v4 as uuidv4 } from 'uuid';
 
 export const useFeed = (userId?: string) => {
   const { user } = useAuth();

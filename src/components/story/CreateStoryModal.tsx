@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { Modal, Button, Loading } from '../common';
-import { supabase } from '../../config/supabase';
 import { storyService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 
