@@ -248,7 +248,7 @@ const fetchUserWithPrefs = async (query: any): Promise<User> => {
     .from('user_preferences')
     .select('*')
     .eq('user_id', dbUser.id)
-    .single();
+    .maybeSingle();
 
   return mapDatabaseUserToModel(dbUser, prefs);
 };

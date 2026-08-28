@@ -25,8 +25,7 @@ export const getStatuses = async (userId?: string): Promise<Status[]> => {
 
   // Check if current user has liked
   const currentUser = authService.getCurrentUser();
-  if (!currentUser) throw new Error('Not logged in');
-  const currentUserId = currentUser.id;
+  const currentUserId = currentUser?.id || null;
   
   let userLikes: string[] = [];
   if (currentUserId) {

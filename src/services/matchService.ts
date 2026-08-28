@@ -41,6 +41,37 @@ const mapDatabaseMatchToModel = (dbMatch: any, matchedUser: any): Match => {
   };
 };
 
+// Helper to map DB user row to User model
+const mapDatabaseUserToModel = (dbUser: any): User => {
+  if (!dbUser) return null as any;
+  return {
+    id: dbUser.id,
+    username: dbUser.username,
+    email: dbUser.email,
+    firstName: dbUser.first_name,
+    lastName: dbUser.last_name,
+    avatar: dbUser.avatar,
+    coverPhoto: dbUser.cover_photo,
+    gender: dbUser.gender as Gender,
+    dateOfBirth: dbUser.date_of_birth,
+    location: {
+      city: dbUser.city,
+      country: dbUser.country,
+      latitude: dbUser.latitude,
+      longitude: dbUser.longitude
+    },
+    bio: dbUser.bio,
+    profession: dbUser.profession,
+    education: dbUser.education,
+    photos: dbUser.photos || [],
+    interests: [],
+    relationshipGoal: dbUser.relationship_goal as RelationshipGoal,
+    isOnline: dbUser.is_online,
+    lastActive: dbUser.last_active,
+    isVerified: dbUser.is_verified
+  };
+};
+
 export const getMatches = async (): Promise<Match[]> => {
   const currentUser = getCurrentUser();
   if (!currentUser) return [];
