@@ -4,14 +4,14 @@ const getEnvUrl = () => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_URL) {
     return import.meta.env.VITE_SUPABASE_URL;
   }
-  return 'https://cmhwszghtivzccdvedzj.supabase.co';
+  return 'https://ibsklcxhjgvxcmqfkxvf.supabase.co';
 };
 
 const getEnvKey = () => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) {
     return import.meta.env.VITE_SUPABASE_ANON_KEY;
   }
-  return 'sb_publishable_8o324bVMizZNPwnslDvriQ_frPiNYfd';
+  return 'sb_publishable_wSXPNAWBwEKZCO8fWKroWw_MHdDf2Kc';
 };
 
 const supabaseUrl = getEnvUrl();
