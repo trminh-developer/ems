@@ -64,7 +64,8 @@ export const register = async (data: any): Promise<User> => {
     .single();
 
   if (error) {
-    throw new Error('Lỗi khi đăng ký tài khoản: ' + error.message);
+    console.error('Error creating user:', error);
+    throw new Error('Lỗi khi đăng ký: ' + (error.message || 'Vui lòng thử lại.'));
   }
 
   return await fetchUserWithPrefs(createdUser);
