@@ -17,7 +17,9 @@ const ProfileView = lazy(() => import('../views/ProfileView'));
 const NotificationsView = lazy(() => import('../views/NotificationsView'));
 const SettingsView = lazy(() => import('../views/SettingsView'));
 const FeedView = lazy(() => import('../views/FeedView'));
-
+const PremiumView = lazy(() => import('../views/PremiumView'));
+const PaymentView = lazy(() => import('../views/payment/PaymentView'));
+const PaymentResultView = lazy(() => import('../views/payment/PaymentResultView'));
 const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
   
@@ -58,6 +60,10 @@ const AppRoutes = () => (
           <Route path="/profile/:id" element={<ProfileView />} />
           <Route path="/notifications" element={<NotificationsView />} />
           <Route path="/settings" element={<SettingsView />} />
+          
+          <Route path="/premium" element={<PremiumView />} />
+          <Route path="/payment" element={<PaymentView />} />
+          <Route path="/payment/result" element={<PaymentResultView />} />
         </Route>
       </Route>
       
