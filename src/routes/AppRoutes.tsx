@@ -18,8 +18,8 @@ const NotificationsView = lazy(() => import('../views/NotificationsView'));
 const SettingsView = lazy(() => import('../views/SettingsView'));
 const FeedView = lazy(() => import('../views/FeedView'));
 const PremiumView = lazy(() => import('../views/PremiumView'));
-const PaymentView = lazy(() => import('../features/payment/presentation/views/PaymentView'));
-const PaymentResultView = lazy(() => import('../features/payment/presentation/views/PaymentResultView'));
+const PaymentView = lazy(() => import('../views/payment/PaymentView'));
+const PaymentResultView = lazy(() => import('../views/payment/PaymentResultView'));
 const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
   

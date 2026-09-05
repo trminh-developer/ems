@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initPaymentModule } from './features/payment/di/PaymentModule';
+import paymentRoutes from './routes/payment.routes';
 
 // Load env vars
 dotenv.config();
@@ -19,7 +19,6 @@ app.get('/', (req, res) => {
   res.send('Dating App Payment Backend is running!');
 });
 
-const paymentRoutes = initPaymentModule();
 app.use('/api/payments', paymentRoutes);
 
 // Health check
