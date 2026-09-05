@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Loading } from '../../components/common';
+import { createPayment } from '../../services/paymentService';
+import { v4 as uuidv4 } from 'uuid';
 
 const PaymentView: React.FC = () => {
   const navigate = useNavigate();
@@ -9,12 +11,11 @@ const PaymentView: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Lấy thông tin gói đã chọn từ trang Premium
     const storedPlan = localStorage.getItem('selected_premium_plan');
     if (storedPlan) {
       setPlan(JSON.parse(storedPlan));
     } else {
-      navigate('/premium'); // Nếu chưa chọn gói, đẩy về trang Premium
+      navigate('/premium');
     }
   }, [navigate]);
 
@@ -23,19 +24,24 @@ const PaymentView: React.FC = () => {
     
     setIsProcessing(true);
     try {
-      // TODO: Tích hợp API gọi backend Node.js ở đây
-      // POST /api/payments/momo/create
-      // Hoặc POST /api/payments/vnpay/create
+      const orderId = 'ORD_' + uuidv4().substring(0, 8).toUpperCase();
       
-      console.log(`Đang xử lý thanh toán cho gói ${plan.title} qua ${selectedMethod}...`);
-      
-      // Tạm thời giả lập API gọi mất 1s
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert(`Đang chuyển hướng tới cổng thanh toán Sandbox của ${selectedMethod.toUpperCase()}... (Chức năng này sẽ được tích hợp với Backend API ngay sau đây)`);
+      const response = await createPayment(selectedMethod, {
+        orderId,
+        amount: plan.price,
+        description: `Thanh toan goi Premium ${plan.title}`
+      });
+
+      if (response.success && response.paymentUrl) {
+        // Chuyển hướng người dùng sang trang thanh toán của VNPay/MoMo
+        window.location.href = response.paymentUrl;
+      } else {
+        alert('Có lỗi khi tạo thanh toán: ' + (response.message || 'Không rõ nguyên nhân'));
+      }
       
     } catch (error) {
       console.error('Payment error:', error);
-      alert('Có lỗi xảy ra khi khởi tạo thanh toán!');
+      alert('Không thể kết nối đến máy chủ thanh toán! Vui lòng kiểm tra xem Backend (port 3000) đã chạy chưa.');
     } finally {
       setIsProcessing(false);
     }
