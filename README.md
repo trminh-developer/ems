@@ -1,24 +1,22 @@
 # 💖 Dating App - Ứng Dụng Hẹn Hò
 
-Chào mừng bạn đến với dự án **Dating App**! Đây là một ứng dụng hẹn hò trực tuyến hiện đại, cho phép người dùng tìm kiếm, kết nối, trò chuyện và nâng cấp tài khoản Premium để trải nghiệm những tính năng độc quyền.
+Chào mừng bạn đến với dự án **Dating App**! Đây là một nền tảng kết nối trực tuyến được thiết kế để giúp người dùng gặp gỡ, giao tiếp và xây dựng các mối quan hệ một cách an toàn và thú vị.
 
 ---
 
-## ✨ Tính Năng Nổi Bật (Features)
+## ✨ Các Chức Năng Chính
 
-1. **Đăng nhập / Đăng ký:** Hỗ trợ xác thực người dùng an toàn.
-2. **Khám phá (Discover):** Quẹt trái/phải để tìm kiếm đối tượng phù hợp.
-3. **Danh sách tương hợp (Matches):** Xem danh sách những người đã tương hợp với bạn.
-4. **Nhắn tin trực tiếp (Chat):** Giao tiếp realtime an toàn và tiện lợi.
-5. **Gói Nâng cấp (Premium):** 
-   - Tích hợp cổng thanh toán **VNPay** và **MoMo** chuẩn.
-   - Hỗ trợ luồng chạy Môi trường thử nghiệm (Sandbox) và Môi trường thật (Production).
-   - Tự động cộng ngày Premium và lưu lịch sử giao dịch vào cơ sở dữ liệu sau khi thanh toán thành công.
+Dự án cung cấp một trải nghiệm liền mạch với các tính năng cơ bản và nâng cao:
+
+1. **Quản lý Tài Khoản:** Đăng nhập và đăng ký bảo mật, cho phép người dùng tùy chỉnh hồ sơ cá nhân.
+2. **Khám Phá & Tương Hợp (Match):** Cơ chế quẹt trái/phải thông minh giúp người dùng dễ dàng tìm kiếm những đối tượng phù hợp với sở thích.
+3. **Nhắn Tin Trực Tiếp (Chat):** Hệ thống trò chuyện thời gian thực dành cho những người dùng đã tương hợp.
+4. **Tài Khoản Premium:** Các gói nâng cấp trả phí mang lại trải nghiệm không giới hạn và các đặc quyền ưu tiên trong ứng dụng.
 
 ---
 
-## 🌟 Nhóm Phát Triển
-- Phát triển bởi: **TrMinh-Developer**
-- Kiến trúc áp dụng: **Clean Architecture** & **Monorepo**
+## 🌟 Tác Giả
 
-Chúc bạn có một trải nghiệm lập trình thú vị với dự án này! 🎉
+- Phát triển bởi: **Trần Đức Minh - Trần Quốc Việt - Đỗ Trúc Quỳnh**
+
+Cảm ơn bạn đã quan tâm đến dự án này! 🎉
