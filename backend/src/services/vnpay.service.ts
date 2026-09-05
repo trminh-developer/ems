@@ -10,7 +10,13 @@ export const createVNPayUrl = (
 ) => {
   const tmnCode = process.env.VNPAY_TMN_CODE || '';
   const secretKey = process.env.VNPAY_HASH_SECRET || '';
-  let vnpUrl = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
+  
+  // Tự động chuyển đổi URL dựa trên biến PAYMENT_MODE
+  const isProd = process.env.PAYMENT_MODE === 'production';
+  let vnpUrl = process.env.VNPAY_URL || (isProd 
+    ? 'https://pay.vnpay.vn/vpcpay.html' 
+    : 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
+    
   const returnUrl = process.env.VNPAY_RETURN_URL || 'http://localhost:5173/payment/result';
 
   const createDate = getCreateDateVNPay();

@@ -11,7 +11,12 @@ export const createMoMoUrl = async (
   const partnerCode = process.env.MOMO_PARTNER_CODE || '';
   const redirectUrl = process.env.MOMO_REDIRECT_URL || 'http://localhost:5173/payment/result';
   const ipnUrl = process.env.MOMO_IPN_URL || 'https://YOUR_NGROK_URL/api/payments/momo/ipn';
-  const endpoint = process.env.MOMO_ENDPOINT || 'https://test-payment.momo.vn/v2/gateway/api/create';
+  
+  // Tự động chuyển đổi URL dựa trên biến PAYMENT_MODE
+  const isProd = process.env.PAYMENT_MODE === 'production';
+  const endpoint = process.env.MOMO_ENDPOINT || (isProd
+    ? 'https://payment.momo.vn/v2/gateway/api/create'
+    : 'https://test-payment.momo.vn/v2/gateway/api/create');
 
   const requestId = orderId;
   const requestType = "captureWallet";
