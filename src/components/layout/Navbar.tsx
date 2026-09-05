@@ -125,6 +125,12 @@ export const Navbar: React.FC = () => {
                     <span>Settings</span>
                   </Link>
                 </li>
+                <li>
+                  <Link className="dropdown-item py-2 d-flex align-items-center" to="/premium" onClick={() => setIsDropdownOpen(false)}>
+                    <i className="bi bi-gem me-3 fs-5 text-warning"></i>
+                    <span className="fw-bold text-warning">Premium</span>
+                  </Link>
+                </li>
                 <li><hr className="dropdown-divider" /></li>
                 <li>
                   <button className="dropdown-item py-2 d-flex align-items-center justify-content-between" onClick={toggleDarkMode}>

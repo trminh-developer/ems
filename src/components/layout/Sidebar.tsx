@@ -80,6 +80,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
             <i className="bi bi-gear fs-5"></i>
             <span className="fw-medium">Settings</span>
           </NavLink>
+          <NavLink to="/premium" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-warning text-white' : 'text-dark hover-bg-light'}`}>
+            <i className="bi bi-gem fs-5 text-warning"></i>
+            <span className="fw-medium fw-bold text-warning">Premium</span>
+          </NavLink>
         </nav>
       </div>
     </aside>
