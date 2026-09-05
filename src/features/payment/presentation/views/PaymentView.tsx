@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Loading } from "../../components/common";
-import { createPayment } from "../../services/paymentService";
-import { useAuth } from "../../hooks/useAuth";
-import { v4 as uuidv4 } from "uuid";
+import { Button, Loading } from "../../../../components/common";
+import { useAuth } from "../../../../hooks/useAuth";
+import { usePaymentDi } from "../../di/PaymentContainer";
+import { Plan } from "../../domain/entities/Plan";
+import { PaymentMethod } from "../../domain/entities/PaymentMethod";
 
 const PaymentView: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [plan, setPlan] = useState<any>(null);
-  const [selectedMethod, setSelectedMethod] = useState<"momo" | "vnpay" | null>(
-    null,
-  );
+  const { createPaymentUseCase } = usePaymentDi(); // Dùng DI hook
+  
+  const [plan, setPlan] = useState<Plan | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -26,32 +27,24 @@ const PaymentView: React.FC = () => {
   const handlePayment = async () => {
     if (!selectedMethod || !plan) return;
 
-    setIsProcessing(true);
     try {
-      const orderId = "ORD_" + uuidv4().substring(0, 8).toUpperCase();
-
-      const response = await createPayment(selectedMethod, {
-        orderId,
-        amount: plan.price,
-        description: `Thanh toan goi Premium ${plan.title}`,
-        userId: user?.id,
-        planId: plan.id,
-      });
-
-      if (response.success && response.paymentUrl) {
-        // Chuyển hướng người dùng sang trang thanh toán của VNPay/MoMo
-        window.location.href = response.paymentUrl;
-      } else {
-        alert(
-          "Có lỗi khi tạo thanh toán: " +
-            (response.message || "Không rõ nguyên nhân"),
-        );
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert(
-        "Không thể kết nối đến máy chủ thanh toán! Vui lòng kiểm tra xem Backend (port 3000) đã chạy chưa.",
+      setIsProcessing(true);
+      
+      // Gọi qua Lớp Use Case (Application Rules), không gọi trực tiếp Repository
+      const paymentUrl = await createPaymentUseCase.execute(
+        selectedMethod, 
+        plan.id, 
+        plan.price, 
+        plan.title, 
+        user?.id
       );
+
+      // Redirect đến VNPay / MoMo
+      window.location.href = paymentUrl;
+
+    } catch (error) {
+      alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+      console.error(error);
     } finally {
       setIsProcessing(false);
     }
@@ -127,71 +120,83 @@ const PaymentView: React.FC = () => {
           </div>
 
           <h6 className="fw-bold mb-3 px-2">Phương thức thanh toán</h6>
-          <div className="d-flex flex-column gap-3 mb-4">
-            {/* VNPay Option */}
+          <div className="d-flex flex-column gap-3 mb-5">
             <div
-              className={`card border-2 rounded-4 p-3 cursor-pointer transition-all ${selectedMethod === "vnpay" ? "border-primary bg-primary bg-opacity-10 shadow-sm" : "border-light shadow-sm"}`}
-              onClick={() => setSelectedMethod("vnpay")}
-              style={{ cursor: "pointer" }}
+              className={`card border-2 rounded-4 cursor-pointer transition-all ${
+                selectedMethod === "momo"
+                  ? "border-primary bg-primary bg-opacity-10"
+                  : "border-light bg-white hover-shadow"
+              }`}
+              onClick={() => setSelectedMethod("momo")}
             >
-              <div className="d-flex align-items-center">
-                <div className="me-3 bg-white p-2 rounded shadow-sm">
+              <div className="card-body d-flex align-items-center p-3">
+                <div
+                  className="rounded p-2 me-3 d-flex align-items-center justify-content-center"
+                  style={{ width: "50px", height: "50px", background: "#f8f9fa" }}
+                >
                   <img
-                    src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png"
-                    alt="VNPay"
-                    width="40"
-                    height="40"
-                    style={{ objectFit: "contain" }}
+                    src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png"
+                    alt="MoMo"
+                    className="img-fluid"
                   />
                 </div>
-                <div>
-                  <h6 className="mb-0 fw-bold">Ví VNPay / Thẻ ATM</h6>
-                  <small className="text-muted">
-                    Quét mã QR hoặc thanh toán thẻ
-                  </small>
+                <div className="flex-grow-1">
+                  <h6 className="fw-bold mb-0">Ví MoMo</h6>
+                  <small className="text-muted">Thanh toán qua ứng dụng MoMo</small>
                 </div>
-                <div className="ms-auto">
+                <div>
                   <div
-                    className={`rounded-circle border d-flex align-items-center justify-content-center ${selectedMethod === "vnpay" ? "bg-primary border-primary" : "bg-white"}`}
-                    style={{ width: "24px", height: "24px" }}
+                    className={`rounded-circle border ${
+                      selectedMethod === "momo"
+                        ? "border-primary bg-primary"
+                        : "border-secondary"
+                    }`}
+                    style={{ width: "20px", height: "20px" }}
                   >
-                    {selectedMethod === "vnpay" && (
-                      <i className="bi bi-check text-white"></i>
+                    {selectedMethod === "momo" && (
+                      <i className="bi bi-check text-white d-flex align-items-center justify-content-center h-100 fs-6"></i>
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* MoMo Option */}
             <div
-              className={`card border-2 rounded-4 p-3 cursor-pointer transition-all ${selectedMethod === "momo" ? "border-danger bg-danger bg-opacity-10 shadow-sm" : "border-light shadow-sm"}`}
-              onClick={() => setSelectedMethod("momo")}
-              style={{ cursor: "pointer" }}
+              className={`card border-2 rounded-4 cursor-pointer transition-all ${
+                selectedMethod === "vnpay"
+                  ? "border-primary bg-primary bg-opacity-10"
+                  : "border-light bg-white hover-shadow"
+              }`}
+              onClick={() => setSelectedMethod("vnpay")}
             >
-              <div className="d-flex align-items-center">
-                <div className="me-3 bg-white p-2 rounded shadow-sm">
+              <div className="card-body d-flex align-items-center p-3">
+                <div
+                  className="rounded p-2 me-3 d-flex align-items-center justify-content-center"
+                  style={{ width: "50px", height: "50px", background: "#f8f9fa" }}
+                >
                   <img
-                    src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Circle.png"
-                    alt="MoMo"
-                    width="40"
-                    height="40"
-                    style={{ objectFit: "contain" }}
+                    src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418186387.png"
+                    alt="VNPAY"
+                    className="img-fluid"
                   />
                 </div>
-                <div>
-                  <h6 className="mb-0 fw-bold">Ví MoMo</h6>
+                <div className="flex-grow-1">
+                  <h6 className="fw-bold mb-0">VNPAY</h6>
                   <small className="text-muted">
-                    Thanh toán nhanh bằng ứng dụng MoMo
+                    Thẻ ATM, Visa, MasterCard, JCB
                   </small>
                 </div>
-                <div className="ms-auto">
+                <div>
                   <div
-                    className={`rounded-circle border d-flex align-items-center justify-content-center ${selectedMethod === "momo" ? "bg-danger border-danger" : "bg-white"}`}
-                    style={{ width: "24px", height: "24px" }}
+                    className={`rounded-circle border ${
+                      selectedMethod === "vnpay"
+                        ? "border-primary bg-primary"
+                        : "border-secondary"
+                    }`}
+                    style={{ width: "20px", height: "20px" }}
                   >
-                    {selectedMethod === "momo" && (
-                      <i className="bi bi-check text-white"></i>
+                    {selectedMethod === "vnpay" && (
+                      <i className="bi bi-check text-white d-flex align-items-center justify-content-center h-100 fs-6"></i>
                     )}
                   </div>
                 </div>
@@ -199,26 +204,19 @@ const PaymentView: React.FC = () => {
             </div>
           </div>
 
-          <div className="d-grid mt-4">
-            <Button
-              variant={selectedMethod ? "primary" : "secondary"}
-              size="lg"
+          <div className="d-grid">
+            <Button 
+              variant={selectedMethod ? "primary" : "secondary"} 
+              size="lg" 
               className="rounded-pill shadow fw-bold text-white fs-5 py-3"
               onClick={handlePayment}
               disabled={!selectedMethod || isProcessing}
-              style={
-                selectedMethod
-                  ? {
-                      background: "linear-gradient(45deg, #0d6efd, #0dcaf0)",
-                      border: "none",
-                    }
-                  : {}
-              }
+              style={selectedMethod ? { background: 'linear-gradient(45deg, #0d6efd, #0dcaf0)', border: 'none' } : {}}
             >
               {isProcessing ? (
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
               ) : (
-                "Thanh Toán Ngay"
+                'Thanh Toán Ngay'
               )}
             </Button>
           </div>
