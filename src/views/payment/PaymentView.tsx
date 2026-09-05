@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Loading } from "../../components/common";
 import { createPayment } from "../../services/paymentService";
+import { useAuth } from "../../hooks/useAuth";
 import { v4 as uuidv4 } from "uuid";
 
 const PaymentView: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [plan, setPlan] = useState<any>(null);
   const [selectedMethod, setSelectedMethod] = useState<"momo" | "vnpay" | null>(
     null,
@@ -32,6 +34,8 @@ const PaymentView: React.FC = () => {
         orderId,
         amount: plan.price,
         description: `Thanh toan goi Premium ${plan.title}`,
+        userId: user?.id,
+        planId: plan.id,
       });
 
       if (response.success && response.paymentUrl) {
