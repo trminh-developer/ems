@@ -88,6 +88,24 @@ const PaymentView: React.FC = () => {
                   Premium {plan.title}
                 </span>
               </div>
+              
+              {plan.discount && (
+                <>
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="text-muted">Giá gốc</span>
+                    <span className="text-muted text-decoration-line-through">
+                      {plan.id === '6_months' ? '594,000đ' : plan.id === '12_months' ? '1,188,000đ' : ''}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <span className="text-muted">Giảm giá</span>
+                    <span className="text-success fw-medium">
+                      -{plan.id === '6_months' ? '95,000đ' : plan.id === '12_months' ? '289,000đ' : ''} ({plan.discount})
+                    </span>
+                  </div>
+                </>
+              )}
+              
               <div className="d-flex justify-content-between align-items-center border-top pt-3 mt-2">
                 <span className="fw-semibold fs-5">Tổng tiền</span>
                 <span className="fw-bold text-danger fs-4">
