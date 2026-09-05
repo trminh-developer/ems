@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Loading } from '../components/common';
+import { Button, Loading } from '../../components/common';
 
 const PaymentView: React.FC = () => {
   const navigate = useNavigate();
