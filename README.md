@@ -1,53 +1,22 @@
-# Dating App (Vite + React) 💖
+# 💖 Dating App - Ứng Dụng Hẹn Hò
 
-Dating App là một ứng dụng hẹn hò trực tuyến hiện đại, được xây dựng với mục tiêu mang lại trải nghiệm kết nối và tương tác mượt mà cho người dùng. Ứng dụng cung cấp các tính năng từ cơ bản đến nâng cao như vuốt tương hợp, nhắn tin theo thời gian thực và chia sẻ khoảnh khắc qua Bảng tin (Social Feed).
+Chào mừng bạn đến với dự án **Dating App**! Đây là một nền tảng kết nối trực tuyến được thiết kế để giúp người dùng gặp gỡ, giao tiếp và xây dựng các mối quan hệ một cách an toàn và thú vị.
 
-## 🚀 Tính năng nổi bật
+---
 
-- **Khám phá & Tương hợp (Swipe & Match):** Thuật toán hiển thị thẻ hồ sơ trực quan. Quẹt phải để thích, quẹt trái để bỏ qua. Hỗ trợ Super Like.
-- **Bảng tin (Social Feed):** Đăng tải trạng thái, chia sẻ hình ảnh/video, tương tác (Thích, Bình luận) với những người dùng khác trong cộng đồng.
-- **Nhắn tin (Chat):** Trò chuyện trực tiếp với những người đã tương hợp.
-- **Quản lý Hồ sơ:** Tùy chỉnh thông tin cá nhân, cập nhật Avatar, ảnh bìa, thêm thẻ sở thích (Interests).
-- **Xác thực an toàn:** Đăng ký, Đăng nhập, và Khôi phục mật khẩu thông qua mã OTP bảo mật.
-- **Dark Mode:** Tích hợp chế độ tối ưu hóa cho mắt khi sử dụng vào ban đêm.
-- **Đa ngôn ngữ:** Hỗ trợ chuyển đổi ngôn ngữ linh hoạt.
+## ✨ Các Chức Năng Chính
 
-## 🛠 Công nghệ sử dụng
+Dự án cung cấp một trải nghiệm liền mạch với các tính năng cơ bản và nâng cao:
 
-- **Frontend:** React.js, Vite, TypeScript
-- **Styling:** Bootstrap 5, CSS thuần, Bootstrap Icons
-- **Quản lý trạng thái:** React Context API + Custom Hooks
-- **Routing:** React Router DOM (Lazy Loading)
-- **Backend/Database:** Supabase (PostgreSQL, Storage, RLS)
-- **Email Service:** EmailJS
+1. **Quản lý Tài Khoản:** Đăng nhập và đăng ký bảo mật, cho phép người dùng tùy chỉnh hồ sơ cá nhân.
+2. **Khám Phá & Tương Hợp (Match):** Cơ chế quẹt trái/phải thông minh giúp người dùng dễ dàng tìm kiếm những đối tượng phù hợp với sở thích.
+3. **Nhắn Tin Trực Tiếp (Chat):** Hệ thống trò chuyện thời gian thực dành cho những người dùng đã tương hợp.
+4. **Tài Khoản Premium:** Các gói nâng cấp trả phí mang lại trải nghiệm không giới hạn và các đặc quyền ưu tiên trong ứng dụng.
 
-## 📦 Hướng dẫn cài đặt & Chạy dự án
+---
 
-1. **Clone repository:**
-   ```bash
-   git clone https://gitlab.com/trminh-developer/dating-app.git
-   cd dating-app
-   ```
+## 🌟 Tác Giả
 
-2. **Cài đặt thư viện:**
-   ```bash
-   npm install
-   ```
+- Phát triển bởi: **Trần Đức Minh - Trần Quốc Việt - Đỗ Trúc Quỳnh**
 
-3. **Cấu hình biến môi trường:**
-   - Tạo file `.env` ở thư mục gốc của dự án.
-   - Tham khảo cấu hình cần thiết từ đội ngũ phát triển.
-
-4. **Chạy server phát triển:**
-   ```bash
-   npm run dev
-   ```
-   Ứng dụng sẽ chạy tại: `http://localhost:5173`
-
-5. **Build cho môi trường Production:**
-   ```bash
-   npm run build
-   ```
-
-## 🔒 Bản quyền & Bảo mật
-Toàn bộ mã nguồn cốt lõi, thiết kế cơ sở dữ liệu và thuật toán ghép đôi của dự án đều là tài sản nội bộ và được bảo mật tuyệt đối. Vui lòng không sao chép hoặc phân phối với mục đích thương mại mà không có sự cho phép.
+Cảm ơn bạn đã quan tâm đến dự án này! 🎉
