@@ -20,7 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
   return (
     <aside className="app-sidebar bg-white border-end d-flex flex-column py-4">
       <div className="sidebar-section mb-4 px-3">
-        <h6 className="text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Main</h6>
+        <h6 className="sidebar-section-title text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Main</h6>
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-house fs-5"></i>
@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
       </div>
 
       <div className="sidebar-section mb-4 px-3">
-        <h6 className="text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Social</h6>
+        <h6 className="sidebar-section-title text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Social</h6>
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/feed" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-journal-text fs-5"></i>
@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
       </div>
 
       <div className="sidebar-section mt-auto px-3">
-        <h6 className="text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Account</h6>
+        <h6 className="sidebar-section-title text-muted text-uppercase fs-7 fw-bold mb-3 px-3">Account</h6>
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/profile" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-person fs-5"></i>
