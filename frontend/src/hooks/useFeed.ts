@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { feedService } from '../services';
 import { Status, StatusComment } from '../models';
 import { useAuth } from './useAuth';
+import { uploadOptimizedImage } from '../utils/helpers';
 
 export const useFeed = (userId?: string) => {
   const { user } = useAuth();
@@ -21,13 +22,8 @@ export const useFeed = (userId?: string) => {
   }, [loadStatuses]);
 
   const uploadMedia = async (file: File): Promise<string | null> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (!user) return null;
+    return await uploadOptimizedImage(file, 'status_media', user.id);
   };
 
   const createStatus = async (content: string, files: File[]) => {
