@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
-import { Button, Loading, Modal, Input, Toast, ImageCropperModal } from '../components/common';
+import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
 import { userService, authService, feedService } from '../services';
 import { supabase } from '../config/supabase';
@@ -210,7 +210,9 @@ const ProfileView = () => {
         <div className="col-md-4 mb-4">
           <div className="hc-card p-4">
             <h5 className="mb-3">Bio</h5>
-            <p>{user.bio || 'Chưa có thông tin.'}</p>
+            <div className="text-dark">
+              <LinkifyText text={user.bio || 'Chưa có thông tin.'} />
+            </div>
             
             <h5 className="mb-3 mt-4">Sở thích</h5>
             <div className="d-flex flex-wrap gap-2">

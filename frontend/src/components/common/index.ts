@@ -7,3 +7,4 @@ export { default as Toast } from './Toast';
 export { default as Loading } from './Loading';
 export { default as EmptyState } from './EmptyState';
 export { default as ImageCropperModal } from './ImageCropperModal';
+export * from './LinkifyText';

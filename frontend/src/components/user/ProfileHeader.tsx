@@ -64,13 +64,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
             {user.profession && <span className="d-flex align-items-center gap-1"><i className="bi bi-briefcase"></i> {user.profession}</span>}
             {user.education && <span className="d-flex align-items-center gap-1"><i className="bi bi-book"></i> {user.education}</span>}
           </div>
-
-          {user.bio && (
-            <div className="mt-3">
-              <h6 className="fw-bold mb-2">About Me</h6>
-              <p className="text-dark mb-0" style={{ whiteSpace: 'pre-line' }}>{user.bio}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
