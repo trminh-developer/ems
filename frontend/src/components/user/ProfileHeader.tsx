@@ -60,7 +60,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
           </h2>
           
           <div className="text-muted d-flex flex-wrap gap-3 mb-3">
-            <span className="d-flex align-items-center gap-1"><i className="bi bi-geo-alt"></i> {user.location.city}, {user.location.country}</span>
+            {user.location && (user.location.city || user.location.country) && (
+              <span className="d-flex align-items-center gap-1">
+                <i className="bi bi-geo-alt"></i> 
+                {user.location.city}{user.location.city && user.location.country ? ', ' : ''}{user.location.country}
+              </span>
+            )}
             {user.profession && <span className="d-flex align-items-center gap-1"><i className="bi bi-briefcase"></i> {user.profession}</span>}
             {user.education && <span className="d-flex align-items-center gap-1"><i className="bi bi-book"></i> {user.education}</span>}
           </div>

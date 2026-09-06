@@ -1,9 +1,11 @@
 import imageCompression from "browser-image-compression";
 import { supabase } from "../config/supabase";
 
-export const calculateAge = (dateOfBirth: string): number => {
+export const calculateAge = (dateOfBirth?: string): number | string => {
+  if (!dateOfBirth) return '?';
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
+  if (isNaN(birthDate.getTime())) return '?';
   let age = today.getFullYear() - birthDate.getFullYear();
   const m = today.getMonth() - birthDate.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
