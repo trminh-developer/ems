@@ -11,6 +11,7 @@ interface StatusCardProps {
 
 export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
   const [showComments, setShowComments] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [isCommentsLoaded, setIsCommentsLoaded] = useState(false);
@@ -70,6 +71,44 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
             <small className="text-muted">
               {new Date(status.createdAt).toLocaleString('vi-VN')}
             </small>
+          </div>
+          
+          {/* Options Dropdown */}
+          <div className="ms-auto position-relative">
+            <button 
+              className="btn btn-link text-muted p-1 text-decoration-none" 
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              <i className="bi bi-three-dots fs-5"></i>
+            </button>
+            
+            {showDropdown && (
+              <>
+                {/* Overlay to close dropdown when clicking outside */}
+                <div 
+                  className="position-fixed top-0 start-0 w-100 h-100" 
+                  style={{ zIndex: 999 }} 
+                  onClick={() => setShowDropdown(false)}
+                ></div>
+                
+                {/* Dropdown Menu */}
+                <div className="dropdown-menu show position-absolute end-0 mt-1 shadow border-0 rounded-3" style={{ zIndex: 1000, minWidth: '220px' }}>
+                  <button className="dropdown-item py-2 d-flex align-items-center gap-2" onClick={() => { setShowDropdown(false); alert('Chức năng Chỉnh sửa đang được phát triển') }}>
+                    <i className="bi bi-pencil text-primary"></i> Chỉnh sửa bài viết
+                  </button>
+                  <button className="dropdown-item py-2 d-flex align-items-center gap-2 text-danger" onClick={() => { setShowDropdown(false); alert('Chức năng Xóa đang được phát triển') }}>
+                    <i className="bi bi-trash"></i> Xóa bài viết
+                  </button>
+                  <hr className="dropdown-divider" />
+                  <button className="dropdown-item py-2 d-flex align-items-center gap-2" onClick={() => { setShowDropdown(false); alert('Đã lưu bài viết vào mục Đã lưu!') }}>
+                    <i className="bi bi-bookmark-fill text-warning"></i> Lưu bài viết
+                  </button>
+                  <button className="dropdown-item py-2 d-flex align-items-center gap-2" onClick={() => { setShowDropdown(false); alert('Đã gửi báo cáo cho quản trị viên.') }}>
+                    <i className="bi bi-flag text-secondary"></i> Báo cáo bài viết
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
