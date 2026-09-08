@@ -18,6 +18,8 @@ const Button: React.FC<ButtonProps> = ({
   const customVariants: Record<string, string> = {
     primary: 'btn-hc-primary',
     outline: 'btn-hc-outline',
+    'outline-danger': 'btn-hc-outline-danger',
+    'outline-secondary': 'btn-hc-outline-secondary',
     ghost: 'btn-hc-ghost',
   };
   

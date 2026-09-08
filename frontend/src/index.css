@@ -450,6 +450,40 @@ a:hover {
   color: white;
 }
 
+.btn-hc-outline-danger {
+  background: transparent;
+  border: 2px solid var(--hc-danger);
+  color: var(--hc-danger);
+  font-weight: 600;
+  padding: 8px 22px;
+  border-radius: var(--hc-radius-pill);
+  transition: var(--hc-transition);
+  font-size: 14px;
+}
+
+.btn-hc-outline-danger:hover {
+  background: var(--hc-danger);
+  border-color: transparent;
+  color: white;
+}
+
+.btn-hc-outline-secondary {
+  background: transparent;
+  border: 2px solid var(--hc-text-secondary);
+  color: var(--hc-text-secondary);
+  font-weight: 600;
+  padding: 8px 22px;
+  border-radius: var(--hc-radius-pill);
+  transition: var(--hc-transition);
+  font-size: 14px;
+}
+
+.btn-hc-outline-secondary:hover {
+  background: var(--hc-text-secondary);
+  border-color: transparent;
+  color: white;
+}
+
 .btn-hc-ghost {
   background: transparent;
   border: none;
