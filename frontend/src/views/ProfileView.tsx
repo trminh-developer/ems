@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
+import { useChat } from '../hooks/useChat';
 import { userService, authService, feedService } from '../services';
 import { supabase } from '../config/supabase';
 import { interests as predefinedInterests } from '../data';
@@ -199,6 +200,22 @@ const ProfileView = () => {
     }
   };
 
+  const { conversations, selectConversation } = useChat();
+
+  // Handle message button click
+  const handleMessage = () => {
+    if (!user) return;
+    const existingConv = conversations?.find(c => 
+      c.participants.some(p => p.id === user.id)
+    );
+    if (existingConv) {
+      selectConversation(existingConv.id);
+      navigate('/messages');
+    } else {
+      alert('Bạn và người này chưa kết đôi (Match). Hãy thả tim và chờ họ phản hồi nhé!');
+    }
+  };
+
   if (isLoading) return <Loading text="Đang tải hồ sơ..." />;
   if (!user) return <div>Không tìm thấy người dùng.</div>;
 
@@ -228,7 +245,7 @@ const ProfileView = () => {
                 </Button>
               ) : (
                 <div className="d-flex flex-column gap-2">
-                  <Button variant="primary" onClick={() => navigate('/messages')}>Nhắn tin</Button>
+                  <Button variant="primary" onClick={handleMessage}>Nhắn tin</Button>
                   <Button variant="primary" onClick={() => alert('Đã chặn người dùng này.')}>Chặn</Button>
                   <Button variant="primary" onClick={() => alert('Đã gửi báo cáo vi phạm.')}>Báo cáo</Button>
                 </div>
