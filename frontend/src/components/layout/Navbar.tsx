@@ -68,9 +68,8 @@ export const Navbar: React.FC = () => {
 
   return (
     <nav className="app-navbar d-flex align-items-center justify-content-between px-3 px-md-4">
-      <Link to="/" className="navbar-brand text-decoration-none d-flex align-items-center gap-2">
-        <i className="bi bi-heart-fill text-danger fs-4"></i>
-        <span className="fw-bold fs-4 text-dark d-none d-sm-block">HeartConnect</span>
+      <Link to="/" className="navbar-brand text-decoration-none d-flex align-items-center">
+        <img src="/logo-heartconnect.png" alt="HeartConnect Logo" height="36" />
       </Link>
 
       <div className="navbar-search d-none d-md-flex align-items-center bg-light rounded-pill px-3 py-2 flex-grow-1 mx-4" style={{ maxWidth: '400px' }}>
