@@ -25,8 +25,9 @@ const LoginView = () => {
     <div className="auth-page fade-in">
       <div className="auth-card">
         <div className="text-center mb-4">
-          <img src="/logo-heartconnect.png" alt="HeartConnect" height="48" className="mb-3" />
-          <h2>Welcome back</h2>
+          <img src="/logo-heartconnect.png" alt="HeartConnect" height="48" className="mb-2" />
+          <h2 className="fw-bold text-danger mb-3">HeartConnect</h2>
+          <h4 className="text-muted">Welcome back</h4>
         </div>
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>

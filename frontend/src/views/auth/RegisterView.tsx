@@ -49,8 +49,9 @@ const RegisterView = () => {
     <div className="auth-page fade-in">
       <div className="auth-card">
         <div className="text-center mb-4">
-          <img src="/logo-heartconnect.png" alt="HeartConnect" height="48" className="mb-3" />
-          <h2>Tạo tài khoản mới</h2>
+          <img src="/logo-heartconnect.png" alt="HeartConnect" height="48" className="mb-2" />
+          <h2 className="fw-bold text-danger mb-3">HeartConnect</h2>
+          <h4 className="text-muted">Tạo tài khoản mới</h4>
         </div>
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
