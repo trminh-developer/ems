@@ -6,3 +6,7 @@ dist
 .idea
 *.log
 scratch/
+__pycache__
+.venv
+Dockerfile
+.dockerignore
