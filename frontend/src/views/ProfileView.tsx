@@ -223,14 +223,14 @@ const ProfileView = () => {
 
             <div className="mt-4">
               {isOwnProfile ? (
-                <Button variant="outline-primary" className="w-100" onClick={() => setIsEditModalOpen(true)}>
+                <Button variant="primary" className="w-100" onClick={() => setIsEditModalOpen(true)}>
                   Chỉnh sửa hồ sơ
                 </Button>
               ) : (
                 <div className="d-flex flex-column gap-2">
                   <Button variant="primary" onClick={() => navigate('/messages')}>Nhắn tin</Button>
-                  <Button variant="outline-danger" onClick={() => alert('Đã chặn người dùng này.')}>Chặn</Button>
-                  <Button variant="outline-secondary" onClick={() => alert('Đã gửi báo cáo vi phạm.')}>Báo cáo</Button>
+                  <Button variant="primary" onClick={() => alert('Đã chặn người dùng này.')}>Chặn</Button>
+                  <Button variant="primary" onClick={() => alert('Đã gửi báo cáo vi phạm.')}>Báo cáo</Button>
                 </div>
               )}
             </div>
