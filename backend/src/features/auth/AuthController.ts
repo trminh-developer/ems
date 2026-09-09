@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { supabaseAdmin } from '../../utils/supabase';
+import { User } from '../../models';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'super-refresh-key';
@@ -12,13 +12,14 @@ export class AuthController {
   public async login(req: Request, res: Response) {
     const { email, password } = req.body;
     
-    // Authenticate user with Supabase table (simulating their manual auth)
-    const { data, error } = await superbaseAdmin.from('users').select('*').eq('email', email).single();
+    // Authenticate user with MySQL Sequelize
+    const user = await User.findOne({ where: { email } });
     
-    if (error || !data || data.password !== password) {
+    if (!user || (user as any).password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const data = user.toJSON();
     const userId = data.id;
 
     // Issue tokens
@@ -29,6 +30,32 @@ export class AuthController {
     refreshTokens.set(refreshToken, userId);
     
     res.json({ accessToken, refreshToken, user: data });
+  }
+
+  public async register(req: Request, res: Response) {
+    try {
+      const { email, password, username, first_name, last_name, gender, date_of_birth, relationship_goal, ...rest } = req.body;
+      
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+
+      const newUser = await User.create({
+        email, password, username, first_name, last_name, gender, date_of_birth, relationship_goal, ...rest
+      });
+
+      const data = newUser.toJSON();
+      const userId = data.id;
+
+      const accessToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '15m' });
+      const refreshToken = jwt.sign({ id: userId }, REFRESH_SECRET, { expiresIn: '7d' });
+      refreshTokens.set(refreshToken, userId);
+
+      res.status(201).json({ accessToken, refreshToken, user: data });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || 'Error creating user' });
+    }
   }
 
   public async refresh(req: Request, res: Response) {

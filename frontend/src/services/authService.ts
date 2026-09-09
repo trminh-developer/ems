@@ -1,276 +1,53 @@
-import { User, Gender, RelationshipGoal } from '../models';
-import { supabase } from '../config/supabase';
-import { emailService } from './index';
+import { User } from '../models';
+import apiClient from './apiClient';
 
 export const login = async (email: string, password: string): Promise<User> => {
-  // Query from real database
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
-
-  if (error || !data) {
-    throw new Error('Tài khoản chưa được đăng ký! Vui lòng đăng ký tài khoản.');
-  }
-  
-  if (data.password && data.password !== password) {
-    throw new Error('Mật khẩu không chính xác!');
-  }
-
-  // Auto-verify admin account logic
-  if (data.email === 'trminhlaptrinhvien@gmail.com' && !data.is_verified) {
-    await supabase.from('users').update({ is_verified: true }).eq('id', data.id);
-    data.is_verified = true;
-  }
-
-  // Giả lập phát hành JWT Access Token và Single-Use Refresh Token
-  const fakeAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.accessToken';
-  const fakeRefreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refreshToken' + Date.now();
-  localStorage.setItem('hc_access_token', fakeAccessToken);
-  localStorage.setItem('hc_refresh_token', fakeRefreshToken);
-
-  return await fetchUserWithPrefs(data);
+  const res = await apiClient.post('/auth/login', { email, password });
+  localStorage.setItem('hc_access_token', res.data.accessToken);
+  localStorage.setItem('hc_refresh_token', res.data.refreshToken);
+  return res.data.user;
 };
 
 export const register = async (data: any): Promise<User> => {
-  // Check if exists
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('id')
-    .eq('email', data.email)
-    .single();
-
-  if (existingUser) {
-    throw new Error('Email này đã được sử dụng! Vui lòng đăng nhập.');
-  }
-
-  // Create new user in DB
-  const newUser = {
-    email: data.email,
-    username: data.email.split('@')[0],
-    first_name: data.firstName || 'Người dùng',
-    last_name: data.lastName || 'Mới',
-    avatar: `https://randomuser.me/api/portraits/${data.gender === 'female' ? 'women' : 'men'}/${Math.floor(Math.random() * 90)}.jpg`,
-    gender: data.gender || 'OTHER',
-    date_of_birth: data.dateOfBirth || '2000-01-01',
-    city: 'Hà Nội',
-    country: 'Việt Nam',
-    bio: 'Thành viên mới',
-    relationship_goal: 'NOT_SURE',
-    is_online: true,
-    is_verified: data.email === 'trminhlaptrinhvien@gmail.com',
-    password: data.password || 'password123'
-  };
-
-  const { data: createdUser, error } = await supabase
-    .from('users')
-    .insert([newUser])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating user:', error);
-    throw new Error('Lỗi khi đăng ký: ' + (error.message || 'Vui lòng thử lại.'));
-  }
-
-  return await fetchUserWithPrefs(createdUser);
+  const res = await apiClient.post('/auth/register', data);
+  localStorage.setItem('hc_access_token', res.data.accessToken);
+  localStorage.setItem('hc_refresh_token', res.data.refreshToken);
+  return res.data.user;
 };
 
 export const logout = async (): Promise<void> => {
-  // HỦY TOKEN TRÊN SERVER (Logout = hủy token client + server)
-  const refreshToken = localStorage.getItem('hc_refresh_token') || sessionStorage.getItem('hc_refresh_token');
-  
+  const refreshToken = localStorage.getItem('hc_refresh_token');
   if (refreshToken) {
     try {
-      await fetch('http://localhost:3000/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: refreshToken })
-      });
-    } catch (error) {
-      console.warn('Could not reach backend to invalidate token:', error);
+      await apiClient.post('/auth/logout', { token: refreshToken });
+    } catch (e) {
+      console.warn('Logout backend failed', e);
     }
   }
-
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 300);
-  });
 };
 
-export const forgotPassword = async (email: string): Promise<string> => {
-  // 1. Kiểm tra email có tồn tại không
-  const { data: user } = await supabase.from('users').select('id').eq('email', email).single();
-  if (!user) throw new Error('Email không tồn tại trong hệ thống!');
-
-  // 2. Tạo mã OTP 6 số
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 phút
-
-  // 3. Lưu vào DB (Upsert)
-  const { error } = await supabase.from('password_resets').upsert({
-    email,
-    otp,
-    expires_at: expiresAt
-  });
-
-  if (error) throw new Error('Không thể tạo mã OTP. Vui lòng thử lại sau.');
-  
-  // 4. Gửi email
-  await emailService.sendOTPEmail(email, otp);
-  
-  return otp;
-};
-
-export const verifyOTP = async (email: string, otp: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from('password_resets')
-    .select('*')
-    .eq('email', email)
-    .eq('otp', otp)
-    .single();
-
-  if (error || !data) throw new Error('Mã OTP không chính xác!');
-  
-  if (new Date(data.expires_at) < new Date()) {
-    throw new Error('Mã OTP đã hết hạn!');
+export const refreshUser = async (id: string): Promise<User | null> => {
+  try {
+    const res = await apiClient.get(`/users/${id}`);
+    return res.data;
+  } catch (e) {
+    return null;
   }
-
-  return true;
-};
-
-export const resetPassword = async (email: string, newPassword: string): Promise<void> => {
-  const { error } = await supabase
-    .from('users')
-    .update({ password: newPassword })
-    .eq('email', email);
-
-  if (error) throw new Error('Lỗi khi đặt lại mật khẩu!');
-  
-  // Xóa OTP sau khi dùng
-  await supabase.from('password_resets').delete().eq('email', email);
-};
-
-// Vẫn giữ lại local/session storage cho session hiện tại trên thiết bị
-// Biến lưu trữ user trong RAM (thay vì localStorage)
-let currentUserCache: User | null = null;
-
-export const setCurrentUser = (user: User | null) => {
-  currentUserCache = user;
 };
 
 export const getCurrentUser = (): User | null => {
-  return currentUserCache;
+  const userStr = localStorage.getItem('currentUser');
+  return userStr ? JSON.parse(userStr) : null;
 };
 
-export const refreshUser = async (userId: string): Promise<User | null> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
-
-  if (error || !data) return null;
-  return await fetchUserWithPrefs(data);
-};
-
-export const updateUserInList = async (updatedUser: User): Promise<void> => {
-  // 1. Update bảng users
-  const { error } = await supabase
-    .from('users')
-    .update({
-      username: updatedUser.username,
-      first_name: updatedUser.firstName,
-      last_name: updatedUser.lastName,
-      avatar: updatedUser.avatar,
-      cover_photo: updatedUser.coverPhoto,
-      gender: updatedUser.gender,
-      date_of_birth: updatedUser.dateOfBirth,
-      city: updatedUser.location?.city,
-      country: updatedUser.location?.country,
-      latitude: updatedUser.location?.latitude,
-      longitude: updatedUser.location?.longitude,
-      bio: updatedUser.bio,
-      profession: updatedUser.profession,
-      education: updatedUser.education,
-      photos: updatedUser.photos,
-      relationship_goal: updatedUser.relationshipGoal,
-      is_online: updatedUser.isOnline,
-      is_verified: updatedUser.isVerified
-    })
-    .eq('id', updatedUser.id);
-    
-  if (error) {
-    console.error('Failed to update user in DB', error);
-  }
-
-  // 2. Đồng bộ dating preferences vào bảng user_preferences
-  if (updatedUser.datingPreference) {
-    const { error: prefError } = await supabase
-      .from('user_preferences')
-      .upsert({
-        user_id: updatedUser.id,
-        preferred_gender: updatedUser.datingPreference.preferredGender || [],
-        age_min: updatedUser.datingPreference.ageRange?.min || 18,
-        age_max: updatedUser.datingPreference.ageRange?.max || 99,
-        max_distance: updatedUser.datingPreference.maxDistance || 50
-      });
-
-    if (prefError) {
-      console.error('Failed to update preferences in DB', prefError);
-    }
+export const setCurrentUser = (user: User | null): void => {
+  if (user) {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+  } else {
+    localStorage.removeItem('currentUser');
   }
 };
 
-// Helper function to map snake_case DB fields to camelCase TS models
-const mapDatabaseUserToModel = (dbUser: any, dbPrefs?: any): User => {
-  return {
-    id: dbUser.id,
-    username: dbUser.username,
-    email: dbUser.email,
-    firstName: dbUser.first_name,
-    lastName: dbUser.last_name,
-    avatar: dbUser.avatar,
-    coverPhoto: dbUser.cover_photo,
-    gender: dbUser.gender as Gender,
-    dateOfBirth: dbUser.date_of_birth,
-    location: {
-      city: dbUser.city,
-      country: dbUser.country,
-      latitude: dbUser.latitude,
-      longitude: dbUser.longitude
-    },
-    bio: dbUser.bio,
-    profession: dbUser.profession,
-    education: dbUser.education,
-    photos: dbUser.photos || [],
-    interests: [],
-    relationshipGoal: dbUser.relationship_goal as RelationshipGoal,
-    isOnline: dbUser.is_online,
-    lastActive: dbUser.last_active,
-    isVerified: dbUser.is_verified,
-    datingPreference: {
-      preferredGender: dbPrefs?.preferred_gender || [],
-      ageRange: {
-        min: dbPrefs?.age_min || 18,
-        max: dbPrefs?.age_max || 99
-      },
-      maxDistance: dbPrefs?.max_distance || 50,
-      relationshipGoal: dbUser.relationship_goal as RelationshipGoal
-    }
-  };
-};
-
-// Helper: fetch user + preferences together
-const fetchUserWithPrefs = async (query: any): Promise<User> => {
-  const dbUser = query;
-  
-  // Fetch preferences
-  const { data: prefs } = await supabase
-    .from('user_preferences')
-    .select('*')
-    .eq('user_id', dbUser.id)
-    .maybeSingle();
-
-  return mapDatabaseUserToModel(dbUser, prefs);
+export const updateUserInList = async (user: User): Promise<void> => {
+  await apiClient.put(`/users/${user.id}`, user);
 };

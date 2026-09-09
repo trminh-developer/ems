@@ -1,28 +1,15 @@
 import { Notification } from '../models';
-import { notifications } from '../data';
+import apiClient from './apiClient';
 
-export const getNotifications = async (): Promise<Notification[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(notifications), 400);
-  });
+export const getNotifications = async (userId: string): Promise<Notification[]> => {
+  const res = await apiClient.get(`/{notifications/${userId}`);
+  return res.data;
 };
 
-export const markAsRead = async (notificationId: string): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 300);
-  });
+export const markAs0 = async (id: string): Promise<void> => {
+  await apiClient.put(`/notifications/${id}/read`);
 };
 
-export const markAllAsRead = async (): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(), 400);
-  });
-};
-
-export const getUnreadCount = async (): Promise<number> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(notifications.filter((n: Notification) => !n.isRead).length);
-    }, 300);
-  });
+export const markAllAsRead = async (userId: string): Promise<void> => {
+  await apiClient.put(`/notifications/${userId}/read-all`);
 };

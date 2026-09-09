@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { initPaymentModule } from './features/payment/di/PaymentModule';
 import { initAuthModule } from './features/auth/AuthModule';
+import userModule from './features/user/UserModule';
+import matchModule from './features/match/MatchModule';
+import messageModule from './features/message/MessageModule';
 
 // Load env vars
 dotenv.config();
@@ -25,6 +28,10 @@ app.use('/api/payments', paymentRoutes);
 
 const authRoutes = initAuthModule();
 app.use('/api/auth', authRoutes);
+
+app.use(userModule);
+app.use(matchModule);
+app.use(messageModule);
 
 // Health check
 app.get('/api/health', (req, res) => {

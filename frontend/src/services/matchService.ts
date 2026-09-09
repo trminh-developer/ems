@@ -1,238 +1,25 @@
-import { Match, User, Gender, RelationshipGoal } from '../models';
-import { supabase } from '../config/supabase';
-import { getCurrentUser } from './authService';
+import { Match } from '../models';
+import apiClient from './apiClient';
 
-// Helper to map DB match to model
-const mapDatabaseMatchToModel = (dbMatch: any, matchedUser: any): Match => {
-  return {
-    id: dbMatch.id,
-    userId: dbMatch.user_id,
-    matchedUserId: dbMatch.matched_user_id,
-    matchedUser: {
-      id: matchedUser.id,
-      username: matchedUser.username,
-      email: matchedUser.email,
-      firstName: matchedUser.first_name,
-      lastName: matchedUser.last_name,
-      avatar: matchedUser.avatar,
-      coverPhoto: matchedUser.cover_photo,
-      gender: matchedUser.gender as Gender,
-      dateOfBirth: matchedUser.date_of_birth,
-      location: {
-        city: matchedUser.city,
-        country: matchedUser.country,
-        latitude: matchedUser.latitude,
-        longitude: matchedUser.longitude
-      },
-      bio: matchedUser.bio,
-      profession: matchedUser.profession,
-      education: matchedUser.education,
-      photos: matchedUser.photos || [],
-      interests: [],
-      relationshipGoal: matchedUser.relationship_goal as RelationshipGoal,
-      isOnline: matchedUser.is_online,
-      lastActive: matchedUser.last_active,
-      isVerified: matchedUser.is_verified
-    },
-    matchPercentage: dbMatch.match_percentage,
-    matchedAt: dbMatch.matched_at,
-    isNew: dbMatch.is_new,
-    lastMessage: dbMatch.last_message
-  };
+export const getMatches = async (userId: string): Promise<Match[]> => {
+  const res = await apiClient.get(`/matches/${userId}`);
+  return res.data;
 };
 
-// Helper to map DB user row to User model
-const mapDatabaseUserToModel = (dbUser: any): User => {
-  if (!dbUser) return null as any;
-  return {
-    id: dbUser.id,
-    username: dbUser.username,
-    email: dbUser.email,
-    firstName: dbUser.first_name,
-    lastName: dbUser.last_name,
-    avatar: dbUser.avatar,
-    coverPhoto: dbUser.cover_photo,
-    gender: dbUser.gender as Gender,
-    dateOfBirth: dbUser.date_of_birth,
-    location: {
-      city: dbUser.city,
-      country: dbUser.country,
-      latitude: dbUser.latitude,
-      longitude: dbUser.longitude
-    },
-    bio: dbUser.bio,
-    profession: dbUser.profession,
-    education: dbUser.education,
-    photos: dbUser.photos || [],
-    interests: [],
-    relationshipGoal: dbUser.relationship_goal as RelationshipGoal,
-    isOnline: dbUser.is_online,
-    lastActive: dbUser.last_active,
-    isVerified: dbUser.is_verified
-  };
+export const likeUser = async (userId: string, targetId: string): Promise<{ matched: boolean; match?: Match }> => {
+  const res = await apiClient.post('/matches/like', { userId, targetId });
+  return res.data;
 };
 
-export const getMatches = async (): Promise<Match[]> => {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return [];
-
-  const { data, error } = await supabase
-    .from('matches')
-    .select(`
-      *,
-      users!matches_matched_user_id_fkey (*)
-    `)
-    .eq('user_id', currentUser.id);
-
-  if (error) {
-    console.error('Error fetching matches:', error);
-    return [];
-  }
-
-  return data.map((item: any) => mapDatabaseMatchToModel(item, item.users));
+export const dislikeUser = async (userId: string, targetId: string): Promise<void> => {
+  await apiClient.post('/matches/pass', { userId, targetId });
 };
 
-export const likeUser = async (userId: string): Promise<{ matched: boolean; match?: Match }> => {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return { matched: false };
-
-  // Lưu lượt thích vào bảng user_likes
-  await supabase.from('user_likes').upsert([{
-    user_id: currentUser.id,
-    target_id: userId,
-    is_super_like: false
-  }]);
-
-  // Kiểm tra xem đối phương đã like mình chưa (Reciprocal like)
-  const { data: theirLike } = await supabase
-    .from('user_likes')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('target_id', currentUser.id)
-    .single();
-
-  const isMatch = !!theirLike;
-  
-  if (isMatch) {
-    const { data: matchedUserData, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-      
-    if (userError) return { matched: false };
-    
-    // Random match percentage nếu chưa có
-    const matchPercentage = Math.floor(Math.random() * (99 - 70 + 1)) + 70;
-
-    const newMatch = {
-      user_id: currentUser.id,
-      matched_user_id: userId,
-      match_percentage: matchPercentage,
-      is_new: true
-    };
-    
-    const { data, error } = await supabase.from('matches').insert([newMatch]).select().single();
-      
-    if (!error && data) {
-      await supabase.from('matches').insert([{
-        user_id: userId,
-        matched_user_id: currentUser.id,
-        match_percentage: matchPercentage,
-        is_new: true
-      }]);
-      
-      // Tạo phòng chat mới
-      const { data: chatData } = await supabase.from('conversations').insert([{}]).select().single();
-      if (chatData) {
-        await supabase.from('conversation_participants').insert([
-          { conversation_id: chatData.id, user_id: currentUser.id },
-          { conversation_id: chatData.id, user_id: userId }
-        ]);
-      }
-      
-      return { 
-        matched: true, 
-        match: mapDatabaseMatchToModel(data, matchedUserData)
-      };
-    }
-  }
-  
-  return { matched: false };
-};
-
-export const getWhoLikedMe = async (): Promise<User[]> => {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return [];
-  
-  const { data, error } = await supabase
-    .from('user_likes')
-    .select(`
-      users!user_likes_user_id_fkey (*)
-    `)
-    .eq('target_id', currentUser.id);
-    
-  if (error || !data) return [];
-  return data.map((item: any) => mapDatabaseUserToModel(item.users));
-};
-
-export const getWhoILiked = async (): Promise<User[]> => {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return [];
-  
-  const { data, error } = await supabase
-    .from('user_likes')
-    .select(`
-      users!user_likes_target_id_fkey (*)
-    `)
-    .eq('user_id', currentUser.id);
-    
-  if (error || !data) return [];
-  return data.map((item: any) => mapDatabaseUserToModel(item.users));
-};
-
-export const dislikeUser = async (userId: string): Promise<void> => {
-  // In a real app, you would log this interaction so they don't appear again
-  return Promise.resolve();
-};
-
-export const superLikeUser = async (userId: string): Promise<{ matched: boolean; match?: Match }> => {
-  const currentUser = getCurrentUser();
-  if (!currentUser) return { matched: false };
-
-  // Super like has higher chance
-  const isMatch = Math.random() > 0.4;
-  
-  if (isMatch) {
-    const { data: matchedUserData } = await supabase.from('users').select('*').eq('id', userId).single();
-    if (!matchedUserData) return { matched: false };
-    
-    const newMatch = {
-      user_id: currentUser.id,
-      matched_user_id: userId,
-      match_percentage: Math.floor(Math.random() * 10) + 90, // 90-99%
-      is_new: true
-    };
-    
-    const { data, error } = await supabase.from('matches').insert([newMatch]).select().single();
-      
-    if (!error && data) {
-      await supabase.from('matches').insert([{
-        user_id: userId,
-        matched_user_id: currentUser.id,
-        match_percentage: newMatch.match_percentage,
-        is_new: true
-      }]);
-      return { matched: true, match: mapDatabaseMatchToModel(data, matchedUserData) };
-    }
-  }
-  
-  return { matched: false };
+export const superLikeUser = async (userId: string, targetId: string): Promise<{ matched: boolean; match?: Match }> => {
+  const res = await apiClient.post('/matches/superlike', { userId, targetId });
+  return res.data;
 };
 
 export const unmatch = async (matchId: string): Promise<void> => {
-  const { error } = await supabase.from('matches').delete().eq('id', matchId);
-  if (error) {
-    console.error('Error unmatching:', error);
-  }
+  await apiClient.delete(`/matches/${matchId}`);
 };
