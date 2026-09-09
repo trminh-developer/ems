@@ -24,6 +24,12 @@ export const login = async (email: string, password: string): Promise<User> => {
     data.is_verified = true;
   }
 
+  // Giả lập phát hành JWT Access Token và Single-Use Refresh Token
+  const fakeAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.accessToken';
+  const fakeRefreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refreshToken' + Date.now();
+  localStorage.setItem('hc_access_token', fakeAccessToken);
+  localStorage.setItem('hc_refresh_token', fakeRefreshToken);
+
   return await fetchUserWithPrefs(data);
 };
 
@@ -72,6 +78,21 @@ export const register = async (data: any): Promise<User> => {
 };
 
 export const logout = async (): Promise<void> => {
+  // HỦY TOKEN TRÊN SERVER (Logout = hủy token client + server)
+  const refreshToken = localStorage.getItem('hc_refresh_token') || sessionStorage.getItem('hc_refresh_token');
+  
+  if (refreshToken) {
+    try {
+      await fetch('http://localhost:3000/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: refreshToken })
+      });
+    } catch (error) {
+      console.warn('Could not reach backend to invalidate token:', error);
+    }
+  }
+
   return new Promise((resolve) => {
     setTimeout(() => resolve(), 300);
   });

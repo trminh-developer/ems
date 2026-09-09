@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initPaymentModule } from './features/payment/di/PaymentModule';
+import { initAuthModule } from './features/auth/AuthModule';
 
 // Load env vars
 dotenv.config();
@@ -21,6 +22,9 @@ app.get('/', (req, res) => {
 
 const paymentRoutes = initPaymentModule();
 app.use('/api/payments', paymentRoutes);
+
+const authRoutes = initAuthModule();
+app.use('/api/auth', authRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

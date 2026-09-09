@@ -117,6 +117,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await authService.logout();
     localStorage.removeItem(SESSION_KEY);
     sessionStorage.removeItem(SESSION_KEY);
+    // Hủy token ở client (OAuth 2.0 Security)
+    localStorage.removeItem('hc_access_token');
+    localStorage.removeItem('hc_refresh_token');
+    sessionStorage.removeItem('hc_access_token');
+    sessionStorage.removeItem('hc_refresh_token');
+    
     // Xóa cả key cũ nếu còn sót
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('currentUser');
