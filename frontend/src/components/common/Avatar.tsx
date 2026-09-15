@@ -22,10 +22,10 @@ const Avatar: React.FC<AvatarProps> = ({
   return (
     <div className={`position-relative d-inline-block ${className}`} style={style}>
       {src ? (
-        <img src={src} alt={alt} className={`user-avatar ${sizeClass}`} />
+        <img src={src} alt={alt || 'User'} className={`user-avatar ${sizeClass}`} />
       ) : (
         <div className={`user-avatar ${sizeClass} bg-secondary d-flex align-items-center justify-content-center text-white`}>
-          {alt.charAt(0).toUpperCase()}
+          {(alt || '?').charAt(0).toUpperCase()}
         </div>
       )}
       {isOnline && <span className="online-indicator position-absolute bottom-0 end-0"></span>}

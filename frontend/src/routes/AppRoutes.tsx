@@ -21,9 +21,9 @@ const PremiumView = lazy(() => import('../views/PremiumView'));
 const PaymentView = lazy(() => import('../features/payment/presentation/views/PaymentView'));
 const PaymentResultView = lazy(() => import('../features/payment/presentation/views/PaymentResultView'));
 const ProtectedRoute = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
   
-  if (isLoading) {
+  if (!isInitialized) {
     return <Loading text="Đang tải..." />;
   }
   
@@ -31,9 +31,9 @@ const ProtectedRoute = () => {
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isInitialized } = useAuth();
   
-  if (isLoading) {
+  if (!isInitialized) {
     return <Loading text="Đang tải..." />;
   }
   

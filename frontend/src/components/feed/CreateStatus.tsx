@@ -24,7 +24,7 @@ export const CreateStatus: React.FC = () => {
   const handleRemoveFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     const urlToRemove = previewUrls[index];
-    URL.revokeObjectURL(urlToRemove);
+    if (urlToRemove) URL.revokeObjectURL(urlToRemove);
     setPreviewUrls(previewUrls.filter((_, i) => i !== index));
   };
 
@@ -48,7 +48,7 @@ export const CreateStatus: React.FC = () => {
     <div className="card mb-4 border-0 shadow-sm">
       <div className="card-body">
         <div className="d-flex">
-          <Avatar src={user?.avatar || ''} alt={user?.firstName} size="md" />
+          <Avatar src={user?.avatar || ''} alt={user?.firstName || 'User'} size="md" />
           <textarea
             className="form-control border-0 ms-2"
             placeholder={`Bạn đang nghĩ gì thế, ${user?.firstName || 'bạn'}?`}

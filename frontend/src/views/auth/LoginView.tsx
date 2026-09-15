@@ -8,16 +8,20 @@ const LoginView = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
     try {
       await login(email, password, rememberMe);
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Login failed');
+      setIsSubmitting(false);
     }
   };
 
@@ -52,10 +56,13 @@ const LoginView = () => {
               id="rememberMe" 
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
+              disabled={isSubmitting}
             />
             <label className="form-check-label" htmlFor="rememberMe">Remember me</label>
           </div>
-          <Button type="submit" className="btn-hc-primary w-100 mb-3">Login</Button>
+          <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang đăng nhập...' : 'Login'}
+          </Button>
           <div className="text-center mb-3">
             <Link to="/forgot-password">Forgot password?</Link>
           </div>

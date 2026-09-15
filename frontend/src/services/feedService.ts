@@ -1,25 +1,26 @@
-import { FeedPost, Comment } from '../models';
 import apiClient from './apiClient';
 
-export const getFeeds = async (): Promise<FeedPost[]> => {
-  const res = await apiClient.get('/feed');
+export const getStatuses = async (userId?: string) => {
+  const res = await apiClient.get(`/feed/statuses/${userId || 'all'}`);
   return res.data;
 };
 
-export const createPost = async (post: Partial<FeedPost>): Promise<FeedPost> => {
-  const res = await apiClient.post('/feed', post);
+export const createStatus = async (userId: string, content: string, mediaUrls?: string[]) => {
+  const res = await apiClient.post('/feed/statuses', { userId, content, mediaUrls });
   return res.data;
 };
 
-export const likePost = async (postId: string, userId: string): Promise<void> => {
-  await apiClient.post(`/feed/${postId}/like`, { userId });
+export const toggleLike = async (statusId: string, userId: string, isLiked: boolean) => {
+  const res = await apiClient.post('/feed/statuses/like', { statusId, userId, isLiked });
+  return res.data;
 };
 
-export const unlikePost = async (postId: string, userId: string): Promise<void> => {
-  await apiClient.delete(`/feed/${postId}/like`, { data: { userId } });
+export const getComments = async (statusId: string) => {
+  const res = await apiClient.get(`/feed/comments/${statusId}`);
+  return res.data;
 };
 
-export const addComment = async (postId: string, userId: string, content: string): Promise<Comment> => {
-  const res = await apiClient.post(`/feed/${postId}/comments`, { userId, content });
+export const addComment = async (statusId: string, userId: string, content: string) => {
+  const res = await apiClient.post('/feed/comments', { statusId, userId, content });
   return res.data;
 };

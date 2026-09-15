@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
+import { useAlert } from '../../contexts/AlertContext';
 
 interface MessageInputProps {
   onSend: (content: string) => void;
@@ -8,8 +9,9 @@ interface MessageInputProps {
 export const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
   const [content, setContent] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { showAlert } = useAlert();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (content.trim()) {
       onSend(content.trim());
@@ -25,7 +27,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.');
+        showAlert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.', 'error');
         return;
       }
       

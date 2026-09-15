@@ -19,7 +19,7 @@ const FeedView = () => {
           
           {isLoading ? (
             <div className="text-center py-5">
-              <Loading size="lg" />
+              <Loading />
             </div>
           ) : statuses.length > 0 ? (
             <div className="feed-list">

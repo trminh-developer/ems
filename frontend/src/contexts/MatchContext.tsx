@@ -49,25 +49,41 @@ export const MatchContext = createContext<MatchContextType | undefined>(undefine
 export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(matchReducer, initialState);
 
+  const getCurrentUserId = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) return JSON.parse(userStr).id;
+    } catch (e) {}
+    return '';
+  };
+
   const loadMatches = useCallback(async () => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
     dispatch({ type: 'LOAD_MATCHES_START' });
-    const matches = await matchService.getMatches();
+    const matches = await matchService.getMatches(currentUserId);
     dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
   }, []);
 
-  const likeUser = async (userId: string) => {
-    const result = await matchService.likeUser(userId);
+  const likeUser = async (targetId: string) => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+    const result = await matchService.likeUser(currentUserId, targetId);
     if (result.matched && result.match) {
       dispatch({ type: 'NEW_MATCH', payload: result.match });
     }
   };
 
-  const dislikeUser = async (userId: string) => {
-    await matchService.dislikeUser(userId);
+  const dislikeUser = async (targetId: string) => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+    await matchService.dislikeUser(currentUserId, targetId);
   };
 
-  const superLikeUser = async (userId: string) => {
-    const result = await matchService.superLikeUser(userId);
+  const superLikeUser = async (targetId: string) => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+    const result = await matchService.superLikeUser(currentUserId, targetId);
     if (result.matched && result.match) {
       dispatch({ type: 'NEW_MATCH', payload: result.match });
     }

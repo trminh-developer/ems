@@ -20,10 +20,10 @@ export const useUsers = () => {
     }
   }, []);
 
-  const getRecommended = useCallback(async () => {
+  const getRecommended = useCallback(async (currentUserId: string) => {
     setIsLoading(true);
     try {
-      const data = await userService.getRecommendedUsers();
+      const data = await userService.getRecommendedUsers(currentUserId);
       setUsers(data);
       setError(null);
     } catch (err) {

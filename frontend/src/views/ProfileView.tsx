@@ -4,6 +4,8 @@ import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user
 import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
 import { useChat } from '../hooks/useChat';
+import { useMatches } from '../hooks/useMatches';
+import { useAlert } from '../contexts/AlertContext';
 import { userService, authService, feedService } from '../services';
 import { supabase } from '../config/supabase';
 import { interests as predefinedInterests } from '../data';
@@ -11,6 +13,7 @@ import { interests as predefinedInterests } from '../data';
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser, updateUser } = useAuth();
+  const { showAlert } = useAlert();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([]);
@@ -75,7 +78,7 @@ const ProfileView = () => {
         const targetUserId = isOwnProfile && currentUser ? currentUser.id : (id || '');
         if (targetUserId) {
           const statuses = await feedService.getStatuses(targetUserId);
-          const allPhotos = statuses.reduce<string[]>((acc, status) => {
+          const allPhotos = (statuses as any[]).reduce<string[]>((acc: string[], status: any) => {
             if (status.mediaUrls && status.mediaUrls.length > 0) {
               return [...acc, ...status.mediaUrls];
             }
@@ -103,7 +106,7 @@ const ProfileView = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.');
+        showAlert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.', 'error');
         return;
       }
       
@@ -122,7 +125,7 @@ const ProfileView = () => {
         reader.readAsDataURL(file);
       } catch (err: any) {
         console.error(err);
-        alert('Có lỗi xảy ra khi đọc ảnh!');
+        showAlert('Có lỗi xảy ra khi đọc ảnh!', 'error');
       }
     }
   };
@@ -202,6 +205,8 @@ const ProfileView = () => {
 
   const { conversations, selectConversation } = useChat();
 
+  const { likeUser } = useMatches();
+
   // Handle message button click
   const handleMessage = () => {
     if (!user) return;
@@ -212,8 +217,14 @@ const ProfileView = () => {
       selectConversation(existingConv.id);
       navigate('/messages');
     } else {
-      alert('Bạn và người này chưa kết đôi (Match). Hãy thả tim và chờ họ phản hồi nhé!');
+      showAlert('Bạn và người này chưa kết đôi. Hãy thả tim trước nhé!', 'warning');
     }
+  };
+
+  const handleLike = async () => {
+    if (!user) return;
+    await likeUser(user.id);
+    showAlert('Đã gửi lượt thích! 💕 Hãy chờ họ phản hồi.', 'success');
   };
 
   if (isLoading) return <Loading text="Đang tải hồ sơ..." />;
@@ -245,9 +256,10 @@ const ProfileView = () => {
                 </Button>
               ) : (
                 <div className="d-flex flex-column gap-2">
+                  <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> Thả tim</Button>
                   <Button variant="primary" onClick={handleMessage}>Nhắn tin</Button>
-                  <Button variant="primary" onClick={() => alert('Đã chặn người dùng này.')}>Chặn</Button>
-                  <Button variant="primary" onClick={() => alert('Đã gửi báo cáo vi phạm.')}>Báo cáo</Button>
+                  <Button variant="secondary" onClick={() => showAlert('Đã chặn người dùng này.', 'info')}>Chặn</Button>
+                  <Button variant="warning" onClick={() => showAlert('Đã gửi báo cáo vi phạm!', 'warning')}>Báo cáo</Button>
                 </div>
               )}
             </div>

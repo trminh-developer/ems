@@ -31,7 +31,7 @@ const SearchView = () => {
           const matchBio = (u.bio || '').toLowerCase().includes(q);
           const matchQuery = q ? (matchName || matchBio || matchUsername) : true;
           const matchGender = gender === 'all' || u.gender === gender;
-          const age = calculateAge(u.dateOfBirth);
+          const age = Number(calculateAge(u.dateOfBirth));
           const matchAge = age >= ageMin && age <= ageMax;
           const matchOnline = onlineStatus === 'all' ? true : onlineStatus === 'online' ? u.isOnline : !u.isOnline;
           
@@ -59,7 +59,7 @@ const SearchView = () => {
     return () => clearTimeout(timeoutId);
   }, [query, gender, ageMin, ageMax, onlineStatus]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // The useEffect already handles the search automatically
   };

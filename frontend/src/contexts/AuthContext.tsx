@@ -6,9 +6,12 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
 }
 
 type AuthAction =
+  | { type: 'INIT_START' }
+  | { type: 'INIT_FINISH'; payload?: User }
   | { type: 'LOGIN_START' }
   | { type: 'LOGIN_SUCCESS'; payload: User }
   | { type: 'LOGIN_FAILURE' }
@@ -18,11 +21,21 @@ type AuthAction =
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
+  isInitialized: false,
 };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
+    case 'INIT_START':
+      return { ...state, isInitialized: false };
+    case 'INIT_FINISH':
+      return { 
+        ...state, 
+        user: action.payload || null, 
+        isAuthenticated: !!action.payload, 
+        isInitialized: true 
+      };
     case 'LOGIN_START':
       return { ...state, isLoading: true };
     case 'LOGIN_SUCCESS':
@@ -55,28 +68,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Khi mở app: kiểm tra session → fetch data MỚI NHẤT từ Supabase
   useEffect(() => {
     const initAuth = async () => {
+      dispatch({ type: 'INIT_START' });
       const userId = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
       if (userId) {
         try {
           const freshUser = await authService.refreshUser(userId);
           if (freshUser) {
             authService.setCurrentUser(freshUser);
-            dispatch({ type: 'LOGIN_SUCCESS', payload: freshUser });
+            dispatch({ type: 'INIT_FINISH', payload: freshUser });
           } else {
-            // User không tồn tại trên server → xóa session
             localStorage.removeItem(SESSION_KEY);
             sessionStorage.removeItem(SESSION_KEY);
             authService.setCurrentUser(null);
-            dispatch({ type: 'LOGIN_FAILURE' });
+            dispatch({ type: 'INIT_FINISH' });
           }
         } catch (err) {
-          console.error('Lỗi kết nối Supabase:', err);
+          console.error('Lỗi kết nối server:', err);
           authService.setCurrentUser(null);
-          dispatch({ type: 'LOGIN_FAILURE' });
+          dispatch({ type: 'INIT_FINISH' });
         }
       } else {
         authService.setCurrentUser(null);
-        dispatch({ type: 'LOGIN_FAILURE' });
+        dispatch({ type: 'INIT_FINISH' });
       }
     };
     initAuth();

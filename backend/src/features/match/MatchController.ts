@@ -1,58 +1,118 @@
 import { Request, Response } from 'express';
+import { Match, User, UserInterest } from '../../models';
+
 import { Op } from 'sequelize';
-import { Match, UserInterest } from '../../models';
 
 export const getMatches = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId;
     const matches = await Match.findAll({
       where: {
-        [Op.or]: [{ user1_id: userId }, { user2_id: userId }]
-      }
+        [Op.or]: [
+          { user1_id: userId },
+          { user2_id: userId }
+        ]
+      },
+      include: [
+        { model: User, as: 'User1' },
+        { model: User, as: 'User2' }
+      ]
     });
-    return res.json(matches);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+    
+    // Map matches to frontend format
+    const formattedMatches = matches.map((m: any) => {
+      const match = m.toJSON();
+      const isUser1 = match.user1_id === userId;
+      const matchedUser = isUser1 ? match.User2 : match.User1;
+      return {
+        id: match.id,
+        user_id: userId,
+        matched_user_id: matchedUser.id,
+        matched_user: matchedUser,
+        match_percentage: match.match_percentage,
+        matched_at: match.matched_at,
+        is_new: false
+      };
+    });
+    return res.json(formattedMatches);
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
 };
 
 export const likeUser = async (req: Request, res: Response) => {
   try {
     const { userId, targetId } = req.body;
+    const { Match, User, Conversation, Notification } = require('../../models');
     
-    // Check if the target already liked the user (simulated via UserInterest per instructions)
-    const existingLike = await UserInterest.findOne({
-      where: { user_id: targetId, interest_id: userId }
+    // Check if match already exists
+    const existingMatch = await Match.findOne({
+      where: {
+        [Op.or]: [
+          { user1_id: userId, user2_id: targetId },
+          { user1_id: targetId, user2_id: userId }
+        ]
+      }
     });
 
-    if (existingLike) {
-      const match = await Match.create({
-        user1_id: userId,
-        user2_id: targetId,
-        match_percentage: 100, // example value
-      });
-      return res.status(201).json({ message: "It's a match!", match });
-    } else {
-      const like = await UserInterest.create({
-        user_id: userId,
-        interest_id: targetId
-      });
-      return res.status(201).json({ message: 'User liked', like });
+    if (existingMatch) {
+      return res.json({ matched: true, match: existingMatch });
     }
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-}
+
+    const match = await Match.create({
+      user1_id: userId,
+      user2_id: targetId,
+      match_percentage: Math.floor(Math.random() * 40) + 60, // 60-99%
+    });
+    
+    await Conversation.create({ match_id: match.id });
+
+    // Create Notification for the target user!
+    const sender = await User.findByPk(userId);
+    const targetUser = await User.findByPk(targetId);
+
+    await Notification.create({
+      user_id: targetId,
+      type: 'like',
+      message: `${sender.first_name} đã thả tim bạn và hai bạn đã tương hợp!`,
+      is_read: false
+    });
+
+    // Create Notification for the liker (userId)
+    await Notification.create({
+      user_id: userId,
+      type: 'match',
+      message: `Bạn đã tương hợp với ${targetUser.first_name}!`,
+      is_read: false
+    });
+
+    const matchedUser = targetUser;
+    
+    const formattedMatch = {
+      id: match.id,
+      user_id: userId,
+      matched_user_id: targetId,
+      matched_user: matchedUser,
+      match_percentage: match.match_percentage,
+      matched_at: match.matched_at,
+      is_new: true
+    };
+
+    return res.json({ matched: true, match: formattedMatch });
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+};
+
+export const passUser = async (req: Request, res: Response) => {
+  return res.json({ success: true });
+};
+
+export const superlikeUser = likeUser;
 
 export const unmatch = async (req: Request, res: Response) => {
   try {
-    const match = await Match.findByPk(req.params.id as string);
-    if (!match) {
-      return res.status(404).json({ error: 'Match not found' });
-    }
-    await match.destroy();
-    return res.status(204).send();
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+    const { Match } = require('../../models');
+    await Match.destroy({ where: { id: req.params.id } });
+    return res.json({ success: true });
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
 };
+
+export const getWhoLikedMe = async (req: Request, res: Response) => { return res.json([]); };
+export const getWhoILiked = async (req: Request, res: Response) => { return res.json([]); };

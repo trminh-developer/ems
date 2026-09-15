@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { Notification } from '../models';
 import { notificationService } from '../services';
 
@@ -54,12 +54,38 @@ export const NotificationContext = createContext<NotificationContextType | undef
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(notificationReducer, initialState);
 
-  const loadNotifications = async () => {
-    dispatch({ type: 'LOAD_NOTIFICATIONS_START' });
-    const notifications = await notificationService.getNotifications();
-    const unreadCount = await notificationService.getUnreadCount();
-    dispatch({ type: 'LOAD_NOTIFICATIONS_SUCCESS', payload: { notifications, unreadCount } });
+  const getCurrentUserId = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) return JSON.parse(userStr).id;
+    } catch (e) {}
+    return '';
   };
+
+  const loadNotifications = useCallback(async () => {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    try {
+      const notifications = await notificationService.getNotifications(userId);
+      const unreadCount = await notificationService.getUnreadCount(userId);
+      dispatch({ type: 'LOAD_NOTIFICATIONS_SUCCESS', payload: { notifications: notifications || [], unreadCount: unreadCount || 0 } });
+    } catch (e) {
+      // silently fail polling
+    }
+  }, []);
+
+  // Load on mount, then poll every 10 seconds for new likes/matches
+  useEffect(() => {
+    const userId = getCurrentUserId();
+    if (!userId) return;
+
+    loadNotifications();
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markAsRead = async (id: string) => {
     await notificationService.markAsRead(id);
@@ -67,7 +93,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   const markAllAsRead = async () => {
-    await notificationService.markAllAsRead();
+    const userId = getCurrentUserId();
+    if (!userId) return;
+    await notificationService.markAllAsRead(userId);
     dispatch({ type: 'MARK_ALL_AS_READ' });
   };
 

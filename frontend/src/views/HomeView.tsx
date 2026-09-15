@@ -19,14 +19,15 @@ const HomeView = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.id) return;
     const loadData = async () => {
       try {
         const [recUsers, nearUsers] = await Promise.all([
-          userService.getRecommendedUsers(),
-          userService.getNearbyUsers()
+          userService.getRecommendedUsers(user.id),
+          userService.getNearbyUsers(user.id)
         ]);
-        setRecommendedUsers(recUsers);
-        setNearbyUsers(nearUsers);
+        setRecommendedUsers(recUsers || []);
+        setNearbyUsers(nearUsers || []);
         
         // Also ensure contexts are loaded
         if (matches.length === 0) loadMatches();
@@ -39,7 +40,7 @@ const HomeView = () => {
     };
     
     loadData();
-  }, [loadMatches, loadConversations]); // matches.length and conversations.length omitted to prevent infinite loops, they load once.
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading || matchesLoading || chatLoading) {
     return <Loading text="Đang tải..." />;

@@ -4,6 +4,7 @@ import { storyService } from '../../services';
 import { useAuth } from '../../hooks/useAuth';
 import { StoryViewer } from './StoryViewer';
 import { CreateStoryModal } from './CreateStoryModal';
+import Avatar from '../common/Avatar';
 
 export const StoryTray: React.FC = () => {
   const { user } = useAuth();
@@ -30,7 +31,7 @@ export const StoryTray: React.FC = () => {
 
   const usersWithStories = Object.keys(groupedStories).map(userId => ({
     userId,
-    user: groupedStories[userId][0].user,
+    user: groupedStories[userId]?.[0]?.user,
     hasUnread: true // Thường sẽ check story_views ở đây
   }));
 
@@ -46,7 +47,9 @@ export const StoryTray: React.FC = () => {
     // Tự chuyển qua user tiếp theo nếu có
     const currentIndex = usersWithStories.findIndex(u => u.userId === viewingUserId);
     if (currentIndex >= 0 && currentIndex < usersWithStories.length - 1) {
-      setViewingUserId(usersWithStories[currentIndex + 1].userId);
+      const nextUserId = usersWithStories[currentIndex + 1]?.userId;
+      if (nextUserId) setViewingUserId(nextUserId);
+      else setViewingUserId(null);
     } else {
       setViewingUserId(null);
     }
@@ -54,25 +57,21 @@ export const StoryTray: React.FC = () => {
 
   return (
     <>
-      <div className="story-tray hc-card p-3 mb-4 d-flex gap-3 overflow-auto" style={{ whiteSpace: 'nowrap', scrollbarWidth: 'none' }}>
+      <div className="d-flex overflow-auto py-3 gap-3 story-tray no-scrollbar">
         {/* Create Story Button */}
-        <div className="story-item d-flex flex-column align-items-center" style={{ width: '80px', cursor: 'pointer' }} onClick={() => setIsCreateOpen(true)}>
-          <div className="position-relative rounded-circle mb-1 bg-light d-flex justify-content-center align-items-center border border-2 border-secondary border-dashed" style={{ width: '64px', height: '64px' }}>
-            {user?.avatar ? (
-              <img src={user.avatar} alt="You" className="w-100 h-100 rounded-circle object-fit-cover" style={{ opacity: 0.7 }} />
-            ) : (
-              <i className="bi bi-person text-secondary fs-3"></i>
-            )}
-            <div className="position-absolute bg-primary text-white rounded-circle d-flex justify-content-center align-items-center shadow" style={{ width: '24px', height: '24px', bottom: '-4px', right: '-4px' }}>
-              <i className="bi bi-plus" style={{ fontSize: '1.2rem' }}></i>
+        <div className="d-flex flex-column align-items-center cursor-pointer" onClick={() => setIsCreateOpen(true)}>
+          <div className="position-relative mb-1">
+            <Avatar src={user?.avatar || ''} alt={user?.firstName || 'Me'} size="lg" />
+            <div className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center border border-2 border-white" style={{ width: '20px', height: '20px' }}>
+              <i className="bi bi-plus" style={{ fontSize: '1rem', marginTop: '-2px' }}></i>
             </div>
           </div>
-          <span className="small text-truncate w-100 text-center fw-bold text-muted">Tạo tin</span>
+          <span className="small">Tin của bạn</span>
         </div>
 
-        {/* User Stories */}
-        {usersWithStories.map((item) => (
-          <div key={item.userId} className="story-item d-flex flex-column align-items-center" style={{ width: '80px', cursor: 'pointer' }} onClick={() => handleUserClick(item.userId)}>
+        {/* Other Users' Stories */}
+        {usersWithStories.map(item => (
+          <div key={item.userId} className="d-flex flex-column align-items-center cursor-pointer" onClick={() => handleUserClick(item.userId)} style={{ width: '70px' }}>
             <div className={`rounded-circle p-1 mb-1 ${item.hasUnread ? 'bg-hc-gradient' : 'bg-secondary'}`} style={{ width: '70px', height: '70px' }}>
               <img src={item.user?.avatar || '/default-avatar.png'} alt="Story" className="w-100 h-100 rounded-circle object-fit-cover border border-2 border-white" />
             </div>
@@ -85,7 +84,7 @@ export const StoryTray: React.FC = () => {
       
       {viewingUserId && (
         <StoryViewer 
-          stories={groupedStories[viewingUserId]} 
+          stories={groupedStories[viewingUserId] || []} 
           onClose={handleViewerClose} 
           onComplete={handleViewerComplete} 
         />

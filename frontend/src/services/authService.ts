@@ -2,17 +2,25 @@ import { User } from '../models';
 import apiClient from './apiClient';
 
 export const login = async (email: string, password: string): Promise<User> => {
-  const res = await apiClient.post('/auth/login', { email, password });
-  localStorage.setItem('hc_access_token', res.data.accessToken);
-  localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-  return res.data.user;
+  try {
+    const res = await apiClient.post('/auth/login', { email, password });
+    localStorage.setItem('hc_access_token', res.data.accessToken);
+    localStorage.setItem('hc_refresh_token', res.data.refreshToken);
+    return res.data.user;
+  } catch (err: any) {
+    throw new Error(err.response?.data?.error || err.message || 'Login failed');
+  }
 };
 
 export const register = async (data: any): Promise<User> => {
-  const res = await apiClient.post('/auth/register', data);
-  localStorage.setItem('hc_access_token', res.data.accessToken);
-  localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-  return res.data.user;
+  try {
+    const res = await apiClient.post('/auth/register', data);
+    localStorage.setItem('hc_access_token', res.data.accessToken);
+    localStorage.setItem('hc_refresh_token', res.data.refreshToken);
+    return res.data.user;
+  } catch (err: any) {
+    throw new Error(err.response?.data?.error || err.message || 'Registration failed');
+  }
 };
 
 export const logout = async (): Promise<void> => {
@@ -51,3 +59,7 @@ export const setCurrentUser = (user: User | null): void => {
 export const updateUserInList = async (user: User): Promise<void> => {
   await apiClient.put(`/users/${user.id}`, user);
 };
+
+export const forgotPassword = async (email: string) => { await apiClient.post('/auth/forgot-password', { email }); };
+export const verifyOTP = async (email: string, otp: string) => { await apiClient.post('/auth/verify-otp', { email, otp }); };
+export const resetPassword = async (email: string, password: string) => { await apiClient.post('/auth/reset-password', { email, password }); };

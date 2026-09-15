@@ -18,6 +18,16 @@ const MessagesView = () => {
     }
   };
 
+  React.useEffect(() => {
+    let interval: any;
+    if (activeConversation) {
+      interval = setInterval(() => {
+        selectConversation(activeConversation.id);
+      }, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [activeConversation, selectConversation]);
+
   return (
     <div className="messages-layout h-100 fade-in hc-card overflow-hidden">
       <div className="row g-0 h-100">

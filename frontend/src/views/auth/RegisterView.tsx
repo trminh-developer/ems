@@ -14,6 +14,7 @@ const RegisterView = () => {
     dateOfBirth: ''
   });
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { register } = useAuth();
 
@@ -21,17 +22,20 @@ const RegisterView = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
+    setError('');
+    setIsSubmitting(true);
     try {
       await register(formData);
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
+      setIsSubmitting(false);
       // Reset form data when error occurs (e.g., user already registered)
       setFormData({
         firstName: '',
@@ -76,7 +80,9 @@ const RegisterView = () => {
           </div>
           <Input label="Date of Birth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
           
-          <Button type="submit" className="btn-hc-primary w-100 mb-3">Register</Button>
+          <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isSubmitting}>
+            {isSubmitting ? 'Đang đăng ký...' : 'Register'}
+          </Button>
           <div className="text-center">
             <Link to="/login">Đã có tài khoản? Đăng nhập</Link>
           </div>

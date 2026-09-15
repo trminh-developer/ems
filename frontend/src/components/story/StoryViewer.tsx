@@ -15,6 +15,12 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, onClose, onCo
   
   const STORY_DURATION = 5000; // 5 seconds for text/image
 
+  if (!currentStory) {
+    if (onComplete) onComplete();
+    else onClose();
+    return null;
+  }
+
   useEffect(() => {
     setProgress(0);
     
@@ -23,6 +29,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({ stories, onClose, onCo
     let duration = STORY_DURATION;
 
     const animate = () => {
+      if (!currentStory) return;
+
       // Nếu là video, progress phụ thuộc vào currentTime của video
       if (currentStory.mediaType === 'video' && videoRef.current) {
         if (videoRef.current.duration) {

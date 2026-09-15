@@ -62,7 +62,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
         {/* Header */}
         <div className="d-flex align-items-center mb-3">
           <div className="cursor-pointer" onClick={() => navigate(`/profile/${status.user?.username || status.user?.id}`)}>
-            <Avatar src={status.user?.avatar || ''} alt={status.user?.firstName} size="md" />
+            <Avatar src={status.user?.avatar || ''} alt={status.user?.firstName || 'User'} size="md" />
           </div>
           <div className="ms-2">
             <h6 className="mb-0 cursor-pointer" onClick={() => navigate(`/profile/${status.user?.username || status.user?.id}`)}>

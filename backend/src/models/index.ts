@@ -9,8 +9,8 @@ User.init({
   username: { type: DataTypes.STRING, unique: true, allowNull: false },
   first_name: { type: DataTypes.STRING },
   last_name: { type: DataTypes.STRING },
-  avatar: { type: DataTypes.STRING },
-  cover_photo: { type: DataTypes.STRING },
+  avatar: { type: DataTypes.TEXT('long') },
+  cover_photo: { type: DataTypes.TEXT('long') },
   gender: { type: DataTypes.STRING },
   date_of_birth: { type: DataTypes.DATEONLY },
   city: { type: DataTypes.STRING },
@@ -88,12 +88,37 @@ Notification.init({
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { sequelize, modelName: 'Notification', tableName: 'notifications', timestamps: false });
 
+class Status extends Model {}
+Status.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  content: { type: DataTypes.TEXT },
+  media_urls: { type: DataTypes.JSON },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'Status', tableName: 'statuses', timestamps: false });
+
+class StatusLike extends Model {}
+StatusLike.init({
+  status_id: { type: DataTypes.UUID, primaryKey: true },
+  user_id: { type: DataTypes.UUID, primaryKey: true },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'StatusLike', tableName: 'status_likes', timestamps: false });
+
+class StatusComment extends Model {}
+StatusComment.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  status_id: { type: DataTypes.UUID, allowNull: false },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  content: { type: DataTypes.TEXT, allowNull: false },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'StatusComment', tableName: 'status_comments', timestamps: false });
+
 // Associations
 User.hasOne(UserPreference, { foreignKey: 'user_id' });
 UserPreference.belongsTo(User, { foreignKey: 'user_id' });
 
-User.belongsToMany(Interest, { through: UserInterest, foreignKey: 'user_id' });
-Interest.belongsToMany(User, { through: UserInterest, foreignKey: 'interest_id' });
+User.belongsToMany(Interest, { through: UserInterest, foreignKey: 'user_id', as: 'interests' });
+Interest.belongsToMany(User, { through: UserInterest, foreignKey: 'interest_id', as: 'users' });
 
 User.hasMany(Match, { foreignKey: 'user1_id', as: 'Matches1' });
 User.hasMany(Match, { foreignKey: 'user2_id', as: 'Matches2' });
@@ -112,6 +137,21 @@ Message.belongsTo(User, { foreignKey: 'sender_id' });
 User.hasMany(Notification, { foreignKey: 'user_id' });
 Notification.belongsTo(User, { foreignKey: 'user_id' });
 
+User.hasMany(Status, { foreignKey: 'user_id' });
+Status.belongsTo(User, { foreignKey: 'user_id' });
+
+Status.hasMany(StatusLike, { foreignKey: 'status_id' });
+StatusLike.belongsTo(Status, { foreignKey: 'status_id' });
+
+User.hasMany(StatusLike, { foreignKey: 'user_id' });
+StatusLike.belongsTo(User, { foreignKey: 'user_id' });
+
+Status.hasMany(StatusComment, { foreignKey: 'status_id' });
+StatusComment.belongsTo(Status, { foreignKey: 'status_id' });
+
+User.hasMany(StatusComment, { foreignKey: 'user_id' });
+StatusComment.belongsTo(User, { foreignKey: 'user_id' });
+
 export {
   sequelize,
   User,
@@ -121,5 +161,8 @@ export {
   Match,
   Conversation,
   Message,
-  Notification
+  Notification,
+  Status,
+  StatusLike,
+  StatusComment
 };
