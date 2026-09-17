@@ -218,14 +218,14 @@ const PaymentView: React.FC = () => {
                   style={{ width: "50px", height: "50px" }}
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/200px-Visa_Inc._logo.svg.png"
                     alt="Visa"
-                    style={{ height: "12px", marginRight: "4px" }}
+                    style={{ height: "16px", marginRight: "8px" }}
                   />
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png"
                     alt="Mastercard"
-                    style={{ height: "16px" }}
+                    style={{ height: "20px" }}
                   />
                 </div>
                 <div className="flex-grow-1">
@@ -264,7 +264,7 @@ const PaymentView: React.FC = () => {
                   style={{ width: "50px", height: "50px" }}
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/200px-PayPal.svg.png"
                     alt="PayPal"
                     className="img-fluid"
                   />
