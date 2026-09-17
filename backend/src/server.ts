@@ -37,6 +37,8 @@ app.use(messageModule);
 app.use(feedModule);
 app.use(notificationModule);
 
+import sequelize from './config/db';
+
 // Health check
 app.get('/api', (req, res) => {
   res.json({ status: 'OK', message: 'HeartConnect API is running', version: '1.0' });
@@ -46,6 +48,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server is running on http://localhost:${PORT}`);
-});
+// Sync database and start server
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('Database synced successfully');
+    app.listen(PORT, () => {
+      console.log(`Backend server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to sync database:', err);
+    // Vẫn bật server kể cả khi DB lỗi để lấy log 
+    app.listen(PORT, () => {
+      console.log(`Backend server is running (DB Error) on http://localhost:${PORT}`);
+    });
+  });

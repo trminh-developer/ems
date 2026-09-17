@@ -20,7 +20,7 @@
     "browser-image-compression": "^2.0.2",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "firebase": "^12.18.0",
+    "firebase": "^12.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-image-crop": "^11.1.2",
