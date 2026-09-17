@@ -1,5 +1,4 @@
 import imageCompression from "browser-image-compression";
-import { supabase } from "../config/supabase";
 
 export const calculateAge = (dateOfBirth?: string): number | string => {
   if (!dateOfBirth) return '?';
@@ -51,34 +50,23 @@ export const uploadOptimizedImage = async (
       return null;
     }
 
-    // 2. Nén ảnh ngay trên trình duyệt (Tối ưu hóa cốt lõi)
+    // 2. Nén ảnh ngay trên trình duyệt
     const options = {
       maxSizeMB: 1, // Ép dung lượng tối đa xuống 1MB
-      maxWidthOrHeight: 1920,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
     };
 
     console.log("Đang nén ảnh...");
     const compressedFile = await imageCompression(file, options);
 
-    // 3. Đổi tên file để tránh trùng lặp
-    const fileExt = compressedFile.name.split(".").pop();
-    const fileName = `${userId}_${Date.now()}.${fileExt}`;
-    const filePath = `uploads/${fileName}`;
-
-    // 4. Upload thẳng lên Supabase Storage (Bỏ qua Backend)
-    const { error: uploadError, data } = await supabase.storage
-      .from(bucketName)
-      .upload(filePath, compressedFile);
-
-    if (uploadError) throw uploadError;
-
-    // 5. Lấy URL Public trả về
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucketName).getPublicUrl(filePath);
-
-    return publicUrl;
+    // 3. Chuyển đổi thành Base64
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(compressedFile);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   } catch (error) {
     console.error("Lỗi upload ảnh:", error);
     return null;

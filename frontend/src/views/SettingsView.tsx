@@ -282,20 +282,6 @@ const SettingsView = () => {
 
       <div className="hc-card mb-4 settings-section border-danger border">
         <div className="hc-card-body">
-          <Button 
-            className="btn-warning w-100 mb-3 text-dark fw-bold" 
-            onClick={async () => {
-              const { seedDatabase } = await import('../utils/seedData');
-              const success = await seedDatabase();
-                if (success) {
-                  showAlert('Tải dữ liệu lên Supabase thành công!', 'success');
-                } else {
-                  showAlert('Có lỗi xảy ra, vui lòng xem F12 Console.', 'error');
-                }
-            }}
-          >
-            🚀 Đẩy Dữ Liệu Lên CSDL (Seed Data)
-          </Button>
           <Button className="btn-danger w-100 mb-3" onClick={logout}>
             Đăng xuất
           </Button>

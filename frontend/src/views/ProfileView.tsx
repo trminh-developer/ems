@@ -7,7 +7,6 @@ import { useChat } from '../hooks/useChat';
 import { useMatches } from '../hooks/useMatches';
 import { useAlert } from '../contexts/AlertContext';
 import { userService, authService, feedService } from '../services';
-import { supabase } from '../config/supabase';
 import { interests as predefinedInterests } from '../data';
 
 const ProfileView = () => {
