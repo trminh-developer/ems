@@ -121,6 +121,7 @@ const PaymentView: React.FC = () => {
 
           <h6 className="fw-bold mb-3 px-2">Phương thức thanh toán</h6>
           <div className="d-flex flex-column gap-3 mb-5">
+            {/* MoMo */}
             <div
               className={`card border-2 rounded-4 cursor-pointer transition-all ${
                 selectedMethod === "momo"
@@ -135,9 +136,9 @@ const PaymentView: React.FC = () => {
                   style={{ width: "50px", height: "50px", background: "#f8f9fa" }}
                 >
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png"
+                    src="https://developers.momo.vn/v3/assets/images/square-8c08a00f550e40a2efafea4a005b1232.png"
                     alt="MoMo"
-                    className="img-fluid"
+                    className="img-fluid rounded"
                   />
                 </div>
                 <div className="flex-grow-1">
@@ -161,6 +162,7 @@ const PaymentView: React.FC = () => {
               </div>
             </div>
 
+            {/* VNPAY */}
             <div
               className={`card border-2 rounded-4 cursor-pointer transition-all ${
                 selectedMethod === "vnpay"
@@ -175,16 +177,14 @@ const PaymentView: React.FC = () => {
                   style={{ width: "50px", height: "50px", background: "#f8f9fa" }}
                 >
                   <img
-                    src="https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418186387.png"
+                    src="https://vnpay.vn/assets/images/logo-icon/logo-primary.svg"
                     alt="VNPAY"
                     className="img-fluid"
                   />
                 </div>
                 <div className="flex-grow-1">
                   <h6 className="fw-bold mb-0">VNPAY</h6>
-                  <small className="text-muted">
-                    Thẻ ATM, Visa, MasterCard, JCB
-                  </small>
+                  <small className="text-muted">Thẻ ATM, Ngân hàng nội địa</small>
                 </div>
                 <div>
                   <div
@@ -196,6 +196,93 @@ const PaymentView: React.FC = () => {
                     style={{ width: "20px", height: "20px" }}
                   >
                     {selectedMethod === "vnpay" && (
+                      <i className="bi bi-check text-white d-flex align-items-center justify-content-center h-100 fs-6"></i>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Visa / Mastercard */}
+            <div
+              className={`card border-2 rounded-4 cursor-pointer transition-all ${
+                selectedMethod === "card"
+                  ? "border-primary bg-primary bg-opacity-10"
+                  : "border-light bg-white hover-shadow"
+              }`}
+              onClick={() => setSelectedMethod("card")}
+            >
+              <div className="card-body d-flex align-items-center p-3">
+                <div
+                  className="rounded p-2 me-3 d-flex align-items-center justify-content-center bg-white border"
+                  style={{ width: "50px", height: "50px" }}
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
+                    alt="Visa"
+                    style={{ height: "12px", marginRight: "4px" }}
+                  />
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                    alt="Mastercard"
+                    style={{ height: "16px" }}
+                  />
+                </div>
+                <div className="flex-grow-1">
+                  <h6 className="fw-bold mb-0">Thẻ Tín Dụng / Ghi Nợ</h6>
+                  <small className="text-muted">Visa, Mastercard, JCB</small>
+                </div>
+                <div>
+                  <div
+                    className={`rounded-circle border ${
+                      selectedMethod === "card"
+                        ? "border-primary bg-primary"
+                        : "border-secondary"
+                    }`}
+                    style={{ width: "20px", height: "20px" }}
+                  >
+                    {selectedMethod === "card" && (
+                      <i className="bi bi-check text-white d-flex align-items-center justify-content-center h-100 fs-6"></i>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* PayPal */}
+            <div
+              className={`card border-2 rounded-4 cursor-pointer transition-all ${
+                selectedMethod === "paypal"
+                  ? "border-primary bg-primary bg-opacity-10"
+                  : "border-light bg-white hover-shadow"
+              }`}
+              onClick={() => setSelectedMethod("paypal")}
+            >
+              <div className="card-body d-flex align-items-center p-3">
+                <div
+                  className="rounded p-2 me-3 d-flex align-items-center justify-content-center bg-white border"
+                  style={{ width: "50px", height: "50px" }}
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+                    alt="PayPal"
+                    className="img-fluid"
+                  />
+                </div>
+                <div className="flex-grow-1">
+                  <h6 className="fw-bold mb-0">PayPal</h6>
+                  <small className="text-muted">Thanh toán quốc tế</small>
+                </div>
+                <div>
+                  <div
+                    className={`rounded-circle border ${
+                      selectedMethod === "paypal"
+                        ? "border-primary bg-primary"
+                        : "border-secondary"
+                    }`}
+                    style={{ width: "20px", height: "20px" }}
+                  >
+                    {selectedMethod === "paypal" && (
                       <i className="bi bi-check text-white d-flex align-items-center justify-content-center h-100 fs-6"></i>
                     )}
                   </div>

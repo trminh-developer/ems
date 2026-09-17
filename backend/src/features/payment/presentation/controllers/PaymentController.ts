@@ -31,6 +31,28 @@ export class PaymentController {
     }
   }
 
+  async createCard(req: Request, res: Response) {
+    try {
+      const { orderId } = req.body;
+      const paymentUrl = `http://localhost:5173/payment/result?orderId=${orderId}&status=success`;
+      res.json({ success: true, provider: 'card', paymentUrl, transactionId: orderId });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Lỗi tạo thanh toán Thẻ' });
+    }
+  }
+
+  async createPayPal(req: Request, res: Response) {
+    try {
+      const { orderId } = req.body;
+      const paymentUrl = `http://localhost:5173/payment/result?orderId=${orderId}&status=success`;
+      res.json({ success: true, provider: 'paypal', paymentUrl, transactionId: orderId });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Lỗi tạo thanh toán PayPal' });
+    }
+  }
+
   async vnpayReturn(req: Request, res: Response) {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('VNPAY', req.query);
