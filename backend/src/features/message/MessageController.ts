@@ -65,14 +65,36 @@ export const getMessages = async (req: Request, res: Response) => {
 export const sendMessage = async (req: Request, res: Response) => {
   try {
     const { conversationId, senderId, content, type } = req.body;
-    const { Message, Conversation } = require('../../models');
+    const { Message, Conversation, Notification, Match, User } = require('../../models');
+    
     const msg = await Message.create({
       conversation_id: conversationId,
       sender_id: senderId,
       content,
       type: type || 'text'
     });
+    
     await Conversation.update({ updated_at: new Date() }, { where: { id: conversationId } });
+
+    // Find the conversation to get the other user's ID
+    const conv = await Conversation.findByPk(conversationId, {
+      include: [{ model: Match }]
+    });
+
+    if (conv && conv.Match) {
+      const receiverId = conv.Match.user1_id === senderId ? conv.Match.user2_id : conv.Match.user1_id;
+      const sender = await User.findByPk(senderId);
+
+      // Create a message notification for the receiver
+      await Notification.create({
+        user_id: receiverId,
+        from_user_id: senderId,
+        type: 'message',
+        message: `${sender.first_name} đã gửi cho bạn một tin nhắn mới.`,
+        is_read: false
+      });
+    }
+
     return res.json(msg);
   } catch (e: any) { return res.status(500).json({ error: e.message }); }
 };
