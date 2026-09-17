@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Toast } from "../components/common";
+import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
 import { useAlert } from "../contexts/AlertContext";
@@ -29,6 +29,9 @@ const SettingsView = () => {
   
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editUsername, setEditUsername] = useState(user?.username || "");
+  
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -168,7 +171,10 @@ const SettingsView = () => {
               </div>
             )}
           </div>
-          <Button className="btn-link p-0 text-decoration-none">
+          <Button 
+            className="btn-link p-0 text-decoration-none"
+            onClick={() => setIsChangingPassword(true)}
+          >
             Đổi mật khẩu
           </Button>
         </div>
@@ -304,6 +310,46 @@ const SettingsView = () => {
           onClose={() => setShowToast(false)}
         />
       </div>
+
+      {/* Modal đổi mật khẩu */}
+      <Modal
+        isOpen={isChangingPassword}
+        onClose={() => setIsChangingPassword(false)}
+        title="Đổi mật khẩu"
+      >
+        <div className="p-3">
+          <p className="text-muted small mb-3">Nhập mật khẩu mới của bạn bên dưới:</p>
+          <Input
+            type="password"
+            placeholder="Mật khẩu mới..."
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <div className="d-flex justify-content-end gap-2 mt-4">
+            <Button 
+              className="btn-secondary" 
+              onClick={() => setIsChangingPassword(false)}
+            >
+              Hủy
+            </Button>
+            <Button 
+              className="btn-primary" 
+              onClick={() => {
+                if (newPassword.trim().length < 6) {
+                  showAlert("Mật khẩu phải từ 6 ký tự trở lên!", "error");
+                  return;
+                }
+                saveChanges({ password: newPassword });
+                setIsChangingPassword(false);
+                setNewPassword("");
+                showAlert("Đã đổi mật khẩu thành công!", "success");
+              }}
+            >
+              Lưu thay đổi
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

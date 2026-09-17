@@ -69,6 +69,9 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     if (body.coverPhoto !== undefined) updateData.cover_photo = body.coverPhoto;
     if (body.dateOfBirth !== undefined) updateData.date_of_birth = body.dateOfBirth;
     if (body.isVerified !== undefined) updateData.is_verified = body.isVerified;
+    if (body.isOnline !== undefined) updateData.is_online = body.isOnline;
+    if (body.password !== undefined) updateData.password = body.password;
+    
     if (body.location?.city !== undefined) updateData.city = body.location.city;
     if (body.location?.country !== undefined) updateData.country = body.location.country;
     
