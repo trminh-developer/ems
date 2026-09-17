@@ -54,6 +54,16 @@ export const likeUser = async (req: Request, res: Response) => {
     });
 
     if (existingMatch) {
+      // If match already exists, it means they clicked again or it's a mutual like.
+      // Create a notification for the other user just in case.
+      const sender = await User.findByPk(userId);
+      await Notification.create({
+        user_id: targetId,
+        type: 'like',
+        message: `${sender?.first_name || 'Ai đó'} cũng đã thả tim lại bạn! Hai bạn đã tương hợp.`,
+        is_read: false,
+        from_user_id: userId
+      });
       return res.json({ matched: true, match: existingMatch });
     }
 
@@ -122,6 +132,14 @@ export const superlikeUser = async (req: Request, res: Response) => {
     });
 
     if (existingMatch) {
+      const sender = await User.findByPk(userId);
+      await Notification.create({
+        user_id: targetId,
+        type: 'super_like',
+        message: `${sender?.first_name || 'Ai đó'} cũng đã thả Sao Tâm Giao (Super Like) cho bạn! Hai bạn đã tương hợp.`,
+        is_read: false,
+        from_user_id: userId
+      });
       return res.json({ matched: true, match: existingMatch });
     }
 

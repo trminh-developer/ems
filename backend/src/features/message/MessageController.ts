@@ -23,11 +23,11 @@ export const getConversations = async (req: Request, res: Response) => {
             { model: User, as: 'User2' }
           ]
         },
-        {
-          model: Message,
-          limit: 1,
-          order: [['created_at', 'DESC']]
-        }
+          {
+            model: Message,
+            // limit: 1, // Sequelize limitation: cannot use limit on hasMany inside include without separate: true, which is not supported well with everything. We'll sort in memory or omit limit.
+            order: [['created_at', 'DESC']]
+          }
       ]
     });
     
