@@ -11,6 +11,7 @@
     "seed": "tsx src/utils/seedData.ts"
   },
   "dependencies": {
+    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@emailjs/browser": "^4.4.1",
     "@types/react-linkify": "^1.0.4",
     "axios": "^1.20.0",

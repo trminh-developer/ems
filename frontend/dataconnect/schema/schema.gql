@@ -1,0 +1,38 @@
+type User @table {
+  fullName: String!
+  email: String!
+  role: String!
+  phoneNumber: String
+  medicalLicenseNumber: String
+}
+
+type PatientProfile @table {
+  user: User!
+  dateOfBirth: Date!
+  currentMedications: String
+  emergencyContact: User
+}
+
+type VitalReading @table {
+  patient: PatientProfile!
+  heartRate: Int!
+  systolicBP: Int!
+  diastolicBP: Int!
+  timestamp: Timestamp!
+  notes: String
+  isUrgent: Boolean
+}
+
+type DoctorPatientAssignment @table {
+  doctor: User!
+  patient: User!
+  customThresholds: String
+}
+
+type Alert @table {
+  patient: PatientProfile!
+  triggerReason: String!
+  severity: String!
+  status: String!
+  assignedDoctor: User
+}
