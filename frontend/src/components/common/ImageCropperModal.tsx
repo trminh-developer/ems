@@ -10,6 +10,7 @@ interface ImageCropperModalProps {
   imageSrc: string;
   onCropComplete: (croppedBase64: string) => void;
   aspect?: number;
+  circularCrop?: boolean;
 }
 
 const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
@@ -17,7 +18,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
   onClose,
   imageSrc,
   onCropComplete,
-  aspect = 1
+  aspect = 1,
+  circularCrop = false
 }) => {
   const [crop, setCrop] = useState<Crop>({
     unit: '%',
@@ -53,6 +55,18 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
     const cropWidth = completedCrop.width * scaleX;
     const cropHeight = completedCrop.height * scaleY;
 
+    if (circularCrop) {
+      ctx.beginPath();
+      ctx.arc(
+        completedCrop.width / 2,
+        completedCrop.height / 2,
+        Math.min(completedCrop.width, completedCrop.height) / 2,
+        0,
+        2 * Math.PI
+      );
+      ctx.clip();
+    }
+
     ctx.drawImage(
       image,
       cropX,
@@ -65,7 +79,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
       completedCrop.height
     );
 
-    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+    // Dùng PNG để giữ nền trong suốt nếu cắt hình tròn
+    const base64Image = canvas.toDataURL(circularCrop ? 'image/png' : 'image/jpeg', 0.9);
     onCropComplete(base64Image);
   };
 
@@ -77,6 +92,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
           onChange={c => setCrop(c)} 
           onComplete={c => setCompletedCrop(c)}
           aspect={aspect}
+          circularCrop={circularCrop}
           className="mb-3"
         >
           <img 
@@ -84,10 +100,6 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
             src={imageSrc} 
             alt="Crop me" 
             style={{ maxHeight: '60vh', maxWidth: '100%' }}
-            onLoad={(e) => {
-               // Cập nhật lại width/height gốc khi load
-               const { width, height } = e.currentTarget;
-            }}
           />
         </ReactCrop>
         

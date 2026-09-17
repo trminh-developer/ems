@@ -422,6 +422,7 @@ const ProfileView = () => {
           imageSrc={cropImageSrc}
           onCropComplete={handleCropComplete}
           aspect={cropAspect}
+          circularCrop={cropField === 'avatar'}
         />
       )}
 
