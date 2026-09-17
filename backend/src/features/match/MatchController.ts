@@ -65,23 +65,25 @@ export const likeUser = async (req: Request, res: Response) => {
     
     await Conversation.create({ match_id: match.id });
 
-    // Create Notification for the target user!
+    // Create Notification for the target user (HEART)
     const sender = await User.findByPk(userId);
     const targetUser = await User.findByPk(targetId);
 
     await Notification.create({
       user_id: targetId,
       type: 'like',
-      message: `${sender.first_name} đã thả tim bạn và hai bạn đã tương hợp!`,
-      is_read: false
+      message: `${sender.first_name} đã thả tim (Heart) cho bạn! Hai bạn đã tương hợp.`,
+      is_read: false,
+      from_user_id: userId
     });
 
     // Create Notification for the liker (userId)
     await Notification.create({
       user_id: userId,
       type: 'match',
-      message: `Bạn đã tương hợp với ${targetUser.first_name}!`,
-      is_read: false
+      message: `Bạn đã thả tim và tương hợp với ${targetUser.first_name}!`,
+      is_read: false,
+      from_user_id: targetId
     });
 
     const matchedUser = targetUser;
@@ -104,7 +106,70 @@ export const passUser = async (req: Request, res: Response) => {
   return res.json({ success: true });
 };
 
-export const superlikeUser = likeUser;
+export const superlikeUser = async (req: Request, res: Response) => {
+  try {
+    const { userId, targetId } = req.body;
+    const { Match, User, Conversation, Notification } = require('../../models');
+    
+    // Check if match already exists
+    const existingMatch = await Match.findOne({
+      where: {
+        [Op.or]: [
+          { user1_id: userId, user2_id: targetId },
+          { user1_id: targetId, user2_id: userId }
+        ]
+      }
+    });
+
+    if (existingMatch) {
+      return res.json({ matched: true, match: existingMatch });
+    }
+
+    const match = await Match.create({
+      user1_id: userId,
+      user2_id: targetId,
+      match_percentage: Math.floor(Math.random() * 20) + 80, // Super likes give higher match %
+    });
+    
+    await Conversation.create({ match_id: match.id });
+
+    // Create Notification for the target user (STAR)
+    const sender = await User.findByPk(userId);
+    const targetUser = await User.findByPk(targetId);
+
+    await Notification.create({
+      user_id: targetId,
+      type: 'super_like', // Use super_like for star
+      message: `${sender.first_name} đã gửi tặng bạn 1 Super Like (Ngôi sao)! Hai bạn đã tương hợp.`,
+      is_read: false,
+      from_user_id: userId
+    });
+
+    // Create Notification for the liker (userId)
+    await Notification.create({
+      user_id: userId,
+      type: 'match',
+      message: `Super Like thành công! Bạn đã tương hợp với ${targetUser.first_name}.`,
+      is_read: false
+    });
+
+    const matchedUser = targetUser;
+    
+    const formattedMatch = {
+      id: match.id,
+      user_id: userId,
+      matched_user_id: targetId,
+      matched_user: matchedUser,
+      match_percentage: match.match_percentage,
+      matched_at: match.matched_at,
+      is_new: true
+    };
+    
+    return res.json({ matched: true, match: formattedMatch });
+  } catch (e: any) { 
+    return res.status(500).json({ error: e.message }); 
+  }
+};
 
 export const unmatch = async (req: Request, res: Response) => {
   try {

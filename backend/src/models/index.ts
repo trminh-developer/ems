@@ -82,6 +82,7 @@ class Notification extends Model {}
 Notification.init({
   id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
   user_id: { type: DataTypes.UUID, allowNull: false },
+  from_user_id: { type: DataTypes.UUID, allowNull: true },
   type: { type: DataTypes.STRING },
   message: { type: DataTypes.TEXT },
   is_read: { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -134,8 +135,10 @@ Message.belongsTo(Conversation, { foreignKey: 'conversation_id' });
 User.hasMany(Message, { foreignKey: 'sender_id' });
 Message.belongsTo(User, { foreignKey: 'sender_id' });
 
-User.hasMany(Notification, { foreignKey: 'user_id' });
-Notification.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(Notification, { foreignKey: 'user_id', as: 'ReceivedNotifications' });
+Notification.belongsTo(User, { foreignKey: 'user_id', as: 'Receiver' });
+User.hasMany(Notification, { foreignKey: 'from_user_id', as: 'SentNotifications' });
+Notification.belongsTo(User, { foreignKey: 'from_user_id', as: 'FromUser' });
 
 User.hasMany(Status, { foreignKey: 'user_id' });
 Status.belongsTo(User, { foreignKey: 'user_id' });

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Button, Toast } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
+import { useAlert } from "../contexts/AlertContext";
 
 const SettingsView = () => {
   const { user, logout, updateUser } = useAuth();
+  const { showAlert } = useAlert();
 
   // Initialize state from user data
   const [onlineStatus, setOnlineStatus] = useState(user?.isOnline ?? true);
@@ -98,7 +100,7 @@ const SettingsView = () => {
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
-      alert("Trình duyệt của bạn không hỗ trợ định vị");
+      showAlert("Trình duyệt của bạn không hỗ trợ định vị", "error");
       return;
     }
     
@@ -114,10 +116,10 @@ const SettingsView = () => {
             longitude 
           } 
         });
-        alert("Đã cập nhật vị trí chính xác của bạn!");
+        showAlert("Đã cập nhật vị trí chính xác của bạn!", "success");
       },
       (error) => {
-        alert("Không thể lấy vị trí. Vui lòng cấp quyền truy cập vị trí cho trang web.");
+        showAlert("Không thể lấy vị trí. Vui lòng cấp quyền truy cập vị trí cho trang web.", "error");
       },
       { enableHighAccuracy: true }
     );
@@ -285,11 +287,11 @@ const SettingsView = () => {
             onClick={async () => {
               const { seedDatabase } = await import('../utils/seedData');
               const success = await seedDatabase();
-              if (success) {
-                alert('Tải dữ liệu lên Supabase thành công!');
-              } else {
-                alert('Có lỗi xảy ra, vui lòng xem F12 Console.');
-              }
+                if (success) {
+                  showAlert('Tải dữ liệu lên Supabase thành công!', 'success');
+                } else {
+                  showAlert('Có lỗi xảy ra, vui lòng xem F12 Console.', 'error');
+                }
             }}
           >
             🚀 Đẩy Dữ Liệu Lên CSDL (Seed Data)

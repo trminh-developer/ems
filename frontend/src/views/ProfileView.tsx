@@ -203,16 +203,18 @@ const ProfileView = () => {
     }
   };
 
-  const { conversations, selectConversation } = useChat();
+  const { conversations, selectConversation, loadConversations } = useChat();
 
   const { likeUser } = useMatches();
+
+  const existingConv = conversations?.find(c => 
+    c.participants.some(p => p.id === user?.id)
+  );
+  const isMatched = !!existingConv;
 
   // Handle message button click
   const handleMessage = () => {
     if (!user) return;
-    const existingConv = conversations?.find(c => 
-      c.participants.some(p => p.id === user.id)
-    );
     if (existingConv) {
       selectConversation(existingConv.id);
       navigate('/messages');
@@ -224,7 +226,8 @@ const ProfileView = () => {
   const handleLike = async () => {
     if (!user) return;
     await likeUser(user.id);
-    showAlert('Đã gửi lượt thích! 💕 Hãy chờ họ phản hồi.', 'success');
+    showAlert('Đã thả tim và tương hợp thành công! 💕 Bây giờ bạn có thể nhắn tin.', 'success');
+    if (loadConversations) await loadConversations();
   };
 
   if (isLoading) return <Loading text="Đang tải hồ sơ..." />;
@@ -256,7 +259,13 @@ const ProfileView = () => {
                 </Button>
               ) : (
                 <div className="d-flex flex-column gap-2">
-                  <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> Thả tim</Button>
+                  {isMatched ? (
+                    <Button variant="light" disabled className="text-danger border-danger">
+                      <i className="bi bi-heart-fill me-2"></i> Đã tương hợp
+                    </Button>
+                  ) : (
+                    <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> Thả tim</Button>
+                  )}
                   <Button variant="primary" onClick={handleMessage}>Nhắn tin</Button>
                   <Button variant="secondary" onClick={() => showAlert('Đã chặn người dùng này.', 'info')}>Chặn</Button>
                   <Button variant="warning" onClick={() => showAlert('Đã gửi báo cáo vi phạm!', 'warning')}>Báo cáo</Button>

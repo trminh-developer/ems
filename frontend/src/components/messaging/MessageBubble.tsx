@@ -51,9 +51,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
         className={`message-bubble p-3 rounded-4 shadow-sm position-relative ${isSent ? 'message-bubble-sent bg-primary text-white rounded-bottom-end-0' : 'message-bubble-received bg-white text-dark rounded-bottom-start-0 border'}`}
         style={{ maxWidth: '75%' }}
       >
-        {message.type === MessageType.IMAGE ? (
+        {message.type === MessageType.IMAGE || message.content.startsWith('[IMAGE]') ? (
           <div className="mb-2">
-            <img src={message.content} alt="Sent image" className="img-fluid rounded" style={{ maxHeight: '300px' }} />
+            <img src={message.content.replace('[IMAGE]', '')} alt="Sent image" className="img-fluid rounded" style={{ maxHeight: '300px' }} />
+          </div>
+        ) : message.content.startsWith('[VIDEO]') ? (
+          <div className="mb-2">
+            <video src={message.content.replace('[VIDEO]', '')} controls className="img-fluid rounded" style={{ maxHeight: '300px' }} />
+          </div>
+        ) : message.content.startsWith('[STICKER]') || message.content.startsWith('[GIF]') ? (
+          <div className="mb-2 bg-transparent p-0 shadow-none border-0">
+            <img src={message.content.replace('[STICKER]', '').replace('[GIF]', '')} alt="Sticker/GIF" style={{ maxWidth: '150px' }} />
+          </div>
+        ) : message.content.startsWith('[LOCATION]') || message.content.startsWith('[LIVE_LOCATION]') ? (
+          <div className="mb-1 text-break d-flex align-items-center gap-2">
+            <i className={`bi fs-3 ${message.content.startsWith('[LIVE]') ? 'bi-broadcast text-danger' : 'bi-pin-map-fill text-warning'}`}></i>
+            <span>{message.content.replace(/\[.*?\]/, '')}</span>
           </div>
         ) : (
           <p className="mb-1 text-break">{message.content}</p>
