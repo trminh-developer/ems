@@ -28,6 +28,9 @@ export interface User {
   isOnline: boolean;
   lastActive: string;
   isVerified?: boolean;
+  role?: 'ADMIN' | 'CENSOR' | 'USER';
+  status?: 'ACTIVE' | 'BANNED' | 'DELETED';
+  createdAt?: string;
   datingPreference?: DatingPreference;
   matchPercentage?: number;
 }

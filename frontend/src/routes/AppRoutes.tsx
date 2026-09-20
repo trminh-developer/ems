@@ -20,7 +20,13 @@ const FeedView = lazy(() => import('../views/FeedView'));
 const PremiumView = lazy(() => import('../views/PremiumView'));
 const PaymentView = lazy(() => import('../features/payment/presentation/views/PaymentView'));
 const PaymentResultView = lazy(() => import('../features/payment/presentation/views/PaymentResultView'));
+
+// Admin
+const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
+const AdminDashboardView = lazy(() => import('../views/admin/AdminDashboardView'));
+const AdminUsersView = lazy(() => import('../views/admin/AdminUsersView'));
 const AdminVerificationsView = lazy(() => import('../views/AdminVerificationsView'));
+
 const ProtectedRoute = () => {
   const { isAuthenticated, isInitialized } = useAuth();
   
@@ -67,8 +73,12 @@ const AppRoutes = () => (
           <Route path="/payment/result" element={<PaymentResultView />} />
         </Route>
         
-        {/* Admin Routes (No MainLayout) */}
-        <Route path="/admin/verifications" element={<AdminVerificationsView />} />
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardView />} />
+          <Route path="users" element={<AdminUsersView />} />
+          <Route path="verifications" element={<AdminVerificationsView />} />
+        </Route>
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />
