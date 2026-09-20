@@ -20,9 +20,11 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
   return (
     <div className="profile-header bg-white shadow-sm rounded-bottom-4 mb-4 overflow-hidden mx-auto" style={{ maxWidth: '95%' }}>
       <div 
-        className="profile-cover w-100 bg-secondary"`n        onClick={() => { if (user.coverPhoto) setViewImageSrc(user.coverPhoto); }}`n        style={{ cursor: user.coverPhoto ? 'zoom-in' : 'default', 
+        className="profile-cover w-100 bg-secondary"
+        onClick={() => { if (user.coverPhoto) setViewImageSrc(user.coverPhoto); }}
+        style={{ cursor: user.coverPhoto ? 'zoom-in' : 'default',
           height: '280px', 
-          backgroundImage: user.coverPhoto ? `url(${user.coverPhoto})` : 'none',
+          backgroundImage: user.coverPhoto ? \url(\)\ : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -30,7 +32,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
       
       <div className="px-4 pb-4 position-relative">
         <div className="profile-avatar-wrapper position-absolute rounded-circle" style={{ top: '-60px', left: '20px' }}>
-          <div onClick={() => { if (user.avatar) setViewImageSrc(user.avatar); }} style={{ cursor: user.avatar ? 'zoom-in' : 'default' }}><Avatar src={user.avatar || '} alt={(user.firstName || user.username)} size="xl" /></div>
+          <div onClick={() => { if (user.avatar) setViewImageSrc(user.avatar); }} style={{ cursor: user.avatar ? 'zoom-in' : 'default' }}>
+            <Avatar src={user.avatar || ''} alt={(user.firstName || user.username)} size="xl" />
+          </div>
         </div>
         
         <div className="d-flex justify-content-end pt-3 pb-2 gap-2">
@@ -72,9 +76,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
           </div>
         </div>
       </div>
-    <ImageViewerModal isOpen={!!viewImageSrc} src={viewImageSrc} onClose={() => setViewImageSrc(null)} />
+      <ImageViewerModal isOpen={!!viewImageSrc} src={viewImageSrc} onClose={() => setViewImageSrc(null)} />
     </div>
   );
 };
-
-

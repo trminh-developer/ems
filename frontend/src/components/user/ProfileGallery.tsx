@@ -21,7 +21,7 @@ export const ProfileGallery: React.FC<ProfileGalleryProps> = ({ photos }) => {
                 style={{ cursor: 'zoom-in' }}
                 onClick={() => setViewImageSrc(photo)}
               >
-                <img src={photo} alt={Gallery photo  + (index + 1)} className="w-100 h-100 object-fit-cover" />
+                <img src={photo} alt={\Gallery photo \\} className="w-100 h-100 object-fit-cover" />
               </div>
             </div>
           ))}
