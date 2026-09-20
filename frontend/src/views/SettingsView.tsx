@@ -35,6 +35,10 @@ const SettingsView = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [verificationStep, setVerificationStep] = useState(1);
+  const [isVerificationPending, setIsVerificationPending] = useState(false);
+
   useEffect(() => {
     if (user) {
       setOnlineStatus(user.isOnline ?? true);
