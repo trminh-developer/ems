@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { User } from '../../models';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
@@ -24,7 +24,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
         onClick={() => { if (user.coverPhoto) setViewImageSrc(user.coverPhoto); }}
         style={{ cursor: user.coverPhoto ? 'zoom-in' : 'default',
           height: '280px', 
-          backgroundImage: user.coverPhoto ? \url(\)\ : 'none',
+          backgroundImage: user.coverPhoto ? `url(${user.coverPhoto})` : 'none',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
