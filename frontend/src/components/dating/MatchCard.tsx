@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Match } from '../../models';
 import Avatar from '../common/Avatar';
 import { calculateAge, formatTime } from '../../utils/helpers';
@@ -38,3 +38,4 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({ match, onMessag
     </div>
   );
 });
+

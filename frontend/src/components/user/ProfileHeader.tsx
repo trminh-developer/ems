@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { User } from '../../models';
 import Avatar from '../common/Avatar';
 import Button from '../common/Button';
@@ -29,7 +29,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
       
       <div className="px-4 pb-4 position-relative">
         <div className="profile-avatar-wrapper position-absolute rounded-circle" style={{ top: '-60px', left: '20px' }}>
-          <Avatar src={user.avatar || ''} alt={user.firstName} size="xl" />
+          <Avatar src={user.avatar || ''} alt={(user.firstName || user.username)} size="xl" />
         </div>
         
         <div className="d-flex justify-content-end pt-3 pb-2 gap-2">
@@ -55,15 +55,15 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
 
         <div className="profile-info mt-2">
           <h2 className="mb-1 fw-bold d-flex align-items-center gap-2">
-            {user.firstName} {user.lastName}, {age}
+            {(user.firstName || user.username)} {(user.lastName || '')}, {age}
             {user.isVerified && <i className="bi bi-patch-check-fill text-primary fs-5"></i>}
           </h2>
           
           <div className="text-muted d-flex flex-wrap gap-3 mb-3">
-            {user.location && (user.location.city || user.location.country) && (
+            {user.location && (user.location?.city || user.location?.country) && (
               <span className="d-flex align-items-center gap-1">
                 <i className="bi bi-geo-alt"></i> 
-                {user.location.city}{user.location.city && user.location.country ? ', ' : ''}{user.location.country}
+                {user.location?.city}{user.location?.city && user.location?.country ? ', ' : ''}{user.location?.country}
               </span>
             )}
             {user.profession && <span className="d-flex align-items-center gap-1"><i className="bi bi-briefcase"></i> {user.profession}</span>}
@@ -74,3 +74,4 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
     </div>
   );
 };
+

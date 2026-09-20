@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { User } from '../../models';
 import Avatar from '../common/Avatar';
 import { calculateAge } from '../../utils/helpers';
@@ -18,14 +18,14 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
   return (
     <div className="hc-card h-100 cursor-pointer shadow-sm border-0 bg-white rounded-3 overflow-hidden" onClick={onClick}>
       <div className="hc-card-body p-4 d-flex flex-column align-items-center text-center">
-        <Avatar src={user.avatar || ''} alt={user.firstName} size="xl" isOnline={user.isOnline} className="mb-3 shadow-sm" />
+        <Avatar src={user.avatar || ''} alt={(user.firstName || user.username)} size="xl" isOnline={user.isOnline} className="mb-3 shadow-sm" />
         
         <h5 className="mb-1 fw-bold">
-          {user.firstName} {user.lastName}, {age}
+          {(user.firstName || user.username)} {user.lastName}, {age}
         </h5>
         
         <p className="text-muted small mb-2 d-flex align-items-center gap-1">
-          <i className="bi bi-geo-alt"></i> {user.location.city}, {user.location.country}
+          <i className="bi bi-geo-alt"></i> {user.location?.city}, {user.location?.country}
         </p>
         
         {user.profession && (
@@ -56,3 +56,4 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
     </div>
   );
 };
+
