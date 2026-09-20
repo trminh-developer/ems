@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
@@ -601,21 +601,30 @@ useEffect(() => {
                 <p className="text-muted small mb-3">Vui lòng đưa khuôn mặt của bạn vào khung hình để đối chiếu với giấy tờ.</p>
                 
                 <div className="camera-container mb-4 text-center position-relative bg-dark rounded overflow-hidden" style={{ height: "250px" }}>
-                  {!capturedImage ? (
-                    <>
-                      <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}></video>
-                      <Button className="btn-primary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={capturePhoto}>
-                        <i className="bi bi-camera-fill me-2"></i> Chụp ảnh
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <img src={capturedImage} alt="Selfie" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <Button className="btn-secondary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={retakePhoto}>
-                        <i className="bi bi-arrow-counterclockwise me-2"></i> Chụp lại
-                      </Button>
-                    </>
-                  )}
+                                      {!recordedVideo ? (
+                      <>
+                        <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}></video>
+                        
+                        {isRecording && (
+                          <div className="position-absolute top-0 w-100 p-2 bg-dark bg-opacity-75 text-warning fw-bold animate-pulse">
+                            <i className="bi bi-record-circle-fill text-danger me-2"></i> {livenessInstruction}
+                          </div>
+                        )}
+                        
+                        {!isRecording && (
+                          <Button className="btn-primary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4 shadow" onClick={startRecording}>
+                            <i className="bi bi-camera-video-fill me-2"></i> Bắt đầu quay Video
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <video src={recordedVideo} autoPlay loop playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}></video>
+                        <Button className="btn-secondary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={retakeVideo}>
+                          <i className="bi bi-arrow-counterclockwise me-2"></i> Quay lại
+                        </Button>
+                      </>
+                    )}
                   <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
                 </div>
 
@@ -656,5 +665,6 @@ useEffect(() => {
 };
 
 export default SettingsView;
+
 
 
