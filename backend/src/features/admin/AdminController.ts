@@ -1,4 +1,4 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 const { User, VerificationRequest, Notification, Status, Report } = require('../../models');
 
 // Client submits a request
@@ -219,6 +219,14 @@ export const revokeUserVerification = async (req: Request, res: Response) => {
     user.is_verified = false;
     await user.save();
     
+    await Notification.create({
+      type: 'SYSTEM',
+      user_id: user.id,
+      message: 'Tích xanh của bạn đã bị thu hồi do phát hiện vi phạm hoặc thông tin không hợp lệ.',
+      is_read: false
+    });
+    
     return res.json({ message: 'User verification revoked successfully', user });
   } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
+

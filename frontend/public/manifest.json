@@ -1,7 +1,7 @@
 {
   "name": "HeartConnect",
   "short_name": "HeartConnect",
-  "description": "Ứng dụng kết bạn và hẹn hò trực tuyến. Tìm kiếm người bạn đồng hành lý tưởng.",
+  "description": "Ứng dụng kết bạn và hẹn hò trực tuyến.",
   "start_url": "/",
   "scope": "/",
   "display": "fullscreen",
