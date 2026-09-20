@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Loading, Modal } from '../components/common';
 import apiClient from '../services/apiClient';
 
@@ -39,7 +39,7 @@ const AdminVerificationsView = () => {
   
   const handleApprove = async (id: string) => {
     try {
-      await apiClient.post(/admin/verifications/ + id + '/approve');
+      await apiClient.post(`/admin/verifications/${id}/approve`);
       setRequests(requests.filter(r => r.id !== id));
       setSelectedReq(null);
     } catch (e) {
@@ -49,7 +49,7 @@ const AdminVerificationsView = () => {
   
   const handleReject = async (id: string) => {
     try {
-      await apiClient.post(/admin/verifications/ + id + '/reject');
+      await apiClient.post(`/admin/verifications/${id}/reject`);
       setRequests(requests.filter(r => r.id !== id));
       setSelectedReq(null);
     } catch (e) {
