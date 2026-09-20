@@ -22,6 +22,28 @@ const AdminUsersView = () => {
     }
   };
 
+  const changeUserRole = async (id: string, newRole: string) => {
+    if (!window.confirm(Bạn có chắc muốn cấp quyền  + newRole +  cho User này?)) return;
+    try {
+      await apiClient.put(/admin/users/ + id + /role, { role: newRole });
+      setUsers(users.map(u => u.id === id ? { ...u, role: newRole as any } : u));
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi cập nhật phân quyền');
+    }
+  };
+
+  const changeUserRole = async (id: string, newRole: string) => {
+    if (!window.confirm(`Bạn có chắc muốn cấp quyền ${newRole} cho User này?`)) return;
+    try {
+      await apiClient.put(`/admin/users/${id}/role`, { role: newRole });
+      setUsers(users.map(u => u.id === id ? { ...u, role: newRole as any } : u));
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi cập nhật phân quyền');
+    }
+  };
+
   const toggleUserStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
     if (!window.confirm(`Bạn có chắc muốn chuyển User này sang trạng thái: ${newStatus}?`)) return;
@@ -66,11 +88,19 @@ const AdminUsersView = () => {
                     <td className="align-middle">{u.firstName || u.first_name} {u.lastName || u.last_name}</td>
                     <td className="align-middle">@{u.username}</td>
                     <td className="align-middle">{u.email}</td>
-                    <td className="align-middle">
-                      <span className={`badge ${u.role === 'ADMIN' ? 'bg-danger' : 'bg-info'}`}>
-                        {u.role || 'USER'}
-                      </span>
-                    </td>
+                      <td className="align-middle">
+                        <select 
+                          className={`form-select form-select-sm shadow-none text-white fw-bold bg-${u.role === 'ADMIN' ? 'danger' : u.role === 'CENSOR' ? 'warning' : 'info'}`} 
+                          style={{ width: '110px' }} 
+                          value={u.role || 'USER'} 
+                          onChange={(e) => changeUserRole(u.id, e.target.value)}
+                          disabled={u.email === 'admin@heartconnect.com'}
+                        >
+                          <option value='USER' className='bg-dark text-white'>USER</option>
+                          <option value='CENSOR' className='bg-dark text-white'>CENSOR</option>
+                          <option value='ADMIN' className='bg-dark text-white'>ADMIN</option>
+                        </select>
+                      </td>
                     <td className="align-middle">
                       <span className={`badge ${u.status === 'ACTIVE' ? 'bg-success' : 'bg-warning text-dark'}`}>
                         {u.status || 'ACTIVE'}
@@ -102,3 +132,4 @@ const AdminUsersView = () => {
 };
 
 export default AdminUsersView;
+
