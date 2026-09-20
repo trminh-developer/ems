@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface ImageViewerModalProps {
   src: string | null;
@@ -57,7 +57,7 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({ src, isOpen,
     >
       <div 
         style={{ 
-          transform: \	ranslate(\px, \px) scale(\)\, 
+          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`, 
           transition: isDragging ? 'none' : 'transform 0.2s ease', 
           cursor: scale === 1 ? 'zoom-in' : (isDragging ? 'grabbing' : 'grab'),
           display: 'flex',
