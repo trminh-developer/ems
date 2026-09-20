@@ -208,3 +208,17 @@ export const updateUserRole = async (req: Request, res: Response) => {
     return res.json({ message: 'User role updated successfully', user });
   } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
+
+export const revokeUserVerification = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.is_verified = false;
+    await user.save();
+    
+    return res.json({ message: 'User verification revoked successfully', user });
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
+};

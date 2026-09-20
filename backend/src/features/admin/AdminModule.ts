@@ -1,5 +1,5 @@
 ﻿import { Router } from 'express';
-import { updateUserRole, setupAdmin, getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
+import { revokeUserVerification, updateUserRole, setupAdmin, getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
 
 const router = Router();
 
@@ -11,6 +11,7 @@ router.post('/api/admin/verifications/:id/reject', rejectVerification);
 router.get('/api/admin/users', getAllUsers);
 router.put('/api/admin/users/:id/status', toggleUserStatus);
 router.put('/api/admin/users/:id/role', updateUserRole);
+router.put('/api/admin/users/:id/verification/revoke', revokeUserVerification);
 
 
 // Phase 2 Routes
@@ -24,4 +25,5 @@ router.put('/api/admin/reports/:id', resolveReport);
 router.get('/api/admin/setup', setupAdmin);
 
 export default router;
+
 
