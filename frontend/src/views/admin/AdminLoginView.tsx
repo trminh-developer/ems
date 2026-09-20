@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Input, Loading } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
@@ -37,8 +37,8 @@ const AdminLoginView = () => {
     <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh', backgroundColor: '#121212' }}>
       <div className="card bg-dark border-secondary p-4 shadow-lg" style={{ width: '100%', maxWidth: '400px' }}>
         <div className="text-center mb-4">
-          <h2 className="fw-bold" style={{ color: '#ff6b6b' }}>HC Admin</h2>
-          <p className="text-muted">Hệ thống quản trị HeartConnect</p>
+          <h2 className="fw-bold fs-3" style={{ color: '#ff6b6b' }}>HeartConnect Admin</h2>
+          <p className="text-muted">Hệ thống quản trị nền tảng</p>
         </div>
         
         <form onSubmit={handleLogin}>

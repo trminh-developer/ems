@@ -1,7 +1,8 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 const AdminLayout = () => {
+  useEffect(() => { document.title = 'HeartConnect Admin'; }, []);
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname.includes(path) ? 'active' : 'text-white';
@@ -11,7 +12,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <div className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark border-end border-secondary" style={{ width: '250px' }}>
         <a href="/admin" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-          <span className="fs-4 fw-bold" style={{ color: '#ff6b6b' }}>HC Admin</span>
+          <span className="fs-5 fw-bold" style={{ color: '#ff6b6b' }}>HeartConnect Admin</span>
         </a>
         <hr className="border-secondary" />
         <ul className="nav nav-pills flex-column mb-auto gap-2">
@@ -82,5 +83,6 @@ av-link  }>
 };
 
 export default AdminLayout;
+
 
 

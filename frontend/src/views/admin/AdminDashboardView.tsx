@@ -1,6 +1,7 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 
 const AdminDashboardView = () => {
+  useEffect(() => { document.title = 'HeartConnect Admin'; }, []);
   return (
     <div>
       <h2 className="mb-4">Tổng quan (Dashboard)</h2>
@@ -34,3 +35,4 @@ const AdminDashboardView = () => {
 };
 
 export default AdminDashboardView;
+
