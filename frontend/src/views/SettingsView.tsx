@@ -206,7 +206,7 @@ const SettingsView = () => {
             ) : isVerificationPending ? (
               <span className="text-warning"><i className="bi bi-hourglass-split me-1"></i>Đang chờ duyệt</span>
             ) : (
-              <div className="form-check form-switch toggle-switch mb-0">
+              <label className="form-check form-switch toggle-switch mb-0">
                 <input
                   className="form-check-input"
                   type="checkbox"
@@ -221,7 +221,7 @@ const SettingsView = () => {
                   }}
                 />
                 <span className="toggle-slider"></span>
-              </div>
+              </label>
             )}
           </div>
         </div>
@@ -234,7 +234,7 @@ const SettingsView = () => {
         <div className="hc-card-body">
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
             <span>Trạng thái hoạt động</span>
-            <div className="form-check form-switch toggle-switch">
+            <label className="form-check form-switch toggle-switch">
               <input
                 className="form-check-input"
                 type="checkbox"
@@ -242,7 +242,7 @@ const SettingsView = () => {
                 onChange={handleToggleOnline}
               />
               <span className="toggle-slider"></span>
-            </div>
+            </label>
           </div>
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
             <span>Định vị chính xác</span>
