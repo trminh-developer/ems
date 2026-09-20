@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 const AdminLayout = () => {
@@ -16,20 +16,17 @@ const AdminLayout = () => {
         <hr className="border-secondary" />
         <ul className="nav nav-pills flex-column mb-auto gap-2">
           <li className="nav-item">
-            <Link to="/admin" className={
-av-link }>
+            <Link to="/admin" className={`nav-link ${location.pathname === '/admin' ? 'active bg-primary' : 'text-white'}`}>
               <i className="bi bi-speedometer2 me-2"></i> Dashboard
             </Link>
           </li>
           <li>
-            <Link to="/admin/users" className={
-av-link  }>
+            <Link to="/admin/users" className={`nav-link ${isActive('/admin/users')} ${location.pathname.includes('/admin/users') ? 'bg-primary' : ''}`}>
               <i className="bi bi-people me-2"></i> Users (Phase 1)
             </Link>
           </li>
           <li>
-            <Link to="/admin/verifications" className={
-av-link  }>
+            <Link to="/admin/verifications" className={`nav-link ${isActive('/admin/verifications')} ${location.pathname.includes('/admin/verifications') ? 'bg-primary' : ''}`}>
               <i className="bi bi-shield-check me-2"></i> Verifications
             </Link>
           </li>

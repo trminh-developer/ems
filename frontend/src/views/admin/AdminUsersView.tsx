@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Loading } from '../../components/common';
 import apiClient from '../../services/apiClient';
 import { User } from '../../models';
@@ -24,10 +24,10 @@ const AdminUsersView = () => {
 
   const toggleUserStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
-    if (!window.confirm(Bạn có chắc muốn chuyển User này sang trạng thái: \?)) return;
+    if (!window.confirm(`Bạn có chắc muốn chuyển User này sang trạng thái: ${newStatus}?`)) return;
 
     try {
-      await apiClient.put(/admin/users/\/status, { status: newStatus });
+      await apiClient.put(`/admin/users/${id}/status`, { status: newStatus });
       setUsers(users.map(u => u.id === id ? { ...u, status: newStatus as any } : u));
     } catch (e) {
       console.error(e);
@@ -67,12 +67,12 @@ const AdminUsersView = () => {
                     <td className="align-middle">@{u.username}</td>
                     <td className="align-middle">{u.email}</td>
                     <td className="align-middle">
-                      <span className={adge \}>
+                      <span className={`badge ${u.role === 'ADMIN' ? 'bg-danger' : 'bg-info'}`}>
                         {u.role || 'USER'}
                       </span>
                     </td>
                     <td className="align-middle">
-                      <span className={adge \}>
+                      <span className={`badge ${u.status === 'ACTIVE' ? 'bg-success' : 'bg-warning text-dark'}`}>
                         {u.status || 'ACTIVE'}
                       </span>
                     </td>
@@ -83,7 +83,7 @@ const AdminUsersView = () => {
                     <td className="align-middle">
                       {u.role !== 'ADMIN' && (
                         <Button 
-                          className={tn-sm \}
+                          className={`btn-sm ${u.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'}`}
                           onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
                         >
                           {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
