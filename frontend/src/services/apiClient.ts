@@ -119,7 +119,7 @@ apiClient.interceptors.response.use(
       if (refreshToken) {
         try {
           const res = await axios.post(
-            "http://localhost:3000/api/auth/refresh",
+            `${apiClient.defaults.baseURL}/auth/refresh`,
             { token: refreshToken },
           );
           const newAccessToken = res.data.accessToken;
