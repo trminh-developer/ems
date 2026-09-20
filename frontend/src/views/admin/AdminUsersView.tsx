@@ -111,22 +111,26 @@ const AdminUsersView = () => {
                     </td>
                     <td className="align-middle">{new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
                       <td className="align-middle">
-                        {u.role !== 'ADMIN' && (
-                          <Button 
-                            className={`btn-sm ${u.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                            onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
-                          >
-                            {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
-                          </Button>
-                        )}
-                        {(u.isVerified || u.is_verified) && (
-                          <Button 
-                            className="btn-sm btn-outline-warning ms-2"
-                            onClick={() => revokeVerification(u.id)}
-                          >
-                            Hủy Tích Xanh
-                          </Button>
-                        )}
+                        <div className="d-flex gap-2">
+                          {u.role !== 'ADMIN' && (
+                            <Button 
+                              variant={u.status === 'ACTIVE' ? 'danger' : 'success'}
+                              size="sm"
+                              onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
+                            >
+                              {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
+                            </Button>
+                          )}
+                          {(u.isVerified || u.is_verified) && (
+                            <Button 
+                              variant="warning"
+                              size="sm"
+                              onClick={() => revokeVerification(u.id)}
+                            >
+                              Hủy Tích Xanh
+                            </Button>
+                          )}
+                        </div>
                       </td>
                   </tr>
                 ))}
