@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Loading, Modal } from '../components/common';
+import { Button, Loading, Modal, ImageViewerModal } from '../components/common';
 import apiClient from '../services/apiClient';
 
 interface RequestModel {
@@ -23,6 +23,7 @@ const AdminVerificationsView = () => {
   const [requests, setRequests] = useState<RequestModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReq, setSelectedReq] = useState<RequestModel | null>(null);
+  const [viewImageSrc, setViewImageSrc] = useState<string | null>(null);
   
   useEffect(() => {
     fetchRequests();
@@ -95,7 +96,7 @@ const AdminVerificationsView = () => {
                 <div className="col-6">
                   <p className="text-muted small mb-1">Giấy tờ tùy thân</p>
                   {selectedReq.idCardImage ? (
-                    <img src={selectedReq.idCardImage} alt="ID Card" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%' }} />
+                    <img src={selectedReq.idCardImage} alt="ID Card" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', cursor: 'zoom-in' }} onClick={() => setViewImageSrc(selectedReq.idCardImage)} />
                   ) : (
                     <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
                       <i className="bi bi-card-heading text-white fs-1"></i>
@@ -108,7 +109,7 @@ const AdminVerificationsView = () => {
                     selectedReq.selfieImage.startsWith('data:video') ? (
                       <video src={selectedReq.selfieImage} controls autoPlay loop className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }}></video>
                     ) : (
-                      <img src={selectedReq.selfieImage} alt="Selfie" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }} />
+                      <img src={selectedReq.selfieImage} alt="Selfie" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)", cursor: 'zoom-in' }} onClick={() => setViewImageSrc(selectedReq.selfieImage)} />
                     )
                   ) : (
                      <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
@@ -130,5 +131,6 @@ const AdminVerificationsView = () => {
 };
 
 export default AdminVerificationsView;
+
 
 
