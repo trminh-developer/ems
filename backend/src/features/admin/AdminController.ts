@@ -15,9 +15,7 @@ export const submitVerification = async (req: Request, res: Response) => {
     });
     
     return res.status(201).json({ message: 'Submitted successfully' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // Admin gets pending requests
@@ -28,9 +26,7 @@ export const getPendingVerifications = async (req: Request, res: Response) => {
       include: [{ model: User, as: 'user', attributes: ['id', 'username', 'first_name', 'last_name', 'email'] }]
     });
     return res.json(requests);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // Admin approves
@@ -53,9 +49,7 @@ export const approveVerification = async (req: Request, res: Response) => {
     });
     
     return res.json({ message: 'Approved' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // Admin rejects
@@ -76,9 +70,7 @@ export const rejectVerification = async (req: Request, res: Response) => {
     });
     
     return res.json({ message: 'Rejected' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // USER MANAGEMENT (Phase 1)
@@ -89,9 +81,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
       attributes: ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'status', 'is_verified', 'createdAt']
     });
     return res.json(users);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // Admin toggles user status (Ban/Unban) - Soft delete principle
@@ -108,9 +98,7 @@ export const toggleUserStatus = async (req: Request, res: Response) => {
     await user.save();
     
     return res.json({ message: 'User status updated successfully', user });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // ==============================
@@ -125,9 +113,7 @@ export const getAllStatuses = async (req: Request, res: Response) => {
       order: [['created_at', 'DESC']]
     });
     return res.json(statuses);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // DELETE STATUS
@@ -144,9 +130,7 @@ export const deleteStatus = async (req: Request, res: Response) => {
     // Let's just destroy for now, or throw error "Tính năng xóa bị tắt theo yêu cầu".
     await status.destroy();
     return res.json({ message: 'Status deleted successfully' });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // GET ALL REPORTS
@@ -160,9 +144,7 @@ export const getAllReports = async (req: Request, res: Response) => {
       order: [['createdAt', 'DESC']]
     });
     return res.json(reports);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 // RESOLVE REPORT
@@ -178,9 +160,7 @@ export const resolveReport = async (req: Request, res: Response) => {
     await report.save();
     
     return res.json({ message: 'Report updated', report });
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
 };
 
 export const setupAdmin = async (req: Request, res: Response) => {
@@ -208,3 +188,5 @@ export const setupAdmin = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
