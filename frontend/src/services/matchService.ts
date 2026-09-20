@@ -1,4 +1,4 @@
-import { Match } from '../models';
+﻿import { Match } from '../models';
 import apiClient from './apiClient';
 
 export const getMatches = async (userId: string): Promise<Match[]> => {
@@ -24,5 +24,6 @@ export const unmatch = async (matchId: string): Promise<void> => {
   await apiClient.delete(`/matches/${matchId}`);
 };
 
-export const getWhoLikedMe = async () => { const res = await apiClient.get('/matches/who-liked-me'); return res.data; };
-export const getWhoILiked = async () => { const res = await apiClient.get('/matches/who-i-liked'); return res.data; };
+export const getWhoLikedMe = async (userId: string) => { const res = await apiClient.get('/matches/who-liked-me/' + userId); return res.data; };
+export const getWhoILiked = async (userId: string) => { const res = await apiClient.get('/matches/who-i-liked/' + userId); return res.data; };
+

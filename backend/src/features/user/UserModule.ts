@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { getUserById, getUserByUsername, getRecommendedUsers, getNearbyUsers, searchUsers, updateUserProfile } from './UserController';
+﻿import { Router } from 'express';
+import { getUserById, getUserByUsername, getRecommendedUsers, getNearbyUsers, searchUsers, updateUserProfile, blockUser, reportUser } from './UserController';
 
 const router = Router();
 
@@ -11,4 +11,7 @@ router.get('/api/users/username/:username', getUserByUsername);
 router.get('/api/users/:id', getUserById);
 router.put('/api/users/:id', updateUserProfile);
 
+router.post('/api/users/block', blockUser);
+router.post('/api/users/report', reportUser);
 export default router;
+

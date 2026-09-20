@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MatchCard, MatchModal } from '../components/dating';
 import { Loading, EmptyState } from '../components/common';
@@ -31,7 +31,7 @@ const MatchesView = () => {
           isOpen={showMatchModal}
           match={newMatch} 
           onClose={closeMatchModal}
-          onSendMessage={() => {}}
+          onSendMessage={() => { closeMatchModal(); navigate('/messages'); }}
           onKeepDiscovering={closeMatchModal}
         />
       )}
@@ -40,3 +40,4 @@ const MatchesView = () => {
 };
 
 export default MatchesView;
+

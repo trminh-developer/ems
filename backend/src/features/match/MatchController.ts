@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 import { Match, User, UserInterest } from '../../models';
 
 import { Op } from 'sequelize';
@@ -197,5 +197,29 @@ export const unmatch = async (req: Request, res: Response) => {
   } catch (e: any) { return res.status(500).json({ error: e.message }); }
 };
 
-export const getWhoLikedMe = async (req: Request, res: Response) => { return res.json([]); };
-export const getWhoILiked = async (req: Request, res: Response) => { return res.json([]); };
+export const getWhoLikedMe = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId; // Defaulting for now if auth middleware is missing
+    const { Match, User } = require('../../models');
+    const { Op } = require('sequelize');
+    const matches = await Match.findAll({
+      where: { user2_id: userId },
+      include: [{ model: User, as: 'User1' }]
+    });
+    return res.json(matches.map((m: any) => m.User1).filter(Boolean));
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+};
+
+export const getWhoILiked = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId;
+    const { Match, User } = require('../../models');
+    const { Op } = require('sequelize');
+    const matches = await Match.findAll({
+      where: { user1_id: userId },
+      include: [{ model: User, as: 'User2' }]
+    });
+    return res.json(matches.map((m: any) => m.User2).filter(Boolean));
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+};
+

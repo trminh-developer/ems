@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Match } from '../../models';
 import Button from '../common/Button';
 import Avatar from '../common/Avatar';
@@ -20,9 +20,9 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, match, 
   return (
     <div className="match-modal-overlay position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center z-index-modal">
       <div className="match-modal-content text-center p-4">
-        <h1 className="text-white fw-bold fst-italic mb-5 display-4" style={{ fontFamily: 'serif' }}>It's a Match!</h1>
+        <h1 className="text-white fw-bold fst-italic mb-5 display-4" style={{ fontFamily: 'serif' }}>Tương hợp!</h1>
         
-        <p className="text-white fs-5 mb-5">You and {match.matchedUser.firstName} have liked each other.</p>
+        <p className="text-white fs-5 mb-5">Bạn và {match.matchedUser.firstName} đã thích nhau.</p>
 
         <div className="d-flex justify-content-center align-items-center gap-4 mb-5">
           <div className="position-relative">
@@ -38,13 +38,14 @@ export const MatchModal: React.FC<MatchModalProps> = ({ isOpen, onClose, match, 
 
         <div className="d-flex flex-column gap-3 w-100 max-w-sm mx-auto" style={{ maxWidth: '300px' }}>
           <Button variant="primary" className="rounded-pill py-3 fw-bold" onClick={onSendMessage}>
-            Send a Message
+            Nhắn tin ngay
           </Button>
           <Button variant="outline" className="rounded-pill py-3 fw-bold text-white border-white hover-bg-light hover-text-dark" onClick={onKeepDiscovering}>
-            Keep Discovering
+            Tiếp tục khám phá
           </Button>
         </div>
       </div>
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import { User } from '../models';
+﻿import { User } from '../models';
 import apiClient from './apiClient';
 
 export const getUsers = async (): Promise<User[]> => {
@@ -40,9 +40,11 @@ export const searchUsers = async (query: string): Promise<User[]> => {
 };
 
 export const blockUser = async (blockerId: string, blockedId: string): Promise<void> => {
-  await apiClient.post('/users/block', { blockedId });
+  await apiClient.post('/users/block', { blockerId, blockedId });
 };
 
 export const reportUser = async (reporterId: string, reportedId: string, reason: string, details?: string): Promise<void> => {
-  await apiClient.post('/users/report', { reportedId, reason, details });
+  await apiClient.post('/users/report', { reporterId, reportedId, reason, details });
 };
+
+

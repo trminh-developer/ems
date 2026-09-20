@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchService } from '../services';
 import { User } from '../models';
@@ -13,12 +13,15 @@ const LikesView = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
     const fetchLikes = async () => {
+      if (!user) return;
       setIsLoading(true);
       try {
         const [likedMe, iLiked] = await Promise.all([
-          matchService.getWhoLikedMe(),
-          matchService.getWhoILiked()
+          matchService.getWhoLikedMe(user.id),
+          matchService.getWhoILiked(user.id)
         ]);
         setLikedMeUsers(likedMe);
         setILikedUsers(iLiked);
@@ -106,3 +109,4 @@ const LikesView = () => {
 };
 
 export default LikesView;
+

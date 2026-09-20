@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DiscoverCard, MatchModal } from '../components/dating';
 import { Button, Loading, EmptyState, SEO } from '../components/common';
@@ -93,7 +93,7 @@ const DiscoverView = () => {
           isOpen={showMatchModal}
           match={newMatch} 
           onClose={closeMatchModal}
-          onSendMessage={() => {}}
+          onSendMessage={() => { closeMatchModal(); navigate('/messages'); }}
           onKeepDiscovering={closeMatchModal}
         />
       )}
@@ -102,4 +102,5 @@ const DiscoverView = () => {
 };
 
 export default DiscoverView;
+
 

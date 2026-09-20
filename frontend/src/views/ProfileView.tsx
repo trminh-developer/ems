@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
@@ -266,8 +266,8 @@ const ProfileView = () => {
                     <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> Thả tim</Button>
                   )}
                   <Button variant="primary" onClick={handleMessage}>Nhắn tin</Button>
-                  <Button variant="secondary" onClick={() => showAlert('Đã chặn người dùng này.', 'info')}>Chặn</Button>
-                  <Button variant="warning" onClick={() => showAlert('Đã gửi báo cáo vi phạm!', 'warning')}>Báo cáo</Button>
+                  <Button variant="secondary" onClick={handleBlock}>Chặn</Button>
+                  <Button variant="warning" onClick={handleReport}>Báo cáo</Button>
                 </div>
               )}
             </div>
@@ -434,3 +434,4 @@ const ProfileView = () => {
 };
 
 export default ProfileView;
+
