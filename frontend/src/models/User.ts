@@ -1,4 +1,4 @@
-import { UserLocation } from './Location';
+﻿import { UserLocation } from './Location';
 import { Interest } from './Interest';
 import { DatingPreference, RelationshipGoal } from './DatingPreference';
 
@@ -33,4 +33,10 @@ export interface User {
   createdAt?: string;
   datingPreference?: DatingPreference;
   matchPercentage?: number;
+
+  // Backend raw snake_case fields
+  first_name?: string;
+  last_name?: string;
+  is_verified?: boolean;
+  created_at?: string;
 }

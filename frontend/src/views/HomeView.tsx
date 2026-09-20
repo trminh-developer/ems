@@ -7,7 +7,7 @@ import { userService } from '../services';
 import { User } from '../models';
 import { UserCard } from '../components/user';
 import { MatchCard } from '../components/dating';
-import { Loading, EmptyState, Avatar } from '../components/common';
+import { Loading, EmptyState, Avatar, SEO } from '../components/common';
 
 const HomeView = () => {
   const navigate = useNavigate();

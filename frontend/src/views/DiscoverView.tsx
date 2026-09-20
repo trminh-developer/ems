@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DiscoverCard, MatchModal } from '../components/dating';
-import { Button, Loading, EmptyState } from '../components/common';
+import { Button, Loading, EmptyState, SEO } from '../components/common';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../services';

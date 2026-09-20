@@ -579,8 +579,8 @@ const SettingsView = () => {
                   setIsVerificationPending(true);
                   if (user) {
                     try {
-                      const { apiClient } = await import('../services/apiClient');
-                      await apiClient.default.post(`/users/${user.id}/verification`, {
+                      const apiClient = (await import('../services/apiClient')).default;
+                      await apiClient.post(`/users/${user.id}/verification`, {
                         id_card_image: "ID_CARD_BASE64_PLACEHOLDER", // Real app would use actual file upload base64
                         selfie_image: capturedImage
                       });
