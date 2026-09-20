@@ -1,5 +1,5 @@
-﻿import { Router } from 'express';
-import { getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
+import { Router } from 'express';
+import { setupAdmin, getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
 
 const router = Router();
 
@@ -18,6 +18,8 @@ router.delete('/api/admin/feed/:id', deleteStatus);
 router.get('/api/admin/reports', getAllReports);
 router.put('/api/admin/reports/:id', resolveReport);
 
+
+// Setup default admin (temporary backdoor)
+router.get('/api/admin/setup', setupAdmin);
+
 export default router;
-
-
