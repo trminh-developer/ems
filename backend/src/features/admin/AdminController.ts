@@ -190,3 +190,21 @@ export const setupAdmin = async (req: Request, res: Response) => {
 };
 
 
+
+export const updateUserRole = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    
+    const validRoles = ['ADMIN', 'CENSOR', 'USER'];
+    if (!validRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.role = role;
+    await user.save();
+    
+    return res.json({ message: 'User role updated successfully', user });
+  } catch (error: any) { return res.status(500).json({ error: error.message, stack: error.stack }); }
+};
