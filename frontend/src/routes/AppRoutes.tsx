@@ -26,6 +26,10 @@ const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
 const AdminDashboardView = lazy(() => import('../views/admin/AdminDashboardView'));
 const AdminUsersView = lazy(() => import('../views/admin/AdminUsersView'));
 const AdminVerificationsView = lazy(() => import('../views/AdminVerificationsView'));
+const AdminFeedView = lazy(() => import('../views/admin/AdminFeedView'));
+const AdminReportsView = lazy(() => import('../views/admin/AdminReportsView'));
+const AdminAnalyticsView = lazy(() => import('../views/admin/AdminAnalyticsView'));
+const AdminSettingsView = lazy(() => import('../views/admin/AdminSettingsView'));
 
 const ProtectedRoute = () => {
   const { isAuthenticated, isInitialized } = useAuth();
@@ -78,6 +82,10 @@ const AppRoutes = () => (
           <Route index element={<AdminDashboardView />} />
           <Route path="users" element={<AdminUsersView />} />
           <Route path="verifications" element={<AdminVerificationsView />} />
+          <Route path="feed" element={<AdminFeedView />} />
+          <Route path="reports" element={<AdminReportsView />} />
+          <Route path="analytics" element={<AdminAnalyticsView />} />
+          <Route path="settings" element={<AdminSettingsView />} />
         </Route>
       </Route>
       

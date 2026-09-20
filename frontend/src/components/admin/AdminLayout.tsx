@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 
 const AdminLayout = () => {
@@ -25,9 +25,42 @@ const AdminLayout = () => {
               <i className="bi bi-people me-2"></i> Users (Phase 1)
             </Link>
           </li>
-          <li>
-            <Link to="/admin/verifications" className={`nav-link ${isActive('/admin/verifications')} ${location.pathname.includes('/admin/verifications') ? 'bg-primary' : ''}`}>
+                    <li>
+            <Link to="/admin/verifications" className={
+av-link  }>
               <i className="bi bi-shield-check me-2"></i> Verifications
+            </Link>
+          </li>
+          <hr className="border-secondary my-1" />
+          <li className="nav-item">
+            <span className="nav-link text-muted small text-uppercase fw-bold pb-1 pt-3">Phase 2: Content</span>
+          </li>
+          <li>
+            <Link to="/admin/feed" className={
+av-link  }>
+              <i className="bi bi-postcard-heart me-2"></i> Feed & Posts
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/reports" className={
+av-link  }>
+              <i className="bi bi-exclamation-triangle me-2"></i> Báo cáo/Tickets
+            </Link>
+          </li>
+          <hr className="border-secondary my-1" />
+          <li className="nav-item">
+            <span className="nav-link text-muted small text-uppercase fw-bold pb-1 pt-3">Phase 3 & 4</span>
+          </li>
+          <li>
+            <Link to="/admin/analytics" className={
+av-link  }>
+              <i className="bi bi-graph-up me-2"></i> Thống kê & VIP
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/settings" className={
+av-link  }>
+              <i className="bi bi-gear me-2"></i> Cài đặt hệ thống
             </Link>
           </li>
         </ul>
@@ -49,3 +82,5 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+
+
