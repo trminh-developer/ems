@@ -569,30 +569,28 @@ const SettingsView = () => {
                 </div>
               </div>
             )}
-          {verificationStep === 3 && (
-            <div className="text-center py-4">
-              <i className="bi bi-check-circle text-success" style={{ fontSize: "3rem" }}></i>
-              <h6 className="mt-3">Đã gửi yêu cầu thành công!</h6>
-              <p className="text-muted small mb-4">Hệ thống sẽ xét duyệt hồ sơ của bạn trong vòng 3 đến 7 ngày. Bạn sẽ nhận được dấu tích xanh sau khi được phê duyệt.</p>
-              <Button className="btn-primary" onClick={async () => {
-                setIsVerificationModalOpen(false);
-                setIsVerificationPending(true);
-                // Create notification for the user
-                if (user) {
-                  try {
-                    const { notificationService } = await import('../services');
-                    await notificationService.createNotification({
-                      userId: user.id,
-                      type: 'SYSTEM',
-                      message: 'Yêu cầu xác minh danh tính của bạn đã được hệ thống tiếp nhận. Đang chờ phê duyệt trong 3-7 ngày tới.'
-                    });
-                  } catch(e) {
-                    console.error("Lỗi gửi thông báo", e);
+            {verificationStep === 3 && (
+              <div className="text-center py-4">
+                <i className="bi bi-check-circle text-success" style={{ fontSize: "3rem" }}></i>
+                <h6 className="mt-3">Đã gửi yêu cầu thành công!</h6>
+                <p className="text-muted small mb-4">Chúng tôi sẽ xem xét giấy tờ của bạn trong vòng 3-7 ngày làm việc.</p>
+                <Button className="btn-primary px-4" onClick={async () => {
+                  setIsVerificationModalOpen(false);
+                  setIsVerificationPending(true);
+                  if (user) {
+                    try {
+                      const { apiClient } = await import('../services/apiClient');
+                      await apiClient.default.post(`/users/${user.id}/verification`, {
+                        id_card_image: "ID_CARD_BASE64_PLACEHOLDER", // Real app would use actual file upload base64
+                        selfie_image: capturedImage
+                      });
+                    } catch (e) {
+                      console.error('Failed to submit verification', e);
+                    }
                   }
-                }
-              }}>Hoàn tất</Button>
-            </div>
-          )}
+                }}>Đóng</Button>
+              </div>
+            )}
         </div>
       </Modal>
     </div>
