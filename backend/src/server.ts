@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initPaymentModule } from './features/payment/di/PaymentModule';
@@ -8,6 +8,7 @@ import matchModule from './features/match/MatchModule';
 import messageModule from './features/message/MessageModule';
 import feedModule from './features/feed/FeedModule';
 import notificationModule from './features/notification/NotificationModule';
+import adminModule from './features/admin/AdminModule';
 
 // Load env vars
 dotenv.config();
@@ -36,6 +37,7 @@ app.use(matchModule);
 app.use(messageModule);
 app.use(feedModule);
 app.use(notificationModule);
+app.use(adminModule);
 
 import sequelize from './config/db';
 
@@ -63,3 +65,4 @@ sequelize.sync({ alter: true })
       console.log(`Backend server is running (DB Error) on http://localhost:${PORT}`);
     });
   });
+

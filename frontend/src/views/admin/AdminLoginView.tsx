@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Button, Input, Loading } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
 import { useAlert } from '../../contexts/AlertContext';
@@ -8,9 +8,13 @@ const AdminLoginView = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const { showAlert } = useAlert();
   const navigate = useNavigate();
+
+  if (isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'CENSOR')) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,3 +79,4 @@ const AdminLoginView = () => {
 };
 
 export default AdminLoginView;
+

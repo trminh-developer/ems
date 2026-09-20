@@ -24,7 +24,9 @@ User.init({
   relationship_goal: { type: DataTypes.STRING },
   is_online: { type: DataTypes.BOOLEAN, defaultValue: false },
   last_active: { type: DataTypes.DATE },
-  is_verified: { type: DataTypes.BOOLEAN, defaultValue: false }
+  is_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  role: { type: DataTypes.ENUM('ADMIN', 'CENSOR', 'USER'), defaultValue: 'USER' },
+  status: { type: DataTypes.ENUM('ACTIVE', 'BANNED', 'DELETED'), defaultValue: 'ACTIVE' }
 }, { sequelize, modelName: 'User', tableName: 'users', timestamps: true });
 
 class UserPreference extends Model {}
@@ -114,6 +116,18 @@ StatusComment.init({
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { sequelize, modelName: 'StatusComment', tableName: 'status_comments', timestamps: false });
 
+class VerificationRequest extends Model {}
+VerificationRequest.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  id_card_image: { type: DataTypes.TEXT('long') },
+  selfie_image: { type: DataTypes.TEXT('long') },
+  status: { type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'), defaultValue: 'PENDING' },
+}, { sequelize, modelName: 'VerificationRequest', tableName: 'verification_requests', timestamps: true });
+
+User.hasMany(VerificationRequest, { foreignKey: 'user_id', as: 'verification_requests' });
+VerificationRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
 // Associations
 User.hasOne(UserPreference, { foreignKey: 'user_id' });
 UserPreference.belongsTo(User, { foreignKey: 'user_id' });
@@ -155,6 +169,21 @@ StatusComment.belongsTo(Status, { foreignKey: 'status_id' });
 User.hasMany(StatusComment, { foreignKey: 'user_id' });
 StatusComment.belongsTo(User, { foreignKey: 'user_id' });
 
+class Report extends Model {}
+Report.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  reporter_id: { type: DataTypes.UUID, allowNull: false },
+  reported_user_id: { type: DataTypes.UUID, allowNull: true }, // can be null if reporting a post
+  reported_status_id: { type: DataTypes.UUID, allowNull: true },
+  reason: { type: DataTypes.STRING, allowNull: false },
+  description: { type: DataTypes.TEXT },
+  status: { type: DataTypes.ENUM('PENDING', 'RESOLVED', 'DISMISSED'), defaultValue: 'PENDING' },
+}, { sequelize, modelName: 'Report', tableName: 'reports', timestamps: true });
+
+Report.belongsTo(User, { foreignKey: 'reporter_id', as: 'Reporter' });
+Report.belongsTo(User, { foreignKey: 'reported_user_id', as: 'ReportedUser' });
+Report.belongsTo(Status, { foreignKey: 'reported_status_id', as: 'ReportedStatus' });
+
 export {
   sequelize,
   User,
@@ -167,5 +196,8 @@ export {
   Notification,
   Status,
   StatusLike,
-  StatusComment
+  StatusComment,
+  Report
 };
+
+

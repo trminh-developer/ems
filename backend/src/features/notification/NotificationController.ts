@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+﻿import { Request, Response } from 'express';
 
 export const getNotifications = async (req: Request, res: Response) => {
   try {
@@ -50,5 +50,19 @@ export const markAllAsRead = async (req: Request, res: Response) => {
     const { Notification } = require('../../models');
     await Notification.update({ is_read: true }, { where: { user_id: req.params.userId } });
     return res.json({ success: true });
+  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+};
+
+export const createNotification = async (req: Request, res: Response) => {
+  try {
+    const { Notification } = require('../../models');
+    const { userId, type, message, fromUserId } = req.body;
+    const notification = await Notification.create({
+      user_id: userId,
+      type,
+      message,
+      from_user_id: fromUserId || null
+    });
+    return res.json(notification);
   } catch (e: any) { return res.status(500).json({ error: e.message }); }
 };
