@@ -71,6 +71,11 @@ const SettingsView = () => {
       if (context) {
         canvasRef.current.width = videoRef.current.videoWidth;
         canvasRef.current.height = videoRef.current.videoHeight;
+        
+        // Lật ngược ảnh khi vẽ lên canvas để giống với màn hình preview (gương)
+        context.translate(canvasRef.current.width, 0);
+        context.scale(-1, 1);
+        
         context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
         const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
         setCapturedImage(imageDataUrl);
@@ -540,7 +545,7 @@ const SettingsView = () => {
                 <div className="camera-container mb-4 text-center position-relative bg-dark rounded overflow-hidden" style={{ height: "250px" }}>
                   {!capturedImage ? (
                     <>
-                      <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }}></video>
+                      <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}></video>
                       <Button className="btn-primary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={capturePhoto}>
                         <i className="bi bi-camera-fill me-2"></i> Chụp ảnh
                       </Button>
