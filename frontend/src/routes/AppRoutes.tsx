@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { Loading } from '../components/common';
@@ -22,6 +22,7 @@ const PaymentView = lazy(() => import('../features/payment/presentation/views/Pa
 const PaymentResultView = lazy(() => import('../features/payment/presentation/views/PaymentResultView'));
 
 // Admin
+const AdminLoginView = lazy(() => import('../views/admin/AdminLoginView'));
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout'));
 const AdminDashboardView = lazy(() => import('../views/admin/AdminDashboardView'));
 const AdminUsersView = lazy(() => import('../views/admin/AdminUsersView'));
@@ -33,21 +34,21 @@ const AdminSettingsView = lazy(() => import('../views/admin/AdminSettingsView'))
 
 const ProtectedRoute = () => {
   const { isAuthenticated, isInitialized } = useAuth();
-  
-  if (!isInitialized) {
-    return <Loading text="Đang tải..." />;
-  }
-  
+  if (!isInitialized) return <Loading text="Đang tải..." />;
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const ProtectedAdminRoute = () => {
+  const { user, isAuthenticated, isInitialized } = useAuth();
+  if (!isInitialized) return <Loading text="Đang tải..." />;
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
+  if (user?.role !== 'ADMIN' && user?.role !== 'CENSOR') return <Navigate to="/" replace />;
+  return <Outlet />;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isInitialized } = useAuth();
-  
-  if (!isInitialized) {
-    return <Loading text="Đang tải..." />;
-  }
-  
+  if (!isInitialized) return <Loading text="Đang tải..." />;
   return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
@@ -58,6 +59,22 @@ const AppRoutes = () => (
       <Route path="/register" element={<AuthRoute><RegisterView /></AuthRoute>} />
       <Route path="/forgot-password" element={<AuthRoute><ForgotPasswordView /></AuthRoute>} />
       
+      {/* Admin Login Route */}
+      <Route path="/admin/login" element={<AdminLoginView />} />
+      
+      {/* Admin Protected Routes */}
+      <Route path="/admin" element={<ProtectedAdminRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route index element={<AdminDashboardView />} />
+          <Route path="users" element={<AdminUsersView />} />
+          <Route path="verifications" element={<AdminVerificationsView />} />
+          <Route path="feed" element={<AdminFeedView />} />
+          <Route path="reports" element={<AdminReportsView />} />
+          <Route path="analytics" element={<AdminAnalyticsView />} />
+          <Route path="settings" element={<AdminSettingsView />} />
+        </Route>
+      </Route>
+
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomeView />} />
@@ -75,17 +92,6 @@ const AppRoutes = () => (
           <Route path="/premium" element={<PremiumView />} />
           <Route path="/payment" element={<PaymentView />} />
           <Route path="/payment/result" element={<PaymentResultView />} />
-        </Route>
-        
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboardView />} />
-          <Route path="users" element={<AdminUsersView />} />
-          <Route path="verifications" element={<AdminVerificationsView />} />
-          <Route path="feed" element={<AdminFeedView />} />
-          <Route path="reports" element={<AdminReportsView />} />
-          <Route path="analytics" element={<AdminAnalyticsView />} />
-          <Route path="settings" element={<AdminSettingsView />} />
         </Route>
       </Route>
       
