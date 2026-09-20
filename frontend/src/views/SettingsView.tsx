@@ -26,10 +26,10 @@ const SettingsView = () => {
     user?.relationshipGoal || RelationshipGoal.NOT_SURE,
   );
   const [showToast, setShowToast] = useState(false);
-  
+
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editUsername, setEditUsername] = useState(user?.username || "");
-  
+
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -38,7 +38,9 @@ const SettingsView = () => {
   useEffect(() => {
     if (user) {
       setOnlineStatus(user.isOnline ?? true);
-      setPreferredGender(user.datingPreference?.preferredGender?.[0] || Gender.FEMALE);
+      setPreferredGender(
+        user.datingPreference?.preferredGender?.[0] || Gender.FEMALE,
+      );
       setAgeMin(user.datingPreference?.ageRange?.min || 18);
       setAgeMax(user.datingPreference?.ageRange?.max || 30);
       setMaxDistance(user.datingPreference?.maxDistance || 20);
@@ -108,25 +110,28 @@ const SettingsView = () => {
       showAlert("Trình duyệt của bạn không hỗ trợ định vị", "error");
       return;
     }
-    
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        saveChanges({ 
-          location: { 
-            ...user?.location, 
+        saveChanges({
+          location: {
+            ...user?.location,
             city: user?.location?.city || "Unknown",
             country: user?.location?.country || "Unknown",
-            latitude, 
-            longitude 
-          } 
+            latitude,
+            longitude,
+          },
         });
         showAlert("Đã cập nhật vị trí chính xác của bạn!", "success");
       },
       (error) => {
-        showAlert("Không thể lấy vị trí. Vui lòng cấp quyền truy cập vị trí cho trang web.", "error");
+        showAlert(
+          "Không thể lấy vị trí. Vui lòng cấp quyền truy cập vị trí cho trang web.",
+          "error",
+        );
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true },
     );
   };
 
@@ -147,33 +152,43 @@ const SettingsView = () => {
             <span>Username</span>
             {isEditingUsername ? (
               <div className="d-flex gap-2">
-                <input 
-                  type="text" 
-                  className="form-control form-control-sm" 
-                  value={editUsername} 
-                  onChange={(e) => setEditUsername(e.target.value)} 
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
                 />
-                <Button className="btn-primary btn-sm" onClick={() => {
-                  saveChanges({ username: editUsername });
-                  setIsEditingUsername(false);
-                }}>Lưu</Button>
-                <Button className="btn-outline-secondary btn-sm" onClick={() => {
-                  setEditUsername(user?.username || "");
-                  setIsEditingUsername(false);
-                }}>Hủy</Button>
+                <Button
+                  className="btn-primary btn-sm"
+                  onClick={() => {
+                    saveChanges({ username: editUsername });
+                    setIsEditingUsername(false);
+                  }}
+                >
+                  Lưu
+                </Button>
+                <Button
+                  className="btn-outline-secondary btn-sm"
+                  onClick={() => {
+                    setEditUsername(user?.username || "");
+                    setIsEditingUsername(false);
+                  }}
+                >
+                  Hủy
+                </Button>
               </div>
             ) : (
               <div className="d-flex align-items-center gap-2">
                 <span className="text-muted fw-bold">@{user?.username}</span>
-                <i 
-                  className="bi bi-pencil cursor-pointer text-primary ms-2" 
+                <i
+                  className="bi bi-pencil cursor-pointer text-primary ms-2"
                   style={{ cursor: "pointer" }}
                   onClick={() => setIsEditingUsername(true)}
                 ></i>
               </div>
             )}
           </div>
-          <Button 
+          <Button
             className="btn-link p-0 text-decoration-none"
             onClick={() => setIsChangingPassword(true)}
           >
@@ -201,13 +216,17 @@ const SettingsView = () => {
           </div>
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
             <span>Định vị chính xác</span>
-            <Button className="btn-outline-primary btn-sm" onClick={handleGetLocation}>
+            <Button
+              className="btn-outline-primary btn-sm"
+              onClick={handleGetLocation}
+            >
               <i className="bi bi-geo-alt me-1"></i> Cập nhật vị trí
             </Button>
           </div>
           {user?.location?.latitude && user?.location?.longitude && (
             <div className="settings-item text-muted small text-end fst-italic">
-              Đã cập nhật: {user.location.latitude.toFixed(4)}, {user.location.longitude.toFixed(4)}
+              Đã cập nhật: {user.location.latitude.toFixed(4)},{" "}
+              {user.location.longitude.toFixed(4)}
             </div>
           )}
         </div>
@@ -326,7 +345,9 @@ const SettingsView = () => {
       >
         <div className="p-3">
           <div className="mb-3">
-            <label className="form-label text-muted small mb-1">Current password</label>
+            <label className="form-label text-muted small mb-1">
+              Current password
+            </label>
             <Input
               type="password"
               placeholder="Current password"
@@ -335,7 +356,9 @@ const SettingsView = () => {
             />
           </div>
           <div className="mb-3">
-            <label className="form-label text-muted small mb-1">New password</label>
+            <label className="form-label text-muted small mb-1">
+              New password
+            </label>
             <Input
               type="password"
               placeholder="New password"
@@ -344,17 +367,19 @@ const SettingsView = () => {
             />
           </div>
           <div className="mb-3">
-            <label className="form-label text-muted small mb-1">Enter password</label>
+            <label className="form-label text-muted small mb-1">
+              Confirm password
+            </label>
             <Input
               type="password"
-              placeholder="Enter password"
+              placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button 
-              className="btn-secondary" 
+            <Button
+              className="btn-secondary"
               onClick={() => {
                 setIsChangingPassword(false);
                 setCurrentPassword("");
@@ -364,8 +389,8 @@ const SettingsView = () => {
             >
               Hủy
             </Button>
-            <Button 
-              className="btn-primary" 
+            <Button
+              className="btn-primary"
               onClick={() => {
                 if (!currentPassword) {
                   showAlert("Vui lòng nhập mật khẩu hiện tại!", "error");
@@ -397,4 +422,3 @@ const SettingsView = () => {
 };
 
 export default SettingsView;
-
