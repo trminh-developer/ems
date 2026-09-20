@@ -64,6 +64,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const updateData: any = {};
     const body = req.body;
     
+    if (body.username !== undefined) updateData.username = body.username;
     if (body.firstName !== undefined) updateData.first_name = body.firstName;
     if (body.lastName !== undefined) updateData.last_name = body.lastName;
     if (body.coverPhoto !== undefined) updateData.cover_photo = body.coverPhoto;
