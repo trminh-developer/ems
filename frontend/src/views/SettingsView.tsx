@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
@@ -189,11 +189,37 @@ const SettingsView = () => {
             )}
           </div>
           <Button
-            className="btn-link p-0 text-decoration-none"
+            className="btn-link p-0 text-decoration-none mt-2 d-block"
             onClick={() => setIsChangingPassword(true)}
           >
             Đổi mật khẩu
           </Button>
+          <hr className="my-3" />
+          <div className="settings-item d-flex justify-content-between align-items-center">
+            <span>Xác thực danh tính</span>
+            {user?.isVerified ? (
+              <span className="text-primary fw-bold"><i className="bi bi-patch-check-fill me-1"></i>Đã xác thực</span>
+            ) : isVerificationPending ? (
+              <span className="text-warning"><i className="bi bi-hourglass-split me-1"></i>Đang chờ duyệt</span>
+            ) : (
+              <div className="form-check form-switch toggle-switch mb-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  checked={isVerificationModalOpen}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setIsVerificationModalOpen(true);
+                      setVerificationStep(1);
+                    } else {
+                      setIsVerificationModalOpen(false);
+                    }
+                  }}
+                />
+                <span className="toggle-slider"></span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -417,8 +443,54 @@ const SettingsView = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Modal Xác thực danh tính */}
+      <Modal
+        isOpen={isVerificationModalOpen}
+        onClose={() => setIsVerificationModalOpen(false)}
+        title="Xác thực danh tính"
+      >
+        <div className="p-3">
+          {verificationStep === 1 && (
+            <div>
+              <h6 className="mb-3">Bước 1: Giấy tờ tùy thân</h6>
+              <p className="text-muted small mb-3">Vui lòng tải lên một trong các giấy tờ sau: CCCD, CMND, Giấy phép lái xe hoặc Hộ chiếu.</p>
+              <input type="file" className="form-control mb-4" accept="image/*" />
+              <div className="d-flex justify-content-end gap-2">
+                <Button className="btn-secondary" onClick={() => setIsVerificationModalOpen(false)}>Hủy</Button>
+                <Button className="btn-primary" onClick={() => setVerificationStep(2)}>Tiếp tục</Button>
+              </div>
+            </div>
+          )}
+          {verificationStep === 2 && (
+            <div>
+              <h6 className="mb-3">Bước 2: Xác thực khuôn mặt</h6>
+              <p className="text-muted small mb-3">Vui lòng tải lên ảnh chụp khuôn mặt của bạn (Selfie) để đối chiếu với giấy tờ tùy thân.</p>
+              <input type="file" className="form-control mb-4" accept="image/*" />
+              <div className="d-flex justify-content-end gap-2">
+                <Button className="btn-secondary" onClick={() => setVerificationStep(1)}>Quay lại</Button>
+                <Button className="btn-primary" onClick={() => {
+                  setVerificationStep(3);
+                }}>Xác nhận</Button>
+              </div>
+            </div>
+          )}
+          {verificationStep === 3 && (
+            <div className="text-center py-4">
+              <i className="bi bi-check-circle text-success" style={{ fontSize: "3rem" }}></i>
+              <h6 className="mt-3">Đã gửi yêu cầu thành công!</h6>
+              <p className="text-muted small mb-4">Hệ thống sẽ xét duyệt hồ sơ của bạn trong vòng 3 đến 7 ngày. Bạn sẽ nhận được dấu tích xanh sau khi được phê duyệt.</p>
+              <Button className="btn-primary" onClick={() => {
+                setIsVerificationModalOpen(false);
+                setIsVerificationPending(true);
+              }}>Hoàn tất</Button>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };
 
 export default SettingsView;
+
