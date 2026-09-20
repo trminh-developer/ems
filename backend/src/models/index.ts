@@ -197,7 +197,8 @@ export {
   Status,
   StatusLike,
   StatusComment,
-  Report
+  Report,
+  VerificationRequest
 };
 
 
