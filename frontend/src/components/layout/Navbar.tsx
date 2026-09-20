@@ -66,6 +66,15 @@ export const Navbar: React.FC = () => {
     alert(`Đã đổi ngôn ngữ sang: ${newLang === 'vi' ? 'Tiếng Việt' : 'English'}`);
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery(''); // clear after search if desired, or keep it
+    }
+  };
+
   return (
     <nav className="app-navbar d-flex align-items-center justify-content-between px-3 px-md-4">
       <Link to="/" className="navbar-brand text-decoration-none d-flex align-items-center gap-2">
@@ -75,7 +84,15 @@ export const Navbar: React.FC = () => {
 
       <div className="navbar-search d-none d-md-flex align-items-center bg-light rounded-pill px-3 py-2 flex-grow-1 mx-4" style={{ maxWidth: '400px' }}>
         <i className="bi bi-search text-muted me-2"></i>
-        <input type="text" className="border-0 bg-transparent flex-grow-1 outline-none" placeholder="Search..." style={{ outline: 'none' }} />
+        <input 
+          type="text" 
+          className="border-0 bg-transparent flex-grow-1 outline-none" 
+          placeholder="Search..." 
+          style={{ outline: 'none' }}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={handleSearch}
+        />
       </div>
 
       <div className="navbar-actions d-flex align-items-center gap-3 gap-md-4">

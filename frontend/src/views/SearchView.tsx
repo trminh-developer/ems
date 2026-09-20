@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserCard } from '../components/user';
 import { Input, Button, EmptyState, Loading } from '../components/common';
 import { userService } from '../services';
@@ -8,7 +8,18 @@ import { calculateAge } from '../utils/helpers';
 
 const SearchView = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  
+  const [query, setQuery] = useState(initialQuery);
+  
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q !== null) {
+      setQuery(q);
+    }
+  }, [searchParams]);
+
   const [gender, setGender] = useState('all');
   const [ageMin, setAgeMin] = useState(18);
   const [ageMax, setAgeMax] = useState(60);
