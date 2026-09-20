@@ -31,7 +31,9 @@ const SettingsView = () => {
   const [editUsername, setEditUsername] = useState(user?.username || "");
   
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -314,34 +316,74 @@ const SettingsView = () => {
       {/* Modal đổi mật khẩu */}
       <Modal
         isOpen={isChangingPassword}
-        onClose={() => setIsChangingPassword(false)}
+        onClose={() => {
+          setIsChangingPassword(false);
+          setCurrentPassword("");
+          setNewPassword("");
+          setConfirmPassword("");
+        }}
         title="Đổi mật khẩu"
       >
         <div className="p-3">
-          <p className="text-muted small mb-3">Nhập mật khẩu mới của bạn bên dưới:</p>
-          <Input
-            type="password"
-            placeholder="Mật khẩu mới..."
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
+          <div className="mb-3">
+            <label className="form-label text-muted small mb-1">Current password</label>
+            <Input
+              type="password"
+              placeholder="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label text-muted small mb-1">New password</label>
+            <Input
+              type="password"
+              placeholder="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label text-muted small mb-1">Enter password</label>
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button 
               className="btn-secondary" 
-              onClick={() => setIsChangingPassword(false)}
+              onClick={() => {
+                setIsChangingPassword(false);
+                setCurrentPassword("");
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
             >
               Hủy
             </Button>
             <Button 
               className="btn-primary" 
               onClick={() => {
+                if (!currentPassword) {
+                  showAlert("Vui lòng nhập mật khẩu hiện tại!", "error");
+                  return;
+                }
                 if (newPassword.trim().length < 6) {
-                  showAlert("Mật khẩu phải từ 6 ký tự trở lên!", "error");
+                  showAlert("Mật khẩu mới phải từ 6 ký tự trở lên!", "error");
+                  return;
+                }
+                if (newPassword !== confirmPassword) {
+                  showAlert("Mật khẩu nhập lại không khớp!", "error");
                   return;
                 }
                 saveChanges({ password: newPassword });
                 setIsChangingPassword(false);
+                setCurrentPassword("");
                 setNewPassword("");
+                setConfirmPassword("");
                 showAlert("Đã đổi mật khẩu thành công!", "success");
               }}
             >
@@ -355,3 +397,4 @@ const SettingsView = () => {
 };
 
 export default SettingsView;
+
