@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
@@ -38,6 +38,64 @@ const SettingsView = () => {
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [verificationStep, setVerificationStep] = useState(1);
   const [isVerificationPending, setIsVerificationPending] = useState(false);
+
+  const [isScanningId, setIsScanningId] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (err) {
+      console.error("Lỗi mở camera", err);
+      showAlert("Không thể mở camera. Vui lòng cấp quyền truy cập.", "error");
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const context = canvasRef.current.getContext('2d');
+      if (context) {
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+        const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
+        setCapturedImage(imageDataUrl);
+        stopCamera();
+      }
+    }
+  };
+
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    startCamera();
+  };
+
+  useEffect(() => {
+    if (isVerificationModalOpen && verificationStep === 2 && !capturedImage) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isVerificationModalOpen, verificationStep, capturedImage]);
 
   useEffect(() => {
     if (user) {
@@ -454,31 +512,58 @@ const SettingsView = () => {
         onClose={() => setIsVerificationModalOpen(false)}
         title="Xác thực danh tính"
       >
-        <div className="p-3">
-          {verificationStep === 1 && (
-            <div>
-              <h6 className="mb-3">Bước 1: Giấy tờ tùy thân</h6>
-              <p className="text-muted small mb-3">Vui lòng tải lên một trong các giấy tờ sau: CCCD, CMND, Giấy phép lái xe hoặc Hộ chiếu.</p>
-              <input type="file" className="form-control mb-4" accept="image/*" />
-              <div className="d-flex justify-content-end gap-2">
-                <Button className="btn-secondary" onClick={() => setIsVerificationModalOpen(false)}>Hủy</Button>
-                <Button className="btn-primary" onClick={() => setVerificationStep(2)}>Tiếp tục</Button>
+          <div className="p-3">
+            {verificationStep === 1 && (
+              <div>
+                <h6 className="mb-3">Bước 1: Giấy tờ tùy thân</h6>
+                <p className="text-muted small mb-3">Vui lòng tải lên một trong các giấy tờ sau: CCCD, CMND, Giấy phép lái xe hoặc Hộ chiếu.</p>
+                <input type="file" className="form-control mb-4" accept="image/*" />
+                <div className="d-flex justify-content-end gap-2">
+                  <Button className="btn-secondary" onClick={() => setIsVerificationModalOpen(false)}>Hủy</Button>
+                  <Button className="btn-primary" disabled={isScanningId} onClick={() => {
+                    setIsScanningId(true);
+                    setTimeout(() => {
+                      setIsScanningId(false);
+                      setVerificationStep(2);
+                    }, 2000);
+                  }}>
+                    {isScanningId ? "Đang quét AI..." : "Tiếp tục"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-          {verificationStep === 2 && (
-            <div>
-              <h6 className="mb-3">Bước 2: Xác thực khuôn mặt</h6>
-              <p className="text-muted small mb-3">Vui lòng tải lên ảnh chụp khuôn mặt của bạn (Selfie) để đối chiếu với giấy tờ tùy thân.</p>
-              <input type="file" className="form-control mb-4" accept="image/*" />
-              <div className="d-flex justify-content-end gap-2">
-                <Button className="btn-secondary" onClick={() => setVerificationStep(1)}>Quay lại</Button>
-                <Button className="btn-primary" onClick={() => {
-                  setVerificationStep(3);
-                }}>Xác nhận</Button>
+            )}
+            {verificationStep === 2 && (
+              <div>
+                <h6 className="mb-3">Bước 2: Xác thực khuôn mặt</h6>
+                <p className="text-muted small mb-3">Vui lòng đưa khuôn mặt của bạn vào khung hình để đối chiếu với giấy tờ.</p>
+                
+                <div className="camera-container mb-4 text-center position-relative bg-dark rounded overflow-hidden" style={{ height: "250px" }}>
+                  {!capturedImage ? (
+                    <>
+                      <video ref={videoRef} autoPlay playsInline muted style={{ width: "100%", height: "100%", objectFit: "cover" }}></video>
+                      <Button className="btn-primary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={capturePhoto}>
+                        <i className="bi bi-camera-fill me-2"></i> Chụp ảnh
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <img src={capturedImage} alt="Selfie" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <Button className="btn-secondary position-absolute bottom-0 start-50 translate-middle-x mb-3 rounded-pill px-4" onClick={retakePhoto}>
+                        <i className="bi bi-arrow-counterclockwise me-2"></i> Chụp lại
+                      </Button>
+                    </>
+                  )}
+                  <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
+                </div>
+
+                <div className="d-flex justify-content-end gap-2">
+                  <Button className="btn-secondary" onClick={() => setVerificationStep(1)}>Quay lại</Button>
+                  <Button className="btn-primary" disabled={!capturedImage} onClick={() => {
+                    setVerificationStep(3);
+                  }}>Xác nhận</Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {verificationStep === 3 && (
             <div className="text-center py-4">
               <i className="bi bi-check-circle text-success" style={{ fontSize: "3rem" }}></i>
@@ -510,4 +595,5 @@ const SettingsView = () => {
 };
 
 export default SettingsView;
+
 
