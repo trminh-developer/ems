@@ -1,10 +1,8 @@
-export * as authService from './authService';
+﻿export * as authService from './authService';
 export * as userService from './userService';
-export * as profileService from './profileService';
 export * as matchService from './matchService';
 export * as messageService from './messageService';
 export * as notificationService from './notificationService';
-export * as searchService from './searchService';
 export * as feedService from './feedService';
 export * as emailService from './emailService';
 export * as storyService from './storyService';

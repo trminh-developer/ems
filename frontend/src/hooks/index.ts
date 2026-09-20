@@ -1,5 +1,4 @@
-export * from './useAuth';
-export * from './useUsers';
+﻿export * from './useAuth';
 export * from './useMatches';
 export * from './useChat';
 export * from './useNotifications';
