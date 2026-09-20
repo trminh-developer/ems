@@ -102,16 +102,20 @@ const AdminVerificationsView = () => {
                     </div>
                   )}
                 </div>
-              <div className="col-6">
-                <p className="text-muted small mb-1">Ảnh chân dung xác thực</p>
-                {selectedReq.selfieImage ? (
-                   <img src={selectedReq.selfieImage} alt="Selfie" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }} />
-                ) : (
-                   <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
-                     No image
-                   </div>
-                )}
-              </div>
+                <div className="col-6">
+                  <p className="text-muted small mb-1">Ảnh chân dung xác thực</p>
+                  {selectedReq.selfieImage ? (
+                    selectedReq.selfieImage.startsWith('data:video') ? (
+                      <video src={selectedReq.selfieImage} controls autoPlay loop className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }}></video>
+                    ) : (
+                      <img src={selectedReq.selfieImage} alt="Selfie" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }} />
+                    )
+                  ) : (
+                     <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
+                       No image
+                     </div>
+                  )}
+                </div>
             </div>
             
             <div className="d-flex justify-content-end gap-2 mt-4">
