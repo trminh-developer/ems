@@ -43,7 +43,24 @@ const SettingsView = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [idCardImage, setIdCardImage] = useState<string | null>(null);
+  const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [livenessInstruction, setLivenessInstruction] = useState("Vui lòng nhìn thẳng vào camera");
+  const mediaRecorderRef = useRef<any>(null);
+  const chunksRef = useRef<any[]>([]);
+
+  
+  const handleIdCardUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setIdCardImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const startCamera = async () => {
     try {
@@ -65,32 +82,66 @@ const SettingsView = () => {
     }
   };
 
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        canvasRef.current.width = videoRef.current.videoWidth;
-        canvasRef.current.height = videoRef.current.videoHeight;
-        
-        // Lật ngược ảnh khi vẽ lên canvas để giống với màn hình preview (gương)
-        context.translate(canvasRef.current.width, 0);
-        context.scale(-1, 1);
-        
-        context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
-        const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
-        setCapturedImage(imageDataUrl);
-        stopCamera();
+  
+  const startRecording = () => {
+    if (!stream) return;
+    setIsRecording(true);
+    chunksRef.current = [];
+    const mediaRecorder = new (window as any).MediaRecorder(stream, { mimeType: 'video/webm' });
+    mediaRecorderRef.current = mediaRecorder;
+    
+    mediaRecorder.ondataavailable = (e: any) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        setRecordedVideo(reader.result as string);
+      };
+    };
+    
+    mediaRecorder.start(200); // 200ms chunks
+    
+    // Simulate liveness instructions sequence
+    const instructions = [
+      "Vui lòng nhìn thẳng vào camera",
+      "Từ từ xoay mặt sang TRÁI",
+      "Từ từ xoay mặt sang PHẢI",
+      "Nhìn lên TRÊN",
+      "Nhìn xuống DƯỚI",
+      "Đưa thiết bị ra XA một chút",
+      "Đang xử lý..."
+    ];
+    
+    let step = 0;
+    setLivenessInstruction(instructions[0]);
+    
+    const interval = setInterval(() => {
+      step++;
+      if (step < instructions.length) {
+        setLivenessInstruction(instructions[step]);
       }
-    }
+      if (step >= instructions.length - 1) {
+        clearInterval(interval);
+        setTimeout(() => {
+          mediaRecorder.stop();
+          setIsRecording(false);
+          stopCamera();
+        }, 1000);
+      }
+    }, 2000); // 2 seconds per instruction
   };
-
-  const retakePhoto = () => {
-    setCapturedImage(null);
+  
+  const retakeVideo = () => {
+    setRecordedVideo(null);
+    setLivenessInstruction("Vui lòng nhìn thẳng vào camera");
     startCamera();
   };
-
-  useEffect(() => {
-    if (isVerificationModalOpen && verificationStep === 2 && !capturedImage) {
+useEffect(() => {
+    if (isVerificationModalOpen && verificationStep === 2 && !recordedVideo) {
       startCamera();
     } else {
       stopCamera();
@@ -100,7 +151,7 @@ const SettingsView = () => {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isVerificationModalOpen, verificationStep, capturedImage]);
+  }, [isVerificationModalOpen, verificationStep, recordedVideo]);
 
   useEffect(() => {
     if (user) {
@@ -522,10 +573,17 @@ const SettingsView = () => {
               <div>
                 <h6 className="mb-3">Bước 1: Giấy tờ tùy thân</h6>
                 <p className="text-muted small mb-3">Vui lòng tải lên một trong các giấy tờ sau: CCCD, CMND, Giấy phép lái xe hoặc Hộ chiếu.</p>
-                <input type="file" className="form-control mb-4" accept="image/*" />
+                
+                  <input type="file" className="form-control mb-2" accept="image/*" onChange={handleIdCardUpload} />
+                  {idCardImage && (
+                    <div className="mb-4 text-center">
+                      <img src={idCardImage} alt="ID Card Preview" className="img-fluid rounded border border-secondary" style={{ maxHeight: '150px' }} />
+                    </div>
+                  )}
+
                 <div className="d-flex justify-content-end gap-2">
                   <Button className="btn-secondary" onClick={() => setIsVerificationModalOpen(false)}>Hủy</Button>
-                  <Button className="btn-primary" disabled={isScanningId} onClick={() => {
+                  <Button className="btn-primary" disabled={isScanningId || !idCardImage} onClick={() => {
                     setIsScanningId(true);
                     setTimeout(() => {
                       setIsScanningId(false);
@@ -563,7 +621,7 @@ const SettingsView = () => {
 
                 <div className="d-flex justify-content-end gap-2">
                   <Button className="btn-secondary" onClick={() => setVerificationStep(1)}>Quay lại</Button>
-                  <Button className="btn-primary" disabled={!capturedImage} onClick={() => {
+                  <Button className="btn-primary" disabled={!recordedVideo} onClick={() => {
                     setVerificationStep(3);
                   }}>Xác nhận</Button>
                 </div>
@@ -581,8 +639,8 @@ const SettingsView = () => {
                     try {
                       const apiClient = (await import('../services/apiClient')).default;
                       await apiClient.post(`/users/${user.id}/verification`, {
-                        id_card_image: "ID_CARD_BASE64_PLACEHOLDER", // Real app would use actual file upload base64
-                        selfie_image: capturedImage
+                        id_card_image: idCardImage, // Real app would use actual file upload base64
+                        selfie_image: recordedVideo
                       });
                     } catch (e) {
                       console.error('Failed to submit verification', e);
