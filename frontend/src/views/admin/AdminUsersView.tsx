@@ -23,17 +23,6 @@ const AdminUsersView = () => {
   };
 
   const changeUserRole = async (id: string, newRole: string) => {
-    if (!window.confirm(Bạn có chắc muốn cấp quyền  + newRole +  cho User này?)) return;
-    try {
-      await apiClient.put(/admin/users/ + id + /role, { role: newRole });
-      setUsers(users.map(u => u.id === id ? { ...u, role: newRole as any } : u));
-    } catch (e) {
-      console.error(e);
-      alert('Lỗi cập nhật phân quyền');
-    }
-  };
-
-  const changeUserRole = async (id: string, newRole: string) => {
     if (!window.confirm(`Bạn có chắc muốn cấp quyền ${newRole} cho User này?`)) return;
     try {
       await apiClient.put(`/admin/users/${id}/role`, { role: newRole });
@@ -132,4 +121,5 @@ const AdminUsersView = () => {
 };
 
 export default AdminUsersView;
+
 
