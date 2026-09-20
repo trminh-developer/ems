@@ -1,4 +1,4 @@
-import { Notification } from '../models';
+﻿import { Notification } from '../models';
 import apiClient from './apiClient';
 
 export const getNotifications = async (userId: string): Promise<Notification[]> => {
@@ -18,3 +18,9 @@ export const getUnreadCount = async (userId: string) => {
   const res = await apiClient.get(`/notifications/unread-count/${userId}`); 
   return res.data.count || res.data; 
 };
+
+export const createNotification = async (data: { userId: string, type: string, message: string }) => {
+  const res = await apiClient.post('/notifications', data);
+  return res.data;
+};
+

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
@@ -480,9 +480,22 @@ const SettingsView = () => {
               <i className="bi bi-check-circle text-success" style={{ fontSize: "3rem" }}></i>
               <h6 className="mt-3">Đã gửi yêu cầu thành công!</h6>
               <p className="text-muted small mb-4">Hệ thống sẽ xét duyệt hồ sơ của bạn trong vòng 3 đến 7 ngày. Bạn sẽ nhận được dấu tích xanh sau khi được phê duyệt.</p>
-              <Button className="btn-primary" onClick={() => {
+              <Button className="btn-primary" onClick={async () => {
                 setIsVerificationModalOpen(false);
                 setIsVerificationPending(true);
+                // Create notification for the user
+                if (user) {
+                  try {
+                    const { notificationService } = await import('../services');
+                    await notificationService.createNotification({
+                      userId: user.id,
+                      type: 'SYSTEM',
+                      message: 'Yêu cầu xác minh danh tính của bạn đã được hệ thống tiếp nhận. Đang chờ phê duyệt trong 3-7 ngày tới.'
+                    });
+                  } catch(e) {
+                    console.error("Lỗi gửi thông báo", e);
+                  }
+                }
               }}>Hoàn tất</Button>
             </div>
           )}
