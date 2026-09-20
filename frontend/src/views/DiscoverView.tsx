@@ -61,6 +61,7 @@ const DiscoverView = () => {
 
   return (
     <div className="discover-view fade-in d-flex flex-column align-items-center justify-content-center h-100 py-4">
+      <SEO title="Khám phá" description="Quẹt để tìm kiếm bạn đời hoàn hảo của bạn ngay hôm nay." />
       {currentCard ? (
         <div className="discover-container" style={{ maxWidth: '400px', width: '100%' }}>
           <DiscoverCard 
@@ -101,3 +102,4 @@ const DiscoverView = () => {
 };
 
 export default DiscoverView;
+

@@ -48,6 +48,7 @@ const HomeView = () => {
 
   return (
     <div className="home-view fade-in">
+      <SEO title="Trang chủ" description="Khám phá các hồ sơ nổi bật trên HeartConnect." />
       <div className="row mb-4 slide-in-up">
         <div className="col-12">
           <h2>Welcome back, {user?.firstName} 👋</h2>
@@ -191,3 +192,4 @@ const HomeView = () => {
 };
 
 export default HomeView;
+

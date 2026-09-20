@@ -1,0 +1,8 @@
+﻿User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /payment/
+
+Sitemap: https://heartconnect-8e934.web.app/sitemap.xml
