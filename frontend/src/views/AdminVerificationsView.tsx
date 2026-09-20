@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Loading, Modal } from '../components/common';
 import apiClient from '../services/apiClient';
 
@@ -18,6 +19,7 @@ interface RequestModel {
 }
 
 const AdminVerificationsView = () => {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<RequestModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReq, setSelectedReq] = useState<RequestModel | null>(null);
@@ -61,7 +63,7 @@ const AdminVerificationsView = () => {
 
   return (
     <div className="container py-4">
-      <h2 className="mb-4">Admin: Duyệt Xác Thực Danh Tính</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">`r`n        <h2>Admin: Duyệt Xác Thực Danh Tính</h2>`r`n        <Button className="btn-outline-secondary" onClick={() => navigate("/")}>Về App (User)</Button>`r`n      </div>
       {requests.length === 0 ? (
         <p>Không có yêu cầu nào đang chờ duyệt.</p>
       ) : (
@@ -117,3 +119,4 @@ const AdminVerificationsView = () => {
 };
 
 export default AdminVerificationsView;
+

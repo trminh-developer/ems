@@ -65,9 +65,10 @@ const AppRoutes = () => (
           <Route path="/premium" element={<PremiumView />} />
           <Route path="/payment" element={<PaymentView />} />
           <Route path="/payment/result" element={<PaymentResultView />} />
-          
-          <Route path="/admin/verifications" element={<AdminVerificationsView />} />
         </Route>
+        
+        {/* Admin Routes (No MainLayout) */}
+        <Route path="/admin/verifications" element={<AdminVerificationsView />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />
