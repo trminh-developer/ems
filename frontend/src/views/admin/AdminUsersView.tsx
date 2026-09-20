@@ -33,6 +33,17 @@ const AdminUsersView = () => {
     }
   };
 
+  const revokeVerification = async (id: string) => {
+    if (!window.confirm('Bạn có chắc muốn HỦY tích xanh của User này?')) return;
+    try {
+      await apiClient.put(`/admin/users/${id}/verification/revoke`);
+      setUsers(users.map(u => u.id === id ? { ...u, isVerified: false, is_verified: false } as any : u));
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi hủy xác thực');
+    }
+  };
+
   const toggleUserStatus = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'BANNED' : 'ACTIVE';
     if (!window.confirm(`Bạn có chắc muốn chuyển User này sang trạng thái: ${newStatus}?`)) return;
@@ -99,16 +110,24 @@ const AdminUsersView = () => {
                       {u.isVerified || u.is_verified ? <i className="bi bi-patch-check-fill text-primary"></i> : '-'}
                     </td>
                     <td className="align-middle">{new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
-                    <td className="align-middle">
-                      {u.role !== 'ADMIN' && (
-                        <Button 
-                          className={`btn-sm ${u.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'}`}
-                          onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
-                        >
-                          {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
-                        </Button>
-                      )}
-                    </td>
+                      <td className="align-middle">
+                        {u.role !== 'ADMIN' && (
+                          <Button 
+                            className={`btn-sm ${u.status === 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'}`}
+                            onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
+                          >
+                            {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
+                          </Button>
+                        )}
+                        {(u.isVerified || u.is_verified) && (
+                          <Button 
+                            className="btn-sm btn-outline-warning ms-2"
+                            onClick={() => revokeVerification(u.id)}
+                          >
+                            Hủy Tích Xanh
+                          </Button>
+                        )}
+                      </td>
                   </tr>
                 ))}
               </tbody>
@@ -121,5 +140,6 @@ const AdminUsersView = () => {
 };
 
 export default AdminUsersView;
+
 
 
