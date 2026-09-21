@@ -752,7 +752,19 @@ div.user-avatar {
 /* ===================================================
    Messaging
    =================================================== */
-.messages-layout {
+
+@media (min-width: 768px) {
+  .messages-sidebar {
+    width: 340px;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 767px) {
+  .messages-sidebar {
+    width: 100%;
+  }
+}
+  .messages-layout {
   display: flex;
   height: calc(100vh - var(--hc-navbar-height) - 48px);
   background: var(--hc-card-bg);
@@ -1671,6 +1683,18 @@ div.user-avatar {
     height: 400px;
   }
 
+  
+@media (min-width: 768px) {
+  .messages-sidebar {
+    width: 340px;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 767px) {
+  .messages-sidebar {
+    width: 100%;
+  }
+}
   .messages-layout {
     flex-direction: column;
     height: calc(100vh - var(--hc-navbar-height) - var(--hc-mobile-nav-height) - 32px);
@@ -1822,4 +1846,5 @@ div.user-avatar {
 .hover-bg-light:hover { background-color: #f8f9fa !important; }
 
 .hover-bg-light:hover { background-color: #f8f9fa !important; }
+
 

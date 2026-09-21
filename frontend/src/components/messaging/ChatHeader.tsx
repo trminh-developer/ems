@@ -30,20 +30,26 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
         )}
       </div>
 
-      <button className="btn btn-light rounded-circle text-primary me-2" onClick={() => showAlert('Tính năng lên lịch hẹn đang được phát triển!', 'info')} title="Lên lịch hẹn">
-        <i className="bi bi-calendar-event fs-5"></i>
+      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={() => showAlert('Tính năng gọi thoại đang phát triển', 'info')} title="Bắt đầu gọi thoại">
+        <i className="bi bi-telephone-fill fs-5"></i>
+      </button>
+
+      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={() => showAlert('Tính năng gọi video đang phát triển', 'info')} title="Bắt đầu gọi video">
+        <i className="bi bi-camera-video-fill fs-5"></i>
       </button>
 
       <div className="dropdown">
         <button className="btn btn-link text-muted p-2" type="button" data-bs-toggle="dropdown">
           <i className="bi bi-three-dots-vertical fs-5"></i>
         </button>
-        <ul className="dropdown-menu dropdown-menu-end shadow">
-          <li><button className="dropdown-item" onClick={() => showAlert('Đang xem hồ sơ...', 'info')}>Xem hồ sơ</button></li>
-          <li><button className="dropdown-item text-danger" onClick={() => showAlert('Đã gửi báo cáo vi phạm!', 'warning')}>Báo cáo (Report)</button></li>
-          <li><button className="dropdown-item" onClick={() => showAlert('Đã chặn người dùng này.', 'info')}>Chặn (Block)</button></li>
+        <ul className="dropdown-menu dropdown-menu-end shadow border-0" style={{ minWidth: '240px', borderRadius: '12px' }}>
+          <li><button className="dropdown-item py-2 fw-medium" onClick={() => showAlert('Đang mở trang cá nhân...', 'info')}><i className="bi bi-person-circle fs-5 me-3 text-secondary"></i> Xem trang cá nhân</button></li>
+          <li><button className="dropdown-item py-2 fw-medium" onClick={() => showAlert('Đã tắt thông báo cho cuộc trò chuyện này.', 'success')}><i className="bi bi-bell-slash fs-5 me-3 text-secondary"></i> Tắt thông báo</button></li>
+          <li><button className="dropdown-item py-2 fw-medium" onClick={() => showAlert('Bảng màu chủ đề đang phát triển...', 'info')}><i className="bi bi-palette fs-5 me-3 text-secondary"></i> Chủ đề</button></li>
+          <li><button className="dropdown-item py-2 fw-medium" onClick={() => showAlert('Tính năng tìm kiếm đang phát triển...', 'info')}><i className="bi bi-search fs-5 me-3 text-secondary"></i> Tìm kiếm trong cuộc trò chuyện</button></li>
           <li><hr className="dropdown-divider" /></li>
-          <li><button className="dropdown-item text-muted" onClick={() => showAlert('Đã hủy tương hợp.', 'warning')}>Hủy tương hợp (Unmatch)</button></li>
+          <li><button className="dropdown-item py-2 fw-medium" onClick={() => showAlert('Đã chặn người dùng này.', 'warning')}><i className="bi bi-dash-circle fs-5 me-3 text-secondary"></i> Chặn</button></li>
+          <li><button className="dropdown-item py-2 text-danger fw-medium" onClick={() => showAlert('Đã báo cáo tài khoản này!', 'warning')}><i className="bi bi-exclamation-triangle fs-5 me-3"></i> Báo cáo</button></li>
         </ul>
       </div>
     </div>

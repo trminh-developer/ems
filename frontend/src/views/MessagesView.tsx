@@ -30,8 +30,8 @@ const MessagesView = () => {
 
   return (
     <div className="messages-layout h-100 fade-in hc-card overflow-hidden">
-      <div className="row g-0 h-100">
-        <div className={`col-md-4 border-end h-100 d-flex flex-column ${!showList ? 'd-none d-md-flex' : ''}`}>
+      <div className="d-flex h-100">
+        <div className={`messages-sidebar border-end h-100 d-flex flex-column ${!showList ? 'd-none d-md-flex' : ''}`}>
           {conversations && conversations.length > 0 ? (
             <ConversationList 
               conversations={conversations} 
@@ -46,7 +46,7 @@ const MessagesView = () => {
           )}
         </div>
 
-        <div className={`col-md-8 h-100 d-flex flex-column ${showList ? 'd-none d-md-flex' : ''}`}>
+        <div className={`h-100 d-flex flex-column flex-grow-1 ${showList ? 'd-none d-md-flex' : ''}`}>
           {activeConversation ? (
             <>
               <ChatHeader 

@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const UserController_1 = require("./UserController");
+const router = (0, express_1.Router)();
+router.get('/api/users', UserController_1.getRecommendedUsers);
+router.get('/api/users/recommended', UserController_1.getRecommendedUsers);
+router.get('/api/users/nearby', UserController_1.getNearbyUsers);
+router.get('/api/users/search', UserController_1.searchUsers);
+router.get('/api/users/username/:username', UserController_1.getUserByUsername);
+router.get('/api/users/:id', UserController_1.getUserById);
+router.put('/api/users/:id', UserController_1.updateUserProfile);
+exports.default = router;
