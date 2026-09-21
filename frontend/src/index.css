@@ -766,13 +766,14 @@ div.user-avatar {
 }
   .messages-layout {
   display: flex;
-  height: calc(100vh - var(--hc-navbar-height) - 48px);
+  margin: -24px;
+  height: calc(100vh - var(--hc-navbar-height));
   background: var(--hc-card-bg);
-  border-radius: var(--hc-radius-lg);
-  border: 1px solid var(--hc-border);
+  border-radius: 0;
+  border: none;
+  border-left: 1px solid var(--hc-border);
   overflow: hidden;
 }
-
 .conversation-list {
   width: 340px;
   border-right: 1px solid var(--hc-border);
@@ -1684,22 +1685,13 @@ div.user-avatar {
   }
 
   
-@media (min-width: 768px) {
-  .messages-sidebar {
-    width: 340px;
-    flex-shrink: 0;
-  }
-}
-@media (max-width: 767px) {
-  .messages-sidebar {
-    width: 100%;
-  }
-}
   .messages-layout {
-    flex-direction: column;
-    height: calc(100vh - var(--hc-navbar-height) - var(--hc-mobile-nav-height) - 32px);
+    margin: -16px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    height: calc(100vh - var(--hc-navbar-height) - var(--hc-mobile-nav-height));
   }
-
   .conversation-list {
     width: 100%;
     border-right: none;
