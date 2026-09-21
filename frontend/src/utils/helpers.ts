@@ -95,3 +95,36 @@ export const mapUser = (u: any): any => {
     }
   };
 };
+
+export const mapMessage = (m: any): any => {
+  if (!m) return m;
+  return {
+    ...m,
+    conversationId: m.conversation_id || m.conversationId,
+    senderId: m.sender_id || m.senderId,
+    timestamp: m.created_at || m.timestamp,
+    type: m.message_type || m.type,
+    isDeleted: m.is_deleted || m.isDeleted
+  };
+};
+
+export const mapConversation = (c: any): any => {
+  if (!c) return c;
+  return {
+    ...c,
+    lastMessage: c.lastMessage ? mapMessage(c.lastMessage) : null,
+    participants: c.participants?.map(mapUser) || []
+  };
+};
+
+export const mapNotification = (n: any): any => {
+  if (!n) return n;
+  return {
+    ...n,
+    userId: n.user_id || n.userId,
+    fromUserId: n.from_user_id || n.fromUserId,
+    timestamp: n.created_at || n.timestamp,
+    isRead: n.is_read !== undefined ? n.is_read : n.isRead,
+    fromUser: n.fromUser ? mapUser(n.fromUser) : null
+  };
+};

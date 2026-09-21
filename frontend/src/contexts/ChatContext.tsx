@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
 import { Conversation, Message, MessageType } from '../models';
 import { messageService } from '../services';
 
@@ -53,7 +53,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const getCurrentUserId = () => {
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = localStorage.getItem('currentUser');
       if (userStr) return JSON.parse(userStr).id;
     } catch (e) {}
     return '';
@@ -94,3 +94,4 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </ChatContext.Provider>
   );
 };
+

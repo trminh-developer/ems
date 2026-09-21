@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { Notification } from '../models';
 import { notificationService } from '../services';
 
@@ -56,7 +56,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const getCurrentUserId = () => {
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = localStorage.getItem('currentUser');
       if (userStr) return JSON.parse(userStr).id;
     } catch (e) {}
     return '';
@@ -105,3 +105,4 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     </NotificationContext.Provider>
   );
 };
+

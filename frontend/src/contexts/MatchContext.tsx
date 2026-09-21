@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
 import { Match } from '../models';
 import { matchService } from '../services';
 
@@ -51,7 +51,7 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const getCurrentUserId = () => {
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = localStorage.getItem('currentUser');
       if (userStr) return JSON.parse(userStr).id;
     } catch (e) {}
     return '';
@@ -99,3 +99,4 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     </MatchContext.Provider>
   );
 };
+
