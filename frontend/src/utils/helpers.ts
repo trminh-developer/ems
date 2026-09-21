@@ -72,3 +72,26 @@ export const uploadOptimizedImage = async (
     return null;
   }
 };
+
+export const mapUser = (u: any): any => {
+  if (!u) return u;
+  return {
+    ...u,
+    firstName: u.first_name || u.firstName,
+    lastName: u.last_name || u.lastName,
+    coverPhoto: u.cover_photo || u.coverPhoto,
+    dateOfBirth: u.date_of_birth || u.dateOfBirth,
+    isVerified: u.is_verified !== undefined ? u.is_verified : u.isVerified,
+    isOnline: u.is_online !== undefined ? u.is_online : u.isOnline,
+    lastActive: u.last_active || u.lastActive,
+    location: {
+      city: u.city || u.location?.city,
+      country: u.country || u.location?.country,
+      latitude: u.latitude || u.location?.latitude,
+      longitude: u.longitude || u.location?.longitude
+    },
+    datingPreference: {
+      relationshipGoal: u.relationship_goal || u.datingPreference?.relationshipGoal
+    }
+  };
+};

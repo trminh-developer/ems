@@ -70,7 +70,8 @@ const ProfileView = () => {
           if (!fetchedUser) {
             fetchedUser = await userService.getUserById(id);
           }
-          if (fetchedUser) setUser(fetchedUser);
+                    if (fetchedUser) {
+            setUser(fetchedUser);
         }
         
         // Fetch statuses to populate gallery
@@ -434,4 +435,7 @@ const ProfileView = () => {
 };
 
 export default ProfileView;
+
+
+
 

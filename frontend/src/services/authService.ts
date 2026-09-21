@@ -1,12 +1,14 @@
-import { User } from '../models';
+﻿import { User } from '../models';
 import apiClient from './apiClient';
+
+import { mapUser } from '../utils/helpers';
 
 export const login = async (email: string, password: string): Promise<User> => {
   try {
     const res = await apiClient.post('/auth/login', { email, password });
     localStorage.setItem('hc_access_token', res.data.accessToken);
     localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-    return res.data.user;
+    return mapUser(res.data.user);
   } catch (err: any) {
     throw new Error(err.response?.data?.error || err.message || 'Login failed');
   }
@@ -17,7 +19,7 @@ export const register = async (data: any): Promise<User> => {
     const res = await apiClient.post('/auth/register', data);
     localStorage.setItem('hc_access_token', res.data.accessToken);
     localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-    return res.data.user;
+    return mapUser(res.data.user);
   } catch (err: any) {
     throw new Error(err.response?.data?.error || err.message || 'Registration failed');
   }
@@ -37,7 +39,7 @@ export const logout = async (): Promise<void> => {
 export const refreshUser = async (id: string): Promise<User | null> => {
   try {
     const res = await apiClient.get(`/users/${id}`);
-    return res.data;
+    return mapUser(res.data);
   } catch (e) {
     return null;
   }
@@ -63,3 +65,5 @@ export const updateUserInList = async (user: User): Promise<void> => {
 export const forgotPassword = async (email: string) => { await apiClient.post('/auth/forgot-password', { email }); };
 export const verifyOTP = async (email: string, otp: string) => { await apiClient.post('/auth/verify-otp', { email, otp }); };
 export const resetPassword = async (email: string, password: string) => { await apiClient.post('/auth/reset-password', { email, password }); };
+
+
