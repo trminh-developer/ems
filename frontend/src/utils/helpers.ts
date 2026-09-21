@@ -1,4 +1,4 @@
-import imageCompression from "browser-image-compression";
+﻿import imageCompression from "browser-image-compression";
 
 export const calculateAge = (dateOfBirth?: string): number | string => {
   if (!dateOfBirth) return '?';
@@ -102,7 +102,7 @@ export const mapMessage = (m: any): any => {
     ...m,
     conversationId: m.conversation_id || m.conversationId,
     senderId: m.sender_id || m.senderId,
-    timestamp: m.created_at || m.timestamp,
+    timestamp: m.created_at || m.createdAt || m.timestamp,
     type: m.message_type || m.type,
     isDeleted: m.is_deleted || m.isDeleted
   };
@@ -123,8 +123,9 @@ export const mapNotification = (n: any): any => {
     ...n,
     userId: n.user_id || n.userId,
     fromUserId: n.from_user_id || n.fromUserId,
-    timestamp: n.created_at || n.timestamp,
+    timestamp: n.created_at || n.createdAt || n.timestamp,
     isRead: n.is_read !== undefined ? n.is_read : n.isRead,
     fromUser: n.fromUser ? mapUser(n.fromUser) : null
   };
 };
+
