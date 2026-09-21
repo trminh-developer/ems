@@ -222,6 +222,14 @@ const ProfileView = () => {
     }
   };
 
+  const handleBlock = () => {
+    showAlert('Đã chặn người dùng này.', 'warning');
+  };
+
+  const handleReport = () => {
+    showAlert('Đã báo cáo người dùng này!', 'info');
+  };
+
   const handleLike = async () => {
     if (!user) return;
     await likeUser(user.id);
