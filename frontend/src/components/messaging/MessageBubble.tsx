@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Message, MessageStatus, MessageType } from '../../models';
 import { formatTime } from '../../utils/helpers';
 import { useAlert } from '../../contexts/AlertContext';
+import { MessageMap } from './MessageMap';
 
 interface MessageBubbleProps {
   message: Message;
@@ -64,9 +65,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
             <img src={message.content.replace('[STICKER]', '').replace('[GIF]', '')} alt="Sticker/GIF" style={{ maxWidth: '150px' }} />
           </div>
         ) : message.content.startsWith('[LOCATION]') || message.content.startsWith('[LIVE_LOCATION]') ? (
-          <div className="mb-1 text-break d-flex align-items-center gap-2">
-            <i className={`bi fs-3 ${message.content.startsWith('[LIVE]') ? 'bi-broadcast text-danger' : 'bi-pin-map-fill text-warning'}`}></i>
-            <span>{message.content.replace(/\[.*?\]/, '')}</span>
+          <div>
+            <div className="mb-1 text-break d-flex align-items-center gap-2">
+              <i className={`bi fs-3 ${message.content.startsWith('[LIVE]') ? 'bi-broadcast text-danger' : 'bi-pin-map-fill text-warning'}`}></i>
+              <span>{message.content.replace(/\[.*?\]/, '')}</span>
+            </div>
+            {/* Display a small static map for effect. In a real app, lat/lng would be parsed from content. */}
+            <MessageMap lat={16.047079} lng={108.206230} />
           </div>
         ) : (
           <p className="mb-1 text-break">{message.content}</p>

@@ -1,7 +1,6 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DiscoverCard, MatchModal } from '../components/dating';
-import { UserMap } from '../components/map/UserMap';
 import { Button, Loading, EmptyState, SEO } from '../components/common';
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../hooks/useAuth';
@@ -56,30 +55,14 @@ const DiscoverView = () => {
     handleNext();
   };
 
-  const [viewMode, setViewMode] = useState<'swipe' | 'map'>('swipe');
-
   if (isLoading) return <Loading text="Đang tìm người phù hợp..." />;
 
   const currentCard = currentIndex < users.length ? users[currentIndex] : null;
 
   return (
-    <div className="discover-view fade-in d-flex flex-column align-items-center h-100 py-4">
+    <div className="discover-view fade-in d-flex flex-column align-items-center justify-content-center h-100 py-4">
       <SEO title="Khám phá" description="Quẹt để tìm kiếm bạn đời hoàn hảo của bạn ngay hôm nay." />
-      
-      {/* Toggle View Mode */}
-      <div className="btn-group mb-4 shadow-sm" role="group">
-        <input type="radio" className="btn-check" name="btnradio" id="btnradio1" autoComplete="off" checked={viewMode === 'swipe'} onChange={() => setViewMode('swipe')} />
-        <label className="btn btn-outline-primary px-4 fw-medium" htmlFor="btnradio1"><i className="bi bi-stack me-2"></i> Quẹt thẻ</label>
-
-        <input type="radio" className="btn-check" name="btnradio" id="btnradio2" autoComplete="off" checked={viewMode === 'map'} onChange={() => setViewMode('map')} />
-        <label className="btn btn-outline-primary px-4 fw-medium" htmlFor="btnradio2"><i className="bi bi-map-fill me-2"></i> Bản đồ</label>
-      </div>
-
-      {viewMode === 'map' ? (
-        <div className="w-100" style={{ maxWidth: '800px' }}>
-          <UserMap users={users} />
-        </div>
-      ) : currentCard ? (
+      {currentCard ? (
         <div className="discover-container" style={{ maxWidth: '400px', width: '100%' }}>
           <DiscoverCard 
             user={currentCard} 
@@ -102,7 +85,7 @@ const DiscoverView = () => {
           </div>
         </div>
       ) : (
-        <EmptyState icon="bi bi-search" title="Không còn ai để khám phá" description="Bạn đã xem hết những người xung quanh." />
+        <EmptyState icon="bi bi-search" title="Không còn ai để khám phá" description="" />
       )}
 
       {showMatchModal && newMatch && (
@@ -119,5 +102,3 @@ const DiscoverView = () => {
 };
 
 export default DiscoverView;
-
-

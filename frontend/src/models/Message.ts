@@ -1,7 +1,8 @@
 export enum MessageType {
   TEXT = 'TEXT',
   IMAGE = 'IMAGE',
-  EMOJI = 'EMOJI'
+  EMOJI = 'EMOJI',
+  LOCATION = 'LOCATION'
 }
 
 export enum MessageStatus {
