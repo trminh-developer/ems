@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { ConversationList, ChatHeader, MessageList, MessageInput, CallModal } from '../components/messaging';
 import { EmptyState, Loading } from '../components/common';
 import { useChat } from '../hooks/useChat';
@@ -19,7 +19,7 @@ const MessagesView = () => {
 
   const handleSelectConversation = (conversation: any) => {
     selectConversation(conversation.id);
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < 992) {
       setShowList(false);
     }
   };
@@ -41,22 +41,25 @@ const MessagesView = () => {
   return (
     <div className="messages-layout h-100 fade-in hc-card overflow-hidden">
       <div className="d-flex h-100 w-100">
-        <div className={`messages-sidebar border-end h-100 d-flex flex-column ${!showList ? 'd-none d-md-flex' : ''}`}>
+        <div className={`messages-sidebar border-end h-100 d-flex flex-column ${!showList ? 'd-none d-lg-flex' : ''}`}>
           {conversations && conversations.length > 0 ? (
             <ConversationList 
               conversations={conversations} 
               activeId={activeConversation?.id} 
               onSelect={handleSelectConversation} 
-              currentUserId={user?.id || ''}
             />
           ) : (
-            <div className="p-4 flex-grow-1 d-flex align-items-center justify-content-center">
-              <EmptyState icon="bi bi-chat" title="No conversations yet 💬" description="" />
+            <div className="flex-grow-1 d-flex justify-content-center align-items-center">
+              <EmptyState 
+                icon="chat-square-text" 
+                title="Chưa có tin nhắn" 
+                description="Hãy kết nối và bắt đầu trò chuyện" 
+              />
             </div>
           )}
         </div>
 
-        <div className={`h-100 d-flex flex-column flex-grow-1 ${showList ? 'd-none d-md-flex' : ''}`}>
+        <div className={`h-100 d-flex flex-column flex-grow-1 ${showList ? 'd-none d-lg-flex' : ''}`}>
           {activeConversation && activePartner ? (
             <>
               <ChatHeader 

@@ -1638,31 +1638,6 @@ div.user-avatar {
    =================================================== */
 @media (max-width: 991.98px) {
   .app-sidebar {
-    width: var(--hc-sidebar-collapsed);
-  }
-
-  .app-sidebar .sidebar-nav-link span,
-  .app-sidebar .sidebar-section-title,
-  .app-sidebar .nav-badge {
-    display: none;
-  }
-
-  .app-sidebar .sidebar-nav-link {
-    justify-content: center;
-    padding: 12px;
-  }
-
-  .app-main {
-    margin-left: var(--hc-sidebar-collapsed);
-  }
-
-  .conversation-list {
-    width: 280px;
-  }
-}
-
-@media (max-width: 767.98px) {
-  .app-sidebar {
     display: none;
   }
 
@@ -1838,5 +1813,6 @@ div.user-avatar {
 .hover-bg-light:hover { background-color: #f8f9fa !important; }
 
 .hover-bg-light:hover { background-color: #f8f9fa !important; }
+
 
 

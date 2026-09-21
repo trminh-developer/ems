@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 
 export const MobileNavigation: React.FC = () => {
   return (
-    <nav className="mobile-nav bg-white border-top fixed-bottom d-md-none py-2 px-3 pb-safe">
+    <nav className="mobile-nav bg-white border-top fixed-bottom d-lg-none py-2 px-3 pb-safe">
       <div className="mobile-nav-items d-flex justify-content-between align-items-center">
         <NavLink to="/" className={({ isActive }) => `mobile-nav-link text-decoration-none d-flex flex-column align-items-center gap-1 ${isActive ? 'text-danger' : 'text-muted'}`}>
           <i className="bi bi-house fs-4"></i>

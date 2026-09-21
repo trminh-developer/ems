@@ -18,10 +18,10 @@ export const MainLayout: React.FC = () => {
     <div className="app-layout d-flex flex-column vh-100 bg-light">
       <Navbar />
       <div className="d-flex flex-grow-1 overflow-hidden">
-        <div className="d-none d-md-block h-100">
+        <div className="d-none d-lg-block h-100">
           <Sidebar />
         </div>
-        <main className="app-main flex-grow-1 overflow-auto p-3 p-md-4">
+        <main className="app-main flex-grow-1 overflow-auto p-3 p-lg-4">
           <Outlet />
         </main>
       </div>
