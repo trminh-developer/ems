@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ConversationList, ChatHeader, MessageList, MessageInput, CallModal } from '../components/messaging';
 import { EmptyState, Loading } from '../components/common';
 import { useChat } from '../hooks/useChat';
@@ -17,8 +17,6 @@ const MessagesView = () => {
     loadConversations();
   }, [loadConversations]);
 
-  if (isLoading && conversations.length === 0) return <Loading text="Đang tải tin nhắn..." />;
-
   const handleSelectConversation = (conversation: any) => {
     selectConversation(conversation.id);
     if (window.innerWidth < 768) {
@@ -35,6 +33,8 @@ const MessagesView = () => {
     }
     return () => clearInterval(interval);
   }, [activeConversation, selectConversation]);
+
+  if (isLoading && conversations.length === 0) return <Loading text="Đang tải tin nhắn..." />;
 
   const activePartner = activeConversation?.participants?.find((p: any) => p.id !== user?.id) || activeConversation?.participants?.[0];
 
@@ -94,3 +94,4 @@ const MessagesView = () => {
 };
 
 export default MessagesView;
+
