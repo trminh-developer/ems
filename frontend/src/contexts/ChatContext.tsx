@@ -1,4 +1,4 @@
-﻿import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+﻿import React, { createContext, useReducer, useCallback, ReactNode, useRef } from 'react';
 import { Conversation, Message, MessageType } from '../models';
 import { messageService } from '../services';
 
@@ -50,6 +50,7 @@ export const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const conversationsRef = useRef<Conversation[]>([]);
 
   const getCurrentUserId = () => {
     try {
@@ -64,15 +65,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!currentUserId) return;
     dispatch({ type: 'LOAD_CONVERSATIONS_START' });
     const conversations = await messageService.getConversations(currentUserId);
+    conversationsRef.current = conversations;
     dispatch({ type: 'LOAD_CONVERSATIONS_SUCCESS', payload: conversations });
+    
+    // Restore active conversation if web reloads
+    const savedId = sessionStorage.getItem('activeConversationId');
+    if (savedId) {
+      const conversation = conversations.find(c => c.id === savedId);
+      if (conversation) {
+        const messages = await messageService.getMessages(savedId);
+        dispatch({ type: 'SELECT_CONVERSATION', payload: { conversation, messages } });
+      }
+    }
   }, []);
 
   const selectConversation = async (conversationId: string) => {
-    const conversation = state.conversations.find(c => c.id === conversationId);
+    const conversation = conversationsRef.current.find(c => c.id === conversationId);
     if (conversation) {
+      sessionStorage.setItem('activeConversationId', conversationId);
       const messages = await messageService.getMessages(conversationId);
       dispatch({ type: 'SELECT_CONVERSATION', payload: { conversation, messages } });
-      // We don't have markAsRead signature matched, so omit or keep it if it works
     }
   };
 
@@ -94,4 +106,3 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </ChatContext.Provider>
   );
 };
-

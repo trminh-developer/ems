@@ -5,7 +5,7 @@ import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
 
 const MessagesView = () => {
-  const { conversations, activeConversation, messages, isLoading, selectConversation, sendMessage } = useChat();
+  const { conversations, activeConversation, messages, isLoading, selectConversation, sendMessage, loadConversations } = useChat();
   const { user } = useAuth();
   const [showList, setShowList] = useState(true);
   
@@ -13,7 +13,11 @@ const MessagesView = () => {
   const [showCallModal, setShowCallModal] = useState(false);
   const [isVideoCall, setIsVideoCall] = useState(false);
 
-  if (isLoading) return <Loading text="Đang tải tin nhắn..." />;
+  React.useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  if (isLoading && conversations.length === 0) return <Loading text="Đang tải tin nhắn..." />;
 
   const handleSelectConversation = (conversation: any) => {
     selectConversation(conversation.id);
