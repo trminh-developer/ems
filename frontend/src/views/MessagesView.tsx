@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ConversationList, ChatHeader, MessageList, MessageInput } from '../components/messaging';
+import { ConversationList, ChatHeader, MessageList, MessageInput, CallModal } from '../components/messaging';
 import { EmptyState, Loading } from '../components/common';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
@@ -8,6 +8,10 @@ const MessagesView = () => {
   const { conversations, activeConversation, messages, isLoading, selectConversation, sendMessage } = useChat();
   const { user } = useAuth();
   const [showList, setShowList] = useState(true);
+  
+  // Call modal states
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [isVideoCall, setIsVideoCall] = useState(false);
 
   if (isLoading) return <Loading text="Đang tải tin nhắn..." />;
 
@@ -28,9 +32,11 @@ const MessagesView = () => {
     return () => clearInterval(interval);
   }, [activeConversation, selectConversation]);
 
+  const activePartner = activeConversation?.participants?.find((p: any) => p.id !== user?.id) || activeConversation?.participants?.[0];
+
   return (
     <div className="messages-layout h-100 fade-in hc-card overflow-hidden">
-      <div className="d-flex h-100">
+      <div className="d-flex h-100 w-100">
         <div className={`messages-sidebar border-end h-100 d-flex flex-column ${!showList ? 'd-none d-md-flex' : ''}`}>
           {conversations && conversations.length > 0 ? (
             <ConversationList 
@@ -47,16 +53,17 @@ const MessagesView = () => {
         </div>
 
         <div className={`h-100 d-flex flex-column flex-grow-1 ${showList ? 'd-none d-md-flex' : ''}`}>
-          {activeConversation ? (
+          {activeConversation && activePartner ? (
             <>
               <ChatHeader 
-                user={activeConversation.participants?.find((p: any) => p.id !== user?.id) || activeConversation.participants?.[0] || user!} 
-                onBack={() => setShowList(true)} 
+                user={activePartner} 
+                onBack={() => setShowList(true)}
+                onCall={() => { setIsVideoCall(false); setShowCallModal(true); }}
+                onVideoCall={() => { setIsVideoCall(true); setShowCallModal(true); }}
               />
               <MessageList messages={messages} currentUserId={user?.id || ''} />
               <MessageInput onSend={(content) => {
                 if (content.startsWith('[IMAGE]')) {
-                  // It's an image base64
                   sendMessage(activeConversation.id, content.substring(7), 'image' as any);
                 } else {
                   sendMessage(activeConversation.id, content);
@@ -70,6 +77,14 @@ const MessagesView = () => {
           )}
         </div>
       </div>
+      
+      {showCallModal && activePartner && (
+        <CallModal 
+          user={activePartner} 
+          isVideo={isVideoCall} 
+          onClose={() => setShowCallModal(false)} 
+        />
+      )}
     </div>
   );
 };

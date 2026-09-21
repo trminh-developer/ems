@@ -6,9 +6,11 @@ import { useAlert } from '../../contexts/AlertContext';
 interface ChatHeaderProps {
   user: User;
   onBack?: () => void;
+  onCall?: () => void;
+  onVideoCall?: () => void;
 }
 
-export const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack, onCall, onVideoCall }) => {
   const { showAlert } = useAlert();
 
   return (
@@ -30,11 +32,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ user, onBack }) => {
         )}
       </div>
 
-      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={() => showAlert('Tính năng gọi thoại đang phát triển', 'info')} title="Bắt đầu gọi thoại">
+      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={onCall || (() => showAlert('Tính năng gọi thoại đang phát triển', 'info'))} title="Bắt đầu gọi thoại">
         <i className="bi bi-telephone-fill fs-5"></i>
       </button>
 
-      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={() => showAlert('Tính năng gọi video đang phát triển', 'info')} title="Bắt đầu gọi video">
+      <button className="btn btn-light rounded-circle text-primary me-2 d-none d-sm-block" onClick={onVideoCall || (() => showAlert('Tính năng gọi video đang phát triển', 'info'))} title="Bắt đầu gọi video">
         <i className="bi bi-camera-video-fill fs-5"></i>
       </button>
 
