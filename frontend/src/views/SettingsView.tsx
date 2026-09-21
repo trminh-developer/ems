@@ -373,87 +373,94 @@ useEffect(() => {
               {user.location.longitude.toFixed(4)}
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="hc-card mb-4 settings-section">
-        <div className="hc-card-header settings-section-title">
-          <h5 className="mb-0">Tùy chọn hẹn hò</h5>
-        </div>
-        <div className="hc-card-body">
-          <div className="settings-item mb-3">
-            <label className="form-label d-block">Giới tính mong muốn</label>
-            <select
-              className="form-select w-auto"
-              value={preferredGender}
-              onChange={handleGenderChange}
-            >
-              <option value={Gender.FEMALE}>Nữ</option>
-              <option value={Gender.MALE}>Nam</option>
-              <option value={Gender.OTHER}>Khác</option>
-            </select>
           </div>
-          <div className="settings-item mb-3">
-            <label className="form-label d-block">
-              Độ tuổi ({ageMin} - {ageMax})
-            </label>
-            <div
-              className="d-flex align-items-center gap-2"
-              style={{ maxWidth: "200px" }}
-            >
+        </div>
+
+        <div className="hc-card mb-4 settings-section">
+          <div className="hc-card-header settings-section-title">
+            <h5 className="mb-0">Tùy chọn hẹn hò</h5>
+          </div>
+          <div className="hc-card-body">
+            <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0 fw-medium">Giới tính mong muốn</label>
+                <select
+                  className="form-select form-select-sm w-auto"
+                  value={preferredGender}
+                  onChange={handleGenderChange}
+                >
+                  <option value={Gender.FEMALE}>Nữ</option>
+                  <option value={Gender.MALE}>Nam</option>
+                  <option value={Gender.OTHER}>Khác</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0 fw-medium">Độ tuổi</label>
+                <div className="d-flex align-items-center gap-2" style={{ maxWidth: "160px" }}>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-center"
+                    value={ageMin}
+                    min="18"
+                    max={ageMax}
+                    onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)}
+                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], maxDistance, relationshipGoal } as any })}
+                  />
+                  <span className="text-muted">-</span>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm text-center"
+                    value={ageMax}
+                    min={ageMin}
+                    max="100"
+                    onChange={(e) => setAgeMax(parseInt(e.target.value) || 30)}
+                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], maxDistance, relationshipGoal } as any })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0 fw-medium">Khoảng cách tối đa</label>
+                <span className="text-primary fw-bold">{maxDistance} km</span>
+              </div>
               <input
-                type="text"
-                className="form-control"
-                value={ageMin}
-                onChange={(e) =>
-                  handleAgeChange(parseInt(e.target.value) || 18, ageMax)
-                }
-              />
-              <span>-</span>
-              <input
-                type="text"
-                className="form-control"
-                value={ageMax}
-                onChange={(e) =>
-                  handleAgeChange(ageMin, parseInt(e.target.value) || 30)
-                }
+                type="range"
+                className="form-range w-100"
+                min="1"
+                max="100"
+                value={maxDistance}
+                onChange={(e) => setMaxDistance(parseInt(e.target.value))}
+                onMouseUp={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], relationshipGoal } as any })}
+                onTouchEnd={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], relationshipGoal } as any })}
               />
             </div>
-          </div>
-          <div className="settings-item mb-3">
-            <label className="form-label d-block">
-              Khoảng cách tối đa: {maxDistance} km
-            </label>
-            <input
-              type="range"
-              className="form-range"
-              min="1"
-              max="100"
-              value={maxDistance}
-              onChange={handleDistanceChange}
-            />
-          </div>
-          <div className="settings-item mb-3">
-            <label className="form-label d-block">Mục tiêu hẹn hò</label>
-            <select
-              className="form-select w-auto"
-              value={relationshipGoal}
-              onChange={handleGoalChange}
-            >
-              <option value={RelationshipGoal.LONG_TERM}>
-                Tìm mối quan hệ nghiêm túc
-              </option>
-              <option value={RelationshipGoal.SHORT_TERM}>Hẹn hò vui vẻ</option>
-              <option value={RelationshipGoal.FRIENDSHIP}>Kết bạn mới</option>
-              <option value={RelationshipGoal.NOT_SURE}>Chưa xác định</option>
-            </select>
+
+            <div className="settings-item flex-column align-items-stretch border-0 p-0">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <label className="form-label mb-0 fw-medium">Mục tiêu hẹn hò</label>
+                <select
+                  className="form-select form-select-sm w-auto"
+                  value={relationshipGoal}
+                  onChange={handleGoalChange}
+                >
+                  <option value={RelationshipGoal.LONG_TERM}>Tìm mối quan hệ nghiêm túc</option>
+                  <option value={RelationshipGoal.SHORT_TERM}>Hẹn hò vui vẻ</option>
+                  <option value={RelationshipGoal.FRIENDSHIP}>Tìm bạn bè mới</option>
+                  <option value={RelationshipGoal.NOT_SURE}>Chưa xác định</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="hc-card mb-4 settings-section border-danger border">
-        <div className="hc-card-body">
-          <Button className="btn-danger w-100 mb-3" onClick={logout}>
+        <div className="hc-card mb-4 settings-section border-danger border">
+          <div className="hc-card-body">
+            <Button className="btn-danger w-100 mb-3" onClick={logout}>
             Đăng xuất
           </Button>
           <Button className="btn-outline-danger w-100">Xóa tài khoản</Button>
@@ -665,6 +672,7 @@ useEffect(() => {
 };
 
 export default SettingsView;
+
 
 
 
