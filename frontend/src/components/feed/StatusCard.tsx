@@ -164,18 +164,25 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
         {/* Comments Section */}
         {showComments && (
           <div className="comments-section mt-3">
-            <div className="d-flex mb-3">
-              <Input 
-                type="text" 
-                placeholder="Viết bình luận..." 
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
-              />
-              <Button variant="primary" className="ms-2" onClick={handlePostComment}>
-                Gửi
-              </Button>
-            </div>
+              <div className="d-flex align-items-end mb-3 gap-2">
+                <textarea 
+                  className="hc-input form-control flex-grow-1"
+                  placeholder="Viết bình luận..." 
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handlePostComment();
+                    }
+                  }}
+                  rows={2}
+                  style={{ resize: 'none' }}
+                />
+                <Button variant="primary" onClick={handlePostComment} className="mb-0" style={{ height: 'fit-content' }}>
+                  Gửi
+                </Button>
+              </div>
             
             <div className="comments-list">
               {comments.map((comment, index) => (
