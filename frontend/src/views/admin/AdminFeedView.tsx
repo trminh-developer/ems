@@ -58,7 +58,7 @@ const AdminFeedView = () => {
                     <td className="align-middle">
                       <div className="d-flex align-items-center">
                         <img 
-                          src={p.User?.avatar || 'https://via.placeholder.com/40'} 
+                          src={p.User?.avatar || `https://ui-avatars.com/api/?name=${p.User?.username || 'U'}&background=random`} 
                           alt="avatar" 
                           className="rounded-circle me-2" 
                           width="30" height="30" 
@@ -71,11 +71,11 @@ const AdminFeedView = () => {
                       {p.content}
                     </td>
                     <td className="align-middle">
-                      {p.media_urls && p.media_urls.length > 0 ? (
-                        <span className="badge bg-info">{p.media_urls.length} files</span>
+                      {p.mediaUrls && p.mediaUrls.length > 0 ? (
+                        <span className="badge bg-info">{p.mediaUrls.length} files</span>
                       ) : '-'}
                     </td>
-                    <td className="align-middle">{new Date(p.created_at).toLocaleString()}</td>
+                    <td className="align-middle">{new Date(p.createdAt || p.created_at).toLocaleString()}</td>
                     <td className="align-middle">
                       <Button className="btn-sm btn-outline-danger" onClick={() => deletePost(p.id)}>
                         Xóa
