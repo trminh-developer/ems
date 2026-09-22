@@ -184,9 +184,9 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
                   <div className="ms-2 flex-grow-1 bg-light p-2 rounded">
                     <h6 className="mb-0 fs-6">{comment.user?.firstName} {comment.user?.lastName}</h6>
                     <p className="mb-0 small">{comment.content}</p>
-                    <small className="text-muted" style={{ fontSize: '11px' }}>
-                      {new Date(comment.createdAt).toLocaleString('vi-VN')}
-                    </small>
+                      <small className="text-muted" style={{ fontSize: '11px' }}>
+                        {new Date(comment.createdAt || comment.created_at || Date.now()).toLocaleString('vi-VN')}
+                      </small>
                   </div>
                 </div>
               ))}

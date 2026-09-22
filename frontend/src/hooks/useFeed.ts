@@ -95,18 +95,34 @@ export const useFeed = (userId?: string) => {
   const addComment = async (statusId: string, content: string) => {
     if (!user) return null;
     
-    const comment = await feedService.addComment(statusId, user.id, content);
+    const response = await feedService.addComment(statusId, user.id, content);
     
-    if (comment) {
+    if (response && response.success && response.comment) {
       setStatuses(prev => prev.map(s => {
         if (s.id === statusId) {
-          return { ...s, commentsCount: s.commentsCount + 1 };
+          return { ...s, commentsCount: (s.commentsCount || 0) + 1 };
         }
         return s;
       }));
+
+      // Map the returned comment to include user info for the UI
+      return {
+        id: response.comment.id,
+        statusId: response.comment.statusId,
+        userId: user.id,
+        content: response.comment.content,
+        createdAt: response.comment.createdAt,
+        user: {
+          id: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar
+        }
+      };
     }
     
-    return comment;
+    return null;
   };
 
   return {
