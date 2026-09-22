@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
+﻿import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
 import { User, Gender, RelationshipGoal } from '../models';
 import { authService } from '../services';
 
@@ -96,9 +96,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password: string, rememberMe: boolean = false) => {
-    dispatch({ type: 'LOGIN_START' });
-    try {
-      const user = await authService.login(email, password);
+      dispatch({ type: 'LOGIN_START' });
+      try {
+        const user = await authService.login(email, password);
       // Chỉ lưu userId, KHÔNG lưu toàn bộ data
       if (rememberMe) {
         localStorage.setItem(SESSION_KEY, user.id);
@@ -107,7 +107,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       authService.setCurrentUser(user);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-    } catch (error) {
+        return user;
+      } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
       throw error;
     }
@@ -120,7 +121,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem(SESSION_KEY, user.id);
       authService.setCurrentUser(user);
       dispatch({ type: 'LOGIN_SUCCESS', payload: user });
-    } catch (error) {
+        return user;
+      } catch (error) {
       dispatch({ type: 'LOGIN_FAILURE' });
       throw error;
     }
@@ -161,3 +163,4 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </AuthContext.Provider>
   );
 };
+

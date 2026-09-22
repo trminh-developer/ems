@@ -8,7 +8,7 @@ const AdminLoginView = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, user, isAuthenticated } = useAuth();
+  const { login, logout, user, isAuthenticated } = useAuth();
   const { showAlert } = useAlert();
   const navigate = useNavigate();
 
@@ -25,10 +25,14 @@ const AdminLoginView = () => {
 
     setIsLoading(true);
     try {
-      await login(email, password);
-      // Wait for AuthContext to update and ProtectedRoute will handle redirect, 
-      // but we can also manually navigate if we want.
-      // We will rely on the AdminProtectedRoute logic to redirect or block.
+      const loggedInUser: any = await login(email, password);
+      
+      if (loggedInUser?.role !== 'ADMIN' && loggedInUser?.role !== 'CENSOR') {
+        logout();
+        showAlert('Tài khoản của bạn không có quyền quản trị.', 'error');
+        return;
+      }
+      
       navigate('/admin');
     } catch (error: any) {
       showAlert(error.message || 'Đăng nhập quản trị thất bại. Vui lòng kiểm tra lại quyền truy cập.', 'error');
