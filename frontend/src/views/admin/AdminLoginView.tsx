@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Button, Input, Loading } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
@@ -49,7 +49,6 @@ const AdminLoginView = () => {
           <Input
             label="Email Quản trị"
             type="email"
-            placeholder="admin@heartconnect.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
@@ -57,7 +56,6 @@ const AdminLoginView = () => {
           <Input
             label="Mật khẩu"
             type="password"
-            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
