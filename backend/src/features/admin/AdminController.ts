@@ -168,31 +168,7 @@ export const resolveReport = async (req: Request, res: Response) => {
   } catch (error: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const setupAdmin = async (req: Request, res: Response) => {
-  try {
-    const adminEmail = 'admin@heartconnect.com';
-    let admin = await User.findOne({ where: { email: adminEmail } });
-    if (!admin) {
-      admin = await User.create({
-        email: adminEmail,
-        password: 'adminpassword',
-        username: 'hc_admin_' + Date.now(),
-        first_name: 'System',
-        last_name: 'Admin',
-        role: 'ADMIN',
-        status: 'ACTIVE',
-        is_verified: true
-      });
-      res.json({ message: 'Admin account created', admin });
-    } else {
-      admin.role = 'ADMIN';
-      await admin.save();
-      res.json({ message: 'Admin role granted to existing account', admin });
-    }
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
 
 
 

@@ -1,0 +1,1 @@
+const fs = require('fs'); let c = fs.readFileSync('backend/src/features/admin/AdminController.ts', 'utf8'); c = c.replace(/export const setupAdmin = async[\s\S]*?res\.status\(500\)\.json\(\{ error: 'Internal server error' \}\); \}\n};\n/g, ''); fs.writeFileSync('backend/src/features/admin/AdminController.ts', c);

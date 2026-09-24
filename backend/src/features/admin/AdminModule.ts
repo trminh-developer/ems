@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { revokeUserVerification, updateUserRole, setupAdmin, getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
+import { revokeUserVerification, updateUserRole, getAllStatuses, deleteStatus, getAllReports, resolveReport, submitVerification, getAllUsers, toggleUserStatus, getPendingVerifications, approveVerification, rejectVerification } from './AdminController';
 import { requireAuth, requireAdmin } from '../../middlewares/authMiddleware';
 
 const router = Router();
@@ -21,9 +21,5 @@ router.put('/api/admin/reports/:id', requireAuth, requireAdmin, resolveReport);
 
 // Verification submittal by users (auth required)
 router.post('/api/users/:id/verification', requireAuth, submitVerification);
-
-// Setup default admin (temporary backdoor - should be removed or strictly protected in prod)
-// Left as is for testing but usually should be commented out or secret-protected
-router.get('/api/admin/setup', setupAdmin);
 
 export default router;

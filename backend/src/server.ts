@@ -20,6 +20,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Security Configurations
+app.set('trust proxy', 1); // Trust first proxy to allow secure cookies over HTTPS (Checklist #13, #15)
+app.disable('x-powered-by'); // Hide Express signature
+
 // Security Middlewares
 app.use(helmet()); // Adds security headers (Checklist #14)
 
