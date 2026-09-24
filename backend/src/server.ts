@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import { initPaymentModule } from './features/payment/di/PaymentModule';
 import { initAuthModule } from './features/auth/AuthModule';
@@ -19,6 +21,20 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Sentry for Error Tracking (Checklist #20)
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0, 
+    // profilesSampleRate: 1.0,
+  });
+  // Sentry request handler must be the first middleware on the app
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Security Configurations
 app.set('trust proxy', 1); // Trust first proxy to allow secure cookies over HTTPS (Checklist #13, #15)
