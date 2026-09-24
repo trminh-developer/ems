@@ -32,8 +32,6 @@ if (process.env.SENTRY_DSN) {
     tracesSampleRate: 1.0, 
     // profilesSampleRate: 1.0,
   });
-  // Sentry request handler must be the first middleware on the app
-  Sentry.setupExpressErrorHandler(app);
 }
 
 // Security Configurations
@@ -50,13 +48,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true // Allow cookies to be sent (Checklist #15)
 }));
 
@@ -103,6 +95,10 @@ app.get('/api', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });
+
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Sync database and start server
 sequelize.sync({ alter: true })
