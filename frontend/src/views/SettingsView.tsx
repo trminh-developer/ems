@@ -117,12 +117,12 @@ const SettingsView = () => {
     ];
     
     let step = 0;
-    setLivenessInstruction(instructions[0]);
+    setLivenessInstruction(instructions[0] || '');
     
     const interval = setInterval(() => {
       step++;
       if (step < instructions.length) {
-        setLivenessInstruction(instructions[step]);
+        setLivenessInstruction(instructions[step] || '');
       }
       if (step >= instructions.length - 1) {
         clearInterval(interval);

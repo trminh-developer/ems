@@ -46,7 +46,8 @@ const MessagesView = () => {
             <ConversationList 
               conversations={conversations} 
               activeId={activeConversation?.id} 
-              onSelect={handleSelectConversation} 
+              onSelect={handleSelectConversation}
+              currentUserId={user?.id || ''} 
             />
           ) : (
             <div className="flex-grow-1 d-flex justify-content-center align-items-center">
