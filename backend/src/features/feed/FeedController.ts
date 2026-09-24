@@ -10,6 +10,10 @@ const isBase64Image = (str: string) => {
 export const getStatuses = async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = req.params;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+
     let whereClause = {};
     if (userId && userId !== 'all') {
       whereClause = { user_id: userId };
@@ -17,20 +21,29 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
 
     const statuses = await Status.findAll({
       where: whereClause,
+      limit,
+      offset,
       include: [
         { model: User, attributes: ['id', 'username', 'first_name', 'last_name', 'avatar'] }
       ],
       order: [['created_at', 'DESC']]
     });
 
-    const results = await Promise.all(statuses.map(async (s: any) => {
-      const likesCount = await StatusLike.count({ where: { status_id: s.id } });
-      const commentsCount = await StatusComment.count({ where: { status_id: s.id } });
+    const statusIds = statuses.map((s: any) => s.id);
+
+    // Bulk fetch likes and comments for only these statuses to eliminate N+1 Query
+    const [likes, comments] = await Promise.all([
+      StatusLike.findAll({ where: { status_id: statusIds } }),
+      StatusComment.findAll({ where: { status_id: statusIds } })
+    ]);
+
+    const results = statuses.map((s: any) => {
+      const sLikes = likes.filter((l: any) => l.status_id === s.id);
+      const sComments = comments.filter((c: any) => c.status_id === s.id);
       
       let hasLiked = false;
       if (req.user) {
-        const like = await StatusLike.findOne({ where: { status_id: s.id, user_id: req.user.id } });
-        hasLiked = !!like;
+        hasLiked = sLikes.some((l: any) => l.user_id === req.user?.id);
       }
       
       return {
@@ -39,13 +52,16 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
         User: s.User,
         content: s.content,
         mediaUrls: s.media_urls,
-        likesCount,
-        commentsCount,
+        likesCount: sLikes.length,
+        commentsCount: sComments.length,
         hasLiked,
         createdAt: s.created_at
       };
-    }));
+    });
 
+    // We can return an array to keep it compatible with current frontend, 
+    // or wrap in { data: results, page, totalPages } if frontend supports it.
+    // For now, return array directly to avoid breaking useFeed.ts
     return res.json(results);
   } catch (err) {
     return res.status(500).json({ error: 'Internal server error' });
