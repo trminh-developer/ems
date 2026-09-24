@@ -11,9 +11,18 @@ const AdminLayout = () => {
   const isActive = (path: string) => location.pathname === path ? 'active text-white' : 'text-white';
 
   return (
-    <div className="d-flex flex-column flex-md-row" style={{ height: '100vh', width: '100vw', backgroundColor: '#121212' }}>
+    <div className="d-flex position-relative overflow-hidden" style={{ height: '100vh', width: '100vw', backgroundColor: '#121212' }}>
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="position-absolute top-0 start-0 w-100 h-100 bg-black z-2 d-md-none" 
+          style={{ opacity: 0.6 }} 
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Sidebar */}
-      <div className={`flex-column flex-shrink-0 p-3 text-white bg-dark border-end border-secondary ${isSidebarOpen ? 'd-flex' : 'd-none d-md-flex'}`} style={{ width: '250px' }}>
+      <div className={`flex-column flex-shrink-0 p-3 text-white bg-dark border-end border-secondary ${isSidebarOpen ? 'd-flex position-absolute position-md-static top-0 start-0 h-100 z-3 shadow' : 'd-none d-md-flex'}`} style={{ width: '250px' }}>
         <a href="/admin" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
           <span className="fs-5 fw-bold" style={{ color: '#ff6b6b' }}>HeartConnect Admin</span>
         </a>
