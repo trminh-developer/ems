@@ -1,0 +1,1 @@
+const fs = require('fs'); let c = fs.readFileSync('backend/src/features/admin/AdminController.ts', 'utf8'); c = c.replace(/error: error\.message, Internal server error/g, 'error: \'Internal server error\''); fs.writeFileSync('backend/src/features/admin/AdminController.ts', c);

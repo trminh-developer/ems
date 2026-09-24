@@ -3,13 +3,11 @@ import axios from "axios";
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
   timeout: 60000,
+  withCredentials: true // Required for sending/receiving HttpOnly cookies
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("hc_access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  // Let cookies handle the token
   return config;
 });
 
@@ -106,38 +104,29 @@ apiClient.interceptors.response.use(
 
       if (isRefreshing) {
         return new Promise((resolve) => {
-          addRefreshSubscriber((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+          addRefreshSubscriber(() => {
             resolve(apiClient(originalRequest));
           });
         });
       }
 
       isRefreshing = true;
-      const refreshToken = localStorage.getItem("hc_refresh_token");
 
-      if (refreshToken) {
-        try {
-          const res = await axios.post(
-            `${apiClient.defaults.baseURL}/auth/refresh`,
-            { token: refreshToken },
-          );
-          const newAccessToken = res.data.accessToken;
-          localStorage.setItem("hc_access_token", newAccessToken);
-          localStorage.setItem("hc_refresh_token", res.data.refreshToken);
+      try {
+        await axios.post(
+          `${apiClient.defaults.baseURL}/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+        
+        isRefreshing = false;
+        onRefreshed('');
 
-          isRefreshing = false;
-          onRefreshed(newAccessToken);
-
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return apiClient(originalRequest);
-        } catch (refreshError) {
-          isRefreshing = false;
-          localStorage.removeItem("hc_access_token");
-          localStorage.removeItem("hc_refresh_token");
-          window.location.href = "/login";
-          return Promise.reject(refreshError);
-        }
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        isRefreshing = false;
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
       }
     }
 

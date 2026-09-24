@@ -1,0 +1,1 @@
+const fs = require('fs'); let c = fs.readFileSync('backend/src/features/user/UserController.ts', 'utf8'); c = c.replace('const userIdToUpdate = req.params.id;', 'const userIdToUpdate = req.params.id as string;'); fs.writeFileSync('backend/src/features/user/UserController.ts', c);

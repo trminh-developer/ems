@@ -6,9 +6,7 @@ import { mapUser } from '../utils/helpers';
 export const login = async (email: string, password: string): Promise<User> => {
   try {
     const res = await apiClient.post('/auth/login', { email, password });
-    localStorage.setItem('hc_access_token', res.data.accessToken);
-    localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-    return mapUser(res.data.user);
+            return mapUser(res.data.user);
   } catch (err: any) {
     throw new Error(err.response?.data?.error || err.message || 'Login failed');
   }
@@ -17,9 +15,7 @@ export const login = async (email: string, password: string): Promise<User> => {
 export const register = async (data: any): Promise<User> => {
   try {
     const res = await apiClient.post('/auth/register', data);
-    localStorage.setItem('hc_access_token', res.data.accessToken);
-    localStorage.setItem('hc_refresh_token', res.data.refreshToken);
-    return mapUser(res.data.user);
+            return mapUser(res.data.user);
   } catch (err: any) {
     throw new Error(err.response?.data?.error || err.message || 'Registration failed');
   }
