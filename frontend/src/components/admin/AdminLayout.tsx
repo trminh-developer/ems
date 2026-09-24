@@ -23,9 +23,14 @@ const AdminLayout = () => {
 
       {/* Sidebar */}
       <div className={`flex-column flex-shrink-0 p-3 text-white bg-dark border-end border-secondary ${isSidebarOpen ? 'd-flex position-absolute position-md-static top-0 start-0 h-100 z-3 shadow' : 'd-none d-md-flex'}`} style={{ width: '250px' }}>
-        <a href="/admin" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-          <span className="fs-5 fw-bold" style={{ color: '#ff6b6b' }}>HeartConnect Admin</span>
-        </a>
+        <div className="d-flex align-items-center justify-content-between mb-3 mb-md-0 me-md-auto">
+          <Link to="/admin" className="text-white text-decoration-none" onClick={() => setIsSidebarOpen(false)}>
+            <span className="fs-5 fw-bold" style={{ color: '#ff6b6b' }}>HeartConnect Admin</span>
+          </Link>
+          <button className="btn btn-outline-secondary border-0 d-md-none text-white p-1" onClick={() => setIsSidebarOpen(false)}>
+            <i className="bi bi-x-lg"></i>
+          </button>
+        </div>
         <hr className="border-secondary" />
         <ul className="nav nav-pills flex-column mb-auto gap-2">
           <li className="nav-item">
