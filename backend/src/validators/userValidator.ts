@@ -14,7 +14,7 @@ export const updateProfileSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
   password: z.string().min(6).optional(),
-  dateOfBirth: z.string().refine((val) => !isNaN(Date.parse(val)), 'Invalid date format').optional(),
+  dateOfBirth: z.string().refine((val) => val === '' || !isNaN(Date.parse(val)), 'Invalid date format').optional(),
   bio: z.string().max(500).optional(),
   coverPhoto: z.string().optional(),
   avatar: z.string().optional(),
@@ -24,6 +24,13 @@ export const updateProfileSchema = z.object({
   education: z.string().max(100).optional(),
   relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).optional(),
   
+  interests: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string(),
+    icon: z.string().optional(),
+    category: z.string().optional()
+  }).passthrough()).optional(),
+
   location: z.object({
     city: z.string().optional(),
     country: z.string().optional(),

@@ -84,7 +84,9 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     if (body.firstName !== undefined) updateData.first_name = body.firstName;
     if (body.lastName !== undefined) updateData.last_name = body.lastName;
     if (body.coverPhoto !== undefined) updateData.cover_photo = body.coverPhoto;
-    if (body.dateOfBirth !== undefined) updateData.date_of_birth = body.dateOfBirth;
+    if (body.dateOfBirth !== undefined) {
+      updateData.date_of_birth = body.dateOfBirth === '' ? null : body.dateOfBirth;
+    }
     if (body.isOnline !== undefined) updateData.is_online = body.isOnline;
     
     // Hash password if updated
@@ -105,6 +107,21 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     if (body.avatar !== undefined) updateData.avatar = body.avatar;
     if (body.photos !== undefined) updateData.photos = body.photos;
     
+    if (body.interests !== undefined) {
+      const { Interest } = require('../../models');
+      const interestRecords = [];
+      for (const i of body.interests) {
+        if (i.name) {
+          const [record] = await Interest.findOrCreate({
+            where: { name: i.name },
+            defaults: { icon: i.icon || 'bi-star', category: i.category || 'other' }
+          });
+          interestRecords.push(record);
+        }
+      }
+      await user.setInterests(interestRecords);
+    }
+
     // Update preferences if any
     if (body.datingPreference) {
       if (body.datingPreference.preferredGender !== undefined) updateData.preferred_gender = body.datingPreference.preferredGender;
@@ -117,6 +134,11 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     }
 
     await user.update(updateData);
+
+    const { Interest } = require('../../models');
+    await user.reload({
+      include: [{ model: Interest, as: 'interests', through: { attributes: [] } }]
+    });
 
     return res.json({ message: 'Profile updated successfully', user });
   } catch (error: any) {
