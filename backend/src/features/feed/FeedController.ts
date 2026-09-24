@@ -49,7 +49,7 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
       return {
         id: s.id,
         userId: s.user_id,
-        User: s.User,
+        user: s.User,
         content: s.content,
         mediaUrls: s.media_urls,
         likesCount: sLikes.length,
