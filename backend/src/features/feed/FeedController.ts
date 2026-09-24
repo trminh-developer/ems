@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import { Status, StatusLike, StatusComment, User } from '../../models';
+import { AuthRequest } from '../../middlewares/authMiddleware';
 
-export const getStatuses = async (req: Request, res: Response) => {
+// Regex to check if base64 string is a valid image (jpeg, png, webp, gif)
+const isBase64Image = (str: string) => {
+  return /^data:image\/(jpeg|png|webp|gif);base64,/.test(str);
+};
+
+export const getStatuses = async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = req.params;
     let whereClause = {};
@@ -17,43 +23,52 @@ export const getStatuses = async (req: Request, res: Response) => {
       order: [['created_at', 'DESC']]
     });
 
-    // We also need likesCount and commentsCount, we can fetch them manually or dynamically
     const results = await Promise.all(statuses.map(async (s: any) => {
       const likesCount = await StatusLike.count({ where: { status_id: s.id } });
       const commentsCount = await StatusComment.count({ where: { status_id: s.id } });
+      
       let hasLiked = false;
-      // In a real app we pass current user id, but we don't have it in req.params for /all
-      // Just returning false for now, frontend might need adjustment or we ignore hasLiked
+      if (req.user) {
+        const like = await StatusLike.findOne({ where: { status_id: s.id, user_id: req.user.id } });
+        hasLiked = !!like;
+      }
       
       return {
         id: s.id,
         userId: s.user_id,
-        user: s.User ? {
-          id: s.User.id,
-          username: s.User.username,
-          firstName: s.User.first_name,
-          lastName: s.User.last_name,
-          avatar: s.User.avatar
-        } : undefined,
+        User: s.User,
         content: s.content,
-        mediaUrls: s.media_urls || [],
-        createdAt: s.created_at,
+        mediaUrls: s.media_urls,
         likesCount,
         commentsCount,
-        hasLiked
+        hasLiked,
+        createdAt: s.created_at
       };
     }));
 
     return res.json(results);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to fetch statuses' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-export const createStatus = async (req: Request, res: Response) => {
+export const createStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, content, mediaUrls } = req.body;
+    const { content, mediaUrls } = req.body;
+    // ALWAYS use the authenticated user's ID
+    const userId = req.user?.id;
+
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Validate mediaUrls (Checklist #7: Giới hạn loại file)
+    if (mediaUrls && Array.isArray(mediaUrls)) {
+      for (const media of mediaUrls) {
+        if (!isBase64Image(media)) {
+          return res.status(400).json({ error: 'Invalid file type. Only image uploads are allowed.' });
+        }
+      }
+    }
+
     const status = await Status.create({
       user_id: userId,
       content,
@@ -61,14 +76,17 @@ export const createStatus = async (req: Request, res: Response) => {
     });
     return res.json({ success: true, status });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to create status' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-export const toggleLike = async (req: Request, res: Response) => {
+export const toggleLike = async (req: AuthRequest, res: Response) => {
   try {
-    const { statusId, userId, isLiked } = req.body;
+    const { statusId, isLiked } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
     if (isLiked) {
       await StatusLike.create({ status_id: statusId, user_id: userId });
     } else {
@@ -76,8 +94,25 @@ export const toggleLike = async (req: Request, res: Response) => {
     }
     return res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to toggle like' });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const addComment = async (req: AuthRequest, res: Response) => {
+  try {
+    const { statusId, content } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const comment = await StatusComment.create({
+      status_id: statusId,
+      user_id: userId,
+      content
+    });
+    return res.json({ success: true, comment });
+  } catch (err) {
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -91,53 +126,28 @@ export const getComments = async (req: Request, res: Response) => {
       ],
       order: [['created_at', 'ASC']]
     });
-
-    const results = comments.map((c: any) => ({
-      id: c.id,
-      statusId: c.status_id,
-      userId: c.user_id,
-      content: c.content,
-      createdAt: c.created_at,
-      user: c.User ? {
-        id: c.User.id,
-        username: c.User.username,
-        firstName: c.User.first_name,
-        lastName: c.User.last_name,
-        avatar: c.User.avatar
-      } : undefined
-    }));
-
-    return res.json(results);
+    return res.json(comments);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to fetch comments' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-export const addComment = async (req: Request, res: Response) => {
-  try {
-    const { statusId, userId, content } = req.body;
-    const comment = await StatusComment.create({
-      status_id: statusId,
-      user_id: userId,
-      content
-    });
-    return res.json({ success: true, comment });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to add comment' });
-  }
-};
-
-export const deleteStatus = async (req: Request, res: Response) => {
+export const deleteStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { statusId } = req.params;
-    await StatusLike.destroy({ where: { status_id: statusId } });
-    await StatusComment.destroy({ where: { status_id: statusId } });
-    await Status.destroy({ where: { id: statusId } });
+    const userId = req.user?.id;
+
+    const status: any = await Status.findByPk(statusId as string);
+    if (!status) return res.status(404).json({ error: 'Status not found' });
+
+    // IDOR Check: Only the owner or admin can delete
+    if (status.user_id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    await status.destroy();
     return res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to delete status' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -1,10 +1,16 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
+import { AuthRequest } from '../../middlewares/authMiddleware';
 
-export const getNotifications = async (req: Request, res: Response) => {
+export const getNotifications = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.params.userId;
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Notification, User } = require('../../models');
     const notifications = await Notification.findAll({
-      where: { user_id: req.params.userId },
+      where: { user_id: userId },
       include: [{ model: User, as: 'FromUser' }],
       order: [['created_at', 'DESC']]
     });
@@ -24,37 +30,60 @@ export const getNotifications = async (req: Request, res: Response) => {
     });
     
     return res.json(formatted);
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const getUnreadCount = async (req: Request, res: Response) => {
+export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.params.userId;
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Notification } = require('../../models');
     const count = await Notification.count({
-      where: { user_id: req.params.userId, is_read: false }
+      where: { user_id: userId, is_read: false }
     });
     return res.json({ count });
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const markAsRead = async (req: Request, res: Response) => {
+export const markAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const { Notification } = require('../../models');
-    await Notification.update({ is_read: true }, { where: { id: req.params.id } });
+    const notification: any = await Notification.findByPk(req.params.id);
+    
+    if (!notification) return res.status(404).json({ error: 'Notification not found' });
+    
+    if (notification.user_id !== req.user?.id && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    await notification.update({ is_read: true });
     return res.json({ success: true });
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const markAllAsRead = async (req: Request, res: Response) => {
+export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.params.userId;
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Notification } = require('../../models');
-    await Notification.update({ is_read: true }, { where: { user_id: req.params.userId } });
+    await Notification.update({ is_read: true }, { where: { user_id: userId } });
     return res.json({ success: true });
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const createNotification = async (req: Request, res: Response) => {
+export const createNotification = async (req: AuthRequest, res: Response) => {
   try {
+    // Only ADMIN or system should create notifications freely like this
+    if (req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Notification } = require('../../models');
     const { userId, type, message, fromUserId } = req.body;
     const notification = await Notification.create({
@@ -64,5 +93,5 @@ export const createNotification = async (req: Request, res: Response) => {
       from_user_id: fromUserId || null
     });
     return res.json(notification);
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };

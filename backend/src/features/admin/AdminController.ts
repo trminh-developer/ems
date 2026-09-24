@@ -7,6 +7,11 @@ export const submitVerification = async (req: Request, res: Response) => {
     const { id_card_image, selfie_image } = req.body;
     const user_id = req.params.id;
     
+    // IDOR Check
+    if ((req as any).user?.id !== user_id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
     await VerificationRequest.create({
       user_id,
       id_card_image,

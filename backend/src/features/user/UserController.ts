@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { User } from '../../models';
 import { AuthRequest } from '../../middlewares/authMiddleware';
+import { z } from 'zod';
+import { updateProfileSchema } from '../../validators/userValidator';
 
 export const getUserByUsername = async (req: Request, res: Response) => {
   try {
@@ -75,7 +77,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     
     const updateData: any = {};
-    const body = req.body;
+    const body = updateProfileSchema.parse(req.body);
     
     // Whitelist only safe fields
     if (body.username !== undefined) updateData.username = body.username;
@@ -118,6 +120,9 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
 
     return res.json({ message: 'Profile updated successfully', user });
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: (error as any).errors[0].message });
+    }
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

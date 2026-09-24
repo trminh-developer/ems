@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { User } from '../../models';
+import { z } from 'zod';
+import { registerSchema } from '../../validators/userValidator';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'super-refresh-key';
@@ -60,7 +62,8 @@ export class AuthController {
 
   public async register(req: Request, res: Response) {
     try {
-      const { email, password, firstName, lastName, gender, dateOfBirth } = req.body;
+      // Zod validation (Checklist #9)
+      const { email, password, firstName, lastName, gender, dateOfBirth } = registerSchema.parse(req.body);
       
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
@@ -98,6 +101,9 @@ export class AuthController {
 
       return res.status(201).json({ accessToken, refreshToken, user: data });
     } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: (error as any).errors[0].message });
+      }
       return res.status(400).json({ error: 'Error creating user' });
     }
   }

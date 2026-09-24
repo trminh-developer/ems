@@ -1,11 +1,17 @@
-﻿import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { Match, User, UserInterest } from '../../models';
-
+import { AuthRequest } from '../../middlewares/authMiddleware';
 import { Op } from 'sequelize';
 
-export const getMatches = async (req: Request, res: Response) => {
+export const getMatches = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.params.userId;
+    
+    // IDOR Check
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const matches = await Match.findAll({
       where: {
         [Op.or]: [
@@ -35,12 +41,16 @@ export const getMatches = async (req: Request, res: Response) => {
       };
     });
     return res.json(formattedMatches);
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const likeUser = async (req: Request, res: Response) => {
+export const likeUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, targetId } = req.body;
+    const { targetId } = req.body;
+    // IDOR Fix: Force userId to be the authenticated user
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
     const { Match, User, Conversation, Notification } = require('../../models');
     
     // Check if match already exists
@@ -55,7 +65,6 @@ export const likeUser = async (req: Request, res: Response) => {
 
     if (existingMatch) {
       // If match already exists, it means they clicked again or it's a mutual like.
-      // Create a notification for the other user just in case.
       const sender = await User.findByPk(userId);
       await Notification.create({
         user_id: targetId,
@@ -109,16 +118,20 @@ export const likeUser = async (req: Request, res: Response) => {
     };
 
     return res.json({ matched: true, match: formattedMatch });
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
 export const passUser = async (req: Request, res: Response) => {
   return res.json({ success: true });
 };
 
-export const superlikeUser = async (req: Request, res: Response) => {
+export const superlikeUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, targetId } = req.body;
+    const { targetId } = req.body;
+    // IDOR Fix: Force userId to be the authenticated user
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
     const { Match, User, Conversation, Notification } = require('../../models');
     
     // Check if match already exists
@@ -185,41 +198,58 @@ export const superlikeUser = async (req: Request, res: Response) => {
     
     return res.json({ matched: true, match: formattedMatch });
   } catch (e: any) { 
-    return res.status(500).json({ error: e.message }); 
+    return res.status(500).json({ error: 'Internal server error' }); 
   }
 };
 
-export const unmatch = async (req: Request, res: Response) => {
+export const unmatch = async (req: AuthRequest, res: Response) => {
   try {
     const { Match } = require('../../models');
-    await Match.destroy({ where: { id: req.params.id } });
+    const matchId = req.params.id;
+    const match = await Match.findByPk(matchId);
+    
+    if (!match) return res.status(404).json({ error: 'Match not found' });
+    
+    // IDOR Check
+    if (req.user?.role !== 'ADMIN' && match.user1_id !== req.user?.id && match.user2_id !== req.user?.id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    await match.destroy();
     return res.json({ success: true });
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const getWhoLikedMe = async (req: Request, res: Response) => {
+export const getWhoLikedMe = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId; // Defaulting for now if auth middleware is missing
+    const userId = req.params.userId; 
+    // IDOR Check
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Match, User } = require('../../models');
-    const { Op } = require('sequelize');
     const matches = await Match.findAll({
       where: { user2_id: userId },
       include: [{ model: User, as: 'User1' }]
     });
     return res.json(matches.map((m: any) => m.User1).filter(Boolean));
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
 
-export const getWhoILiked = async (req: Request, res: Response) => {
+export const getWhoILiked = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.params.userId;
+    // IDOR Check
+    if (req.user?.id !== userId && req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     const { Match, User } = require('../../models');
-    const { Op } = require('sequelize');
     const matches = await Match.findAll({
       where: { user1_id: userId },
       include: [{ model: User, as: 'User2' }]
     });
     return res.json(matches.map((m: any) => m.User2).filter(Boolean));
-  } catch (e: any) { return res.status(500).json({ error: e.message }); }
+  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
 };
-
