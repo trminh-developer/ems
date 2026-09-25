@@ -78,7 +78,16 @@ Message.init({
   type: { type: DataTypes.STRING, defaultValue: 'text' },
   status: { type: DataTypes.STRING, defaultValue: 'sent' },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
-}, { sequelize, modelName: 'Message', tableName: 'messages', timestamps: false });
+}, { 
+  sequelize, 
+  modelName: 'Message', 
+  tableName: 'messages', 
+  timestamps: false,
+  indexes: [
+    { fields: ['conversation_id', 'created_at'] },
+    { fields: ['sender_id'] }
+  ]
+});
 
 class Notification extends Model {}
 Notification.init({
@@ -89,7 +98,16 @@ Notification.init({
   message: { type: DataTypes.TEXT },
   is_read: { type: DataTypes.BOOLEAN, defaultValue: false },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
-}, { sequelize, modelName: 'Notification', tableName: 'notifications', timestamps: false });
+}, { 
+  sequelize, 
+  modelName: 'Notification', 
+  tableName: 'notifications', 
+  timestamps: false,
+  indexes: [
+    { fields: ['user_id', 'created_at'] },
+    { fields: ['user_id', 'is_read'] }
+  ]
+});
 
 class Status extends Model {}
 Status.init({
@@ -98,7 +116,17 @@ Status.init({
   content: { type: DataTypes.TEXT },
   media_urls: { type: DataTypes.JSON },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
-}, { sequelize, modelName: 'Status', tableName: 'statuses', timestamps: false });
+}, { 
+  sequelize, 
+  modelName: 'Status', 
+  tableName: 'statuses', 
+  timestamps: false,
+  indexes: [
+    { fields: ['user_id'] },
+    { fields: ['created_at'] },
+    { fields: ['user_id', 'created_at'] }
+  ]
+});
 
 class StatusLike extends Model {}
 StatusLike.init({
@@ -114,7 +142,16 @@ StatusComment.init({
   user_id: { type: DataTypes.UUID, allowNull: false },
   content: { type: DataTypes.TEXT, allowNull: false },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
-}, { sequelize, modelName: 'StatusComment', tableName: 'status_comments', timestamps: false });
+}, { 
+  sequelize, 
+  modelName: 'StatusComment', 
+  tableName: 'status_comments', 
+  timestamps: false,
+  indexes: [
+    { fields: ['status_id'] },
+    { fields: ['created_at'] }
+  ]
+});
 
 class VerificationRequest extends Model {}
 VerificationRequest.init({

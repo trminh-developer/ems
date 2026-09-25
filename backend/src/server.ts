@@ -38,8 +38,11 @@ if (process.env.SENTRY_DSN) {
 app.set('trust proxy', 1); // Trust first proxy to allow secure cookies over HTTPS (Checklist #13, #15)
 app.disable('x-powered-by'); // Hide Express signature
 
+import compression from 'compression';
+
 // Security Middlewares
 app.use(helmet()); // Adds security headers (Checklist #14)
+app.use(compression()); // Compress responses
 
 const allowedOrigins = [
   'http://localhost:5173',
