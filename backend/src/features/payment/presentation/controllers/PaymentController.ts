@@ -34,7 +34,8 @@ export class PaymentController {
   async createCard(req: Request, res: Response) {
     try {
       const { orderId } = req.body;
-      const paymentUrl = `http://localhost:5173/payment/result?orderId=${orderId}&status=success`;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const paymentUrl = `${frontendUrl}/payment/result?orderId=${orderId}&status=success`;
       res.json({ success: true, provider: 'card', paymentUrl, transactionId: orderId });
     } catch (error) {
       console.error(error);
@@ -45,7 +46,8 @@ export class PaymentController {
   async createPayPal(req: Request, res: Response) {
     try {
       const { orderId } = req.body;
-      const paymentUrl = `http://localhost:5173/payment/result?orderId=${orderId}&status=success`;
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const paymentUrl = `${frontendUrl}/payment/result?orderId=${orderId}&status=success`;
       res.json({ success: true, provider: 'paypal', paymentUrl, transactionId: orderId });
     } catch (error) {
       console.error(error);
@@ -56,7 +58,8 @@ export class PaymentController {
   async vnpayReturn(req: Request, res: Response) {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('VNPAY', req.query);
-      res.redirect(`http://localhost:5173/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
     } catch (error) {
       console.error(error);
       res.status(500).send('Lỗi máy chủ');

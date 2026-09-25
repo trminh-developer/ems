@@ -9,7 +9,7 @@ export class VNPayGateway implements IPaymentGateway {
     const secretKey = process.env.VNPAY_HASH_SECRET || '';
     const isProd = process.env.PAYMENT_MODE === 'production';
     let vnpUrl = process.env.VNPAY_URL || (isProd ? 'https://pay.vnpay.vn/vpcpay.html' : 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html');
-    const returnUrl = process.env.VNPAY_RETURN_URL || 'http://localhost:5173/payment/result';
+    const returnUrl = process.env.VNPAY_RETURN_URL || 'http://localhost:3000/api/payment/vnpay/return';
 
     let vnp_Params: any = {};
     vnp_Params['vnp_Version'] = '2.1.0';

@@ -1,4 +1,4 @@
-import { SupabaseTransactionRepository } from '../infrastructure/repositories/SupabaseTransactionRepository';
+import { SequelizeTransactionRepository } from '../infrastructure/repositories/SequelizeTransactionRepository';
 import { VNPayGateway } from '../infrastructure/gateways/VNPayGateway';
 import { MoMoGateway } from '../infrastructure/gateways/MoMoGateway';
 import { CreatePaymentUseCase } from '../application/usecases/CreatePayment';
@@ -7,7 +7,7 @@ import { PaymentController } from '../presentation/controllers/PaymentController
 import { setupPaymentRoutes } from '../presentation/routes/PaymentRoutes';
 
 export const initPaymentModule = () => {
-  const transactionRepo = new SupabaseTransactionRepository();
+  const transactionRepo = new SequelizeTransactionRepository();
   const gateways = {
     'VNPAY': new VNPayGateway(),
     'MOMO': new MoMoGateway()

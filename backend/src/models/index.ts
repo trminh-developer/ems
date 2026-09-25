@@ -26,7 +26,9 @@ User.init({
   last_active: { type: DataTypes.DATE },
   is_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
   role: { type: DataTypes.ENUM('ADMIN', 'CENSOR', 'USER'), defaultValue: 'USER' },
-  status: { type: DataTypes.ENUM('ACTIVE', 'BANNED', 'DELETED'), defaultValue: 'ACTIVE' }
+  status: { type: DataTypes.ENUM('ACTIVE', 'BANNED', 'DELETED'), defaultValue: 'ACTIVE' },
+  is_premium: { type: DataTypes.BOOLEAN, defaultValue: false },
+  premium_expires_at: { type: DataTypes.DATE }
 }, { sequelize, modelName: 'User', tableName: 'users', timestamps: true });
 
 class UserPreference extends Model {}
@@ -221,6 +223,17 @@ Report.belongsTo(User, { foreignKey: 'reporter_id', as: 'Reporter' });
 Report.belongsTo(User, { foreignKey: 'reported_user_id', as: 'ReportedUser' });
 Report.belongsTo(Status, { foreignKey: 'reported_status_id', as: 'ReportedStatus' });
 
+class Transaction extends Model {}
+Transaction.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  plan_id: { type: DataTypes.STRING, allowNull: false },
+  amount: { type: DataTypes.FLOAT, allowNull: false },
+  status: { type: DataTypes.STRING, defaultValue: 'PENDING' },
+  provider: { type: DataTypes.STRING, allowNull: false },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'Transaction', tableName: 'transactions', timestamps: false });
+
 export {
   sequelize,
   User,
@@ -235,7 +248,8 @@ export {
   StatusLike,
   StatusComment,
   Report,
-  VerificationRequest
+  VerificationRequest,
+  Transaction
 };
 
 
