@@ -2,7 +2,7 @@ import { IPaymentRepository, CreatePaymentRequest, CreatePaymentResponse } from 
 import { PaymentMethod } from '../../domain/entities/PaymentMethod';
 
 export class ApiPaymentRepository implements IPaymentRepository {
-  private API_URL = 'http://localhost:3000/api/payments';
+  private API_URL = `${import.meta.env.VITE_API_URL}/payments`;
 
   async createPayment(provider: PaymentMethod, data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
     const response = await fetch(`${this.API_URL}/${provider}/create`, {
