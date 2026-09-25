@@ -33,9 +33,9 @@ export class PaymentController {
 
   async createCard(req: Request, res: Response) {
     try {
-      const { orderId } = req.body;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const paymentUrl = `${frontendUrl}/payment/result?orderId=${orderId}&status=success`;
+      const { orderId, amount, description, userId, planId } = req.body;
+      const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+      const paymentUrl = await this.createPaymentUseCase.execute('CARD', orderId, amount, description || `Thanh toan thẻ ${orderId}`, userId, planId, ipAddr as string);
       res.json({ success: true, provider: 'card', paymentUrl, transactionId: orderId });
     } catch (error) {
       console.error(error);
@@ -45,9 +45,9 @@ export class PaymentController {
 
   async createPayPal(req: Request, res: Response) {
     try {
-      const { orderId } = req.body;
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const paymentUrl = `${frontendUrl}/payment/result?orderId=${orderId}&status=success`;
+      const { orderId, amount, description, userId, planId } = req.body;
+      const ipAddr = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+      const paymentUrl = await this.createPaymentUseCase.execute('PAYPAL', orderId, amount, description || `Thanh toan PayPal ${orderId}`, userId, planId, ipAddr as string);
       res.json({ success: true, provider: 'paypal', paymentUrl, transactionId: orderId });
     } catch (error) {
       console.error(error);
@@ -58,6 +58,28 @@ export class PaymentController {
   async vnpayReturn(req: Request, res: Response) {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('VNPAY', req.query);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Lỗi máy chủ');
+    }
+  }
+
+  async stripeReturn(req: Request, res: Response) {
+    try {
+      const { orderId, success } = await this.processCallbackUseCase.execute('CARD', req.query);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Lỗi máy chủ');
+    }
+  }
+
+  async paypalReturn(req: Request, res: Response) {
+    try {
+      const { orderId, success } = await this.processCallbackUseCase.execute('PAYPAL', req.query);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
     } catch (error) {

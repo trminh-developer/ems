@@ -8,7 +8,7 @@ export class CreatePaymentUseCase {
     private paymentGateways: Record<string, IPaymentGateway>
   ) {}
 
-  async execute(provider: 'VNPAY' | 'MOMO', orderId: string, amount: number, description: string, userId: string, planId: string, ipAddr: string): Promise<string> {
+  async execute(provider: 'VNPAY' | 'MOMO' | 'CARD' | 'PAYPAL', orderId: string, amount: number, description: string, userId: string, planId: string, ipAddr: string): Promise<string> {
     const transaction = new Transaction(orderId, userId, planId, amount, 'PENDING', provider, new Date());
     await this.transactionRepo.save(transaction);
 
