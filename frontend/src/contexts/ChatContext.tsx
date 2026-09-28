@@ -1,4 +1,4 @@
-﻿import React, { createContext, useReducer, useCallback, ReactNode, useRef } from 'react';
+import React, { createContext, useReducer, useCallback, ReactNode, useRef } from 'react';
 import { Conversation, Message, MessageType } from '../models';
 import { messageService } from '../services';
 
@@ -64,18 +64,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const currentUserId = getCurrentUserId();
     if (!currentUserId) return;
     dispatch({ type: 'LOAD_CONVERSATIONS_START' });
-    const conversations = await messageService.getConversations(currentUserId);
-    conversationsRef.current = conversations;
-    dispatch({ type: 'LOAD_CONVERSATIONS_SUCCESS', payload: conversations });
-    
-    // Restore active conversation if web reloads
-    const savedId = sessionStorage.getItem('activeConversationId');
-    if (savedId) {
-      const conversation = conversations.find(c => c.id === savedId);
-      if (conversation) {
-        const messages = await messageService.getMessages(savedId);
-        dispatch({ type: 'SELECT_CONVERSATION', payload: { conversation, messages } });
+    try {
+      const conversations = await messageService.getConversations(currentUserId);
+      conversationsRef.current = conversations;
+      dispatch({ type: 'LOAD_CONVERSATIONS_SUCCESS', payload: conversations });
+      
+      // Restore active conversation if web reloads
+      const savedId = sessionStorage.getItem('activeConversationId');
+      if (savedId) {
+        const conversation = conversations.find(c => c.id === savedId);
+        if (conversation) {
+          const messages = await messageService.getMessages(savedId);
+          dispatch({ type: 'SELECT_CONVERSATION', payload: { conversation, messages } });
+        }
       }
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+      dispatch({ type: 'LOAD_CONVERSATIONS_SUCCESS', payload: [] });
     }
   }, []);
 

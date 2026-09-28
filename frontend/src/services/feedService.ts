@@ -1,26 +1,27 @@
 import apiClient from './apiClient';
 
 export const getStatuses = async (userId?: string) => {
-  const res = await apiClient.get(`/feed/statuses/${userId || 'all'}`);
+  const url = userId ? `/feed/${userId}` : '/feed/all';
+  const res = await apiClient.get(url);
   return res.data;
 };
 
 export const createStatus = async (userId: string, content: string, mediaUrls?: string[]) => {
-  const res = await apiClient.post('/feed/statuses', { userId, content, mediaUrls });
+  const res = await apiClient.post('/feed', { userId, content, mediaUrls });
   return res.data;
 };
 
 export const toggleLike = async (statusId: string, userId: string, isLiked: boolean) => {
-  const res = await apiClient.post('/feed/statuses/like', { statusId, userId, isLiked });
+  const res = await apiClient.post('/feed/like', { statusId, userId, isLiked });
   return res.data;
 };
 
 export const getComments = async (statusId: string) => {
-  const res = await apiClient.get(`/feed/comments/${statusId}`);
+  const res = await apiClient.get(`/feed/${statusId}/comments`);
   return res.data;
 };
 
 export const addComment = async (statusId: string, userId: string, content: string) => {
-  const res = await apiClient.post('/feed/comments', { statusId, userId, content });
+  const res = await apiClient.post('/feed/comment', { statusId, userId, content });
   return res.data;
 };

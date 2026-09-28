@@ -12,9 +12,15 @@ export const useFeed = (userId?: string) => {
 
   const loadStatuses = useCallback(async () => {
     setIsLoading(true);
-    const data = await feedService.getStatuses(userId);
-    setStatuses(data);
-    setIsLoading(false);
+    try {
+      const data = await feedService.getStatuses(userId);
+      setStatuses(data || []);
+    } catch (error) {
+      console.error('Error loading statuses:', error);
+      setStatuses([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
 
   useEffect(() => {

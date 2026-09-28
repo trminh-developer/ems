@@ -1,4 +1,4 @@
-﻿import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
 import { Match } from '../models';
 import { matchService } from '../services';
 
@@ -61,8 +61,13 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const currentUserId = getCurrentUserId();
     if (!currentUserId) return;
     dispatch({ type: 'LOAD_MATCHES_START' });
-    const matches = await matchService.getMatches(currentUserId);
-    dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
+    try {
+      const matches = await matchService.getMatches(currentUserId);
+      dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
+    } catch (error) {
+      console.error('Error loading matches:', error);
+      dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: [] });
+    }
   }, []);
 
   const likeUser = async (targetId: string) => {

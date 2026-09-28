@@ -51,8 +51,23 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true // Allow cookies to be sent (Checklist #15)
+  origin: function (origin, callback) {
+    // Cho phép origin nếu nằm trong list, hoặc không có origin (như curl/postman), 
+    // hoặc chứa từ khóa của VS Code Port Forwarding / Ngrok / Local IP
+    if (!origin || 
+        allowedOrigins.includes(origin) || 
+        origin.includes('devtunnels.ms') || 
+        origin.includes('ngrok-free.app') ||
+        origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
+        origin.match(/^https?:\/\/10\./) ||       // LAN IPs
+        origin.match(/^https?:\/\/172\./)         // LAN IPs
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true // Allow cookies to be sent
 }));
 
 app.use(cookieParser());
