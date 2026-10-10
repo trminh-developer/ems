@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
@@ -195,7 +195,7 @@ const ProfileView = () => {
           city: editForm.city,
           country: editForm.country
         }
-      });
+      }).catch(e => alert(e.response?.data?.error || e.message));
       setIsEditModalOpen(false);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);

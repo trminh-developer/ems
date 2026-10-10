@@ -16,7 +16,7 @@ const AdminUsersView = () => {
       const res = await apiClient.get('/admin/users');
       setUsers(res.data);
     } catch (e) {
-      console.error(e);
+      console.error(e); alert('Error fetching users: ' + (e.response?.data?.error || e.message || e));
     } finally {
       setIsLoading(false);
     }
@@ -28,7 +28,7 @@ const AdminUsersView = () => {
       await apiClient.put(`/admin/users/${id}/role`, { role: newRole });
       setUsers(users.map(u => u.id === id ? { ...u, role: newRole as any } : u));
     } catch (e) {
-      console.error(e);
+      console.error(e); alert('Error fetching users: ' + (e.response?.data?.error || e.message || e));
       alert('Lỗi cập nhật phân quyền');
     }
   };
@@ -39,7 +39,7 @@ const AdminUsersView = () => {
       await apiClient.put(`/admin/users/${id}/verification/revoke`);
       setUsers(users.map(u => u.id === id ? { ...u, isVerified: false, is_verified: false } as any : u));
     } catch (e) {
-      console.error(e);
+      console.error(e); alert('Error fetching users: ' + (e.response?.data?.error || e.message || e));
       alert('Lỗi hủy xác thực');
     }
   };
@@ -52,7 +52,7 @@ const AdminUsersView = () => {
       await apiClient.put(`/admin/users/${id}/status`, { status: newStatus });
       setUsers(users.map(u => u.id === id ? { ...u, status: newStatus as any } : u));
     } catch (e) {
-      console.error(e);
+      console.error(e); alert('Error fetching users: ' + (e.response?.data?.error || e.message || e));
       alert('Lỗi cập nhật trạng thái');
     }
   };

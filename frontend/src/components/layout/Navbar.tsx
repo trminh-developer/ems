@@ -6,11 +6,13 @@ import Avatar from '../common/Avatar';
 import Badge from '../common/Badge';
 import { userService } from '../../services';
 import { User } from '../../models';
+import { useTranslation } from 'react-i18next';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -67,8 +69,7 @@ export const Navbar: React.FC = () => {
     e.stopPropagation();
     const newLang = language === 'vi' ? 'en' : 'vi';
     setLanguage(newLang);
-    localStorage.setItem('hc_lang', newLang);
-    alert(`Đã đổi ngôn ngữ sang: ${newLang === 'vi' ? 'Tiếng Việt' : 'English'}`);
+    i18n.changeLanguage(newLang);
   };
 
   const [searchQuery, setSearchQuery] = useState('');

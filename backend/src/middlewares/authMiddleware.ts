@@ -41,7 +41,7 @@ export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction
   }
   
   if (req.user.role !== 'ADMIN' && req.user.role !== 'CENSOR') {
-    return res.status(403).json({ error: 'Forbidden: Requires admin privileges' });
+    require('fs').appendFileSync('auth_debug.log', new Date().toISOString() + ' - Forbidden! Role is: ' + req.user.role + ' - ID: ' + req.user.id + '\n'); return res.status(403).json({ error: 'Forbidden: Requires admin privileges. Role is: ' + req.user.role });
   }
   
   next();

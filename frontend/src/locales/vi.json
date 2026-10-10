@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "home": "Khám Phá",
+    "matches": "Tương Hợp",
+    "messages": "Tin Nhắn",
+    "likes": "Lượt Thích",
+    "premium": "Gói Premium",
+    "admin": "Quản Trị",
+    "search_placeholder": "Tìm kiếm...",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất"
+  },
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải...",
+    "success": "Thành công",
+    "error": "Lỗi"
+  }
+}

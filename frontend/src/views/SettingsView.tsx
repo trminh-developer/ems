@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
@@ -172,7 +172,7 @@ useEffect(() => {
   // Helper to trigger save and show toast
   const saveChanges = (updatedFields: any) => {
     if (user) {
-      updateUser({ ...user, ...updatedFields });
+      updateUser({ ...user, ...updatedFields }).catch(e => alert(e.response?.data?.error || e.message));
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
     }
@@ -659,7 +659,7 @@ useEffect(() => {
                         selfie_image: recordedVideo
                       });
                     } catch (e) {
-                      console.error('Failed to submit verification', e);
+                      console.error('Failed to submit verification', e); alert('Lỗi gửi xác thực: ' + (e.response?.data?.error || e.message || e)); setIsVerificationPending(false);
                     }
                   }
                 }}>Đóng</Button>

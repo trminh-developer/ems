@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from '@sentry/react';
+import './i18n';
 import './index.css';
 
 // Initialize Sentry for Error Tracking (Checklist #20)

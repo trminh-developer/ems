@@ -34,7 +34,7 @@ export const logout = async (): Promise<void> => {
 
 export const refreshUser = async (id: string): Promise<User | null> => {
   try {
-    const res = await apiClient.get(`/users/${id}`);
+    const res = await apiClient.get('/auth/me');
     return mapUser(res.data);
   } catch (e) {
     return null;

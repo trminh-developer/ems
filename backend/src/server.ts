@@ -73,8 +73,8 @@ app.use(cors({
 app.use(cookieParser());
 
 // Limit payload size to prevent DoS (Checklist #7, #8)
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Rate Limiter for Authentication (Checklist #2)
 const authLimiter = rateLimit({

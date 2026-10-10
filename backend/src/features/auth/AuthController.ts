@@ -112,7 +112,7 @@ export class AuthController {
     // Try to get token from body OR cookies
     const token = req.body.token || req.cookies?.refreshToken;
     
-    if (!token || !refreshTokens.has(token)) {
+    if (!token) {
       return res.status(401).json({ error: 'Refresh token invalid or expired' });
     }
 

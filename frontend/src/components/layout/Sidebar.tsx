@@ -5,6 +5,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 // @ts-ignore
 import { useChat } from '../../hooks/useChat';
 import Badge from '../common/Badge';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   onNavClick?: () => void;
@@ -14,6 +15,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
   const { unreadCount } = useNotifications();
   // @ts-ignore
   const { conversations } = useChat();
+  const { t } = useTranslation();
 
   const unreadMessagesCount = 0; // Calculate from conversations in real app
 
@@ -24,15 +26,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-house fs-5"></i>
-            <span className="fw-medium">Home</span>
+            <span className="fw-medium">{t('nav.home')}</span>
           </NavLink>
           <NavLink to="/discover" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-compass fs-5"></i>
-            <span className="fw-medium">Discover</span>
+            <span className="fw-medium">{t('nav.home')}</span>
           </NavLink>
           <NavLink to="/search" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-search fs-5"></i>
-            <span className="fw-medium">Search</span>
+            <span className="fw-medium">{t('common.search')}</span>
           </NavLink>
         </nav>
       </div>
@@ -42,20 +44,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/feed" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-journal-text fs-5"></i>
-            <span className="fw-medium">Bảng tin</span>
+            <span className="fw-medium">Feed</span>
           </NavLink>
           <NavLink to="/matches" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-heart fs-5"></i>
-            <span className="fw-medium">Matches</span>
+            <span className="fw-medium">{t('nav.matches')}</span>
           </NavLink>
           <NavLink to="/likes" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-stars fs-5 text-warning"></i>
-            <span className="fw-medium">Lượt thích</span>
+            <span className="fw-medium">{t('nav.likes')}</span>
           </NavLink>
           <NavLink to="/messages" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center justify-content-between px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <div className="d-flex align-items-center gap-3">
               <i className="bi bi-chat-dots fs-5"></i>
-              <span className="fw-medium">Messages</span>
+              <span className="fw-medium">{t('nav.messages')}</span>
             </div>
             {unreadMessagesCount > 0 && <Badge variant="primary" text={unreadMessagesCount.toString()} />}
           </NavLink>
@@ -74,15 +76,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
         <nav className="sidebar-nav d-flex flex-column gap-1">
           <NavLink to="/profile" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-person fs-5"></i>
-            <span className="fw-medium">Profile</span>
+            <span className="fw-medium">{t('nav.profile')}</span>
           </NavLink>
           <NavLink to="/settings" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-gear fs-5"></i>
-            <span className="fw-medium">Settings</span>
+            <span className="fw-medium">{t('nav.settings')}</span>
           </NavLink>
           <NavLink to="/premium" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-warning text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-gem fs-5 text-warning"></i>
-            <span className="fw-medium fw-bold text-warning">Premium</span>
+            <span className="fw-medium fw-bold text-warning">{t('nav.premium')}</span>
           </NavLink>
         </nav>
       </div>

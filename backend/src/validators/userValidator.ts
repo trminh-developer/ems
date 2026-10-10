@@ -10,41 +10,41 @@ export const registerSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  username: z.string().min(3).max(30).optional(),
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  password: z.string().min(6).optional(),
-  dateOfBirth: z.string().refine((val) => val === '' || !isNaN(Date.parse(val)), 'Invalid date format').optional(),
-  bio: z.string().max(500).optional(),
-  coverPhoto: z.string().optional(),
-  avatar: z.string().optional(),
-  photos: z.array(z.string()).optional(),
-  isOnline: z.boolean().optional(),
-  profession: z.string().max(100).optional(),
-  education: z.string().max(100).optional(),
-  relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).optional(),
+  username: z.string().min(3).max(30).nullish(),
+  firstName: z.string().min(1).max(50).nullish(),
+  lastName: z.string().max(50).nullish(),
+  password: z.string().min(6).nullish(),
+  dateOfBirth: z.string().refine((val) => val === '' || !isNaN(Date.parse(val)), 'Invalid date format').nullish(),
+  bio: z.string().max(500).nullish(),
+  coverPhoto: z.string().nullish(),
+  avatar: z.string().nullish(),
+  photos: z.array(z.string()).nullish(),
+  isOnline: z.boolean().nullish(),
+  profession: z.string().max(100).nullish(),
+  education: z.string().max(100).nullish(),
+  relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).nullish(),
   
   interests: z.array(z.object({
-    id: z.string().optional(),
+    id: z.string().nullish(),
     name: z.string(),
-    icon: z.string().optional(),
-    category: z.string().optional()
-  }).passthrough()).optional(),
+    icon: z.string().nullish(),
+    category: z.string().nullish()
+  }).passthrough()).nullish(),
 
   location: z.object({
-    city: z.string().optional(),
-    country: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional()
-  }).optional(),
+    city: z.string().nullish(),
+    country: z.string().nullish(),
+    latitude: z.number().nullish(),
+    longitude: z.number().nullish()
+  }).nullish(),
 
   datingPreference: z.object({
-    preferredGender: z.array(z.enum(['male', 'female', 'other'] as const)).optional(),
+    preferredGender: z.array(z.enum(['male', 'female', 'other'] as const)).nullish(),
     ageRange: z.object({
-      min: z.number().min(18).optional(),
-      max: z.number().max(100).optional()
-    }).optional(),
-    maxDistance: z.number().optional(),
-    relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).optional()
-  }).optional()
+      min: z.number().min(18).nullish(),
+      max: z.number().max(100).nullish()
+    }).nullish(),
+    maxDistance: z.number().nullish(),
+    relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).nullish()
+  }).nullish()
 });

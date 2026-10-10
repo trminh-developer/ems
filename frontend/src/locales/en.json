@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "home": "Discover",
+    "matches": "Matches",
+    "messages": "Messages",
+    "likes": "Likes",
+    "premium": "Premium",
+    "admin": "Admin",
+    "search_placeholder": "Search...",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Log Out"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error"
+  }
+}

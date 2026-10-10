@@ -15,7 +15,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json(user);
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 
@@ -28,7 +28,7 @@ export const getUserById = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json(user);
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 
@@ -37,7 +37,7 @@ export const getRecommendedUsers = async (req: Request, res: Response) => {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 
@@ -46,7 +46,7 @@ export const getNearbyUsers = async (req: Request, res: Response) => {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 
@@ -55,7 +55,7 @@ export const searchUsers = async (req: Request, res: Response) => {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 
@@ -143,9 +143,9 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     return res.json({ message: 'Profile updated successfully', user });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: (error as any).errors[0].message });
+      console.error('ZodError:', JSON.stringify(error.issues)); return res.status(400).json({ error: error.issues.map(e => e.path.join('.') + ': ' + e.message).join(', ') });
     }
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
 

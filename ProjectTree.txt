@@ -1,0 +1,312 @@
+├── backend
+│   ├── src
+│   │   ├── config
+│   │   │   └── db.ts
+│   │   ├── features
+│   │   │   ├── admin
+│   │   │   │   ├── AdminController.ts
+│   │   │   │   └── AdminModule.ts
+│   │   │   ├── auth
+│   │   │   │   ├── AuthController.ts
+│   │   │   │   └── AuthModule.ts
+│   │   │   ├── feed
+│   │   │   │   ├── FeedController.ts
+│   │   │   │   └── FeedModule.ts
+│   │   │   ├── match
+│   │   │   │   ├── MatchController.ts
+│   │   │   │   └── MatchModule.ts
+│   │   │   ├── message
+│   │   │   │   ├── MessageController.ts
+│   │   │   │   └── MessageModule.ts
+│   │   │   ├── notification
+│   │   │   │   ├── NotificationController.ts
+│   │   │   │   └── NotificationModule.ts
+│   │   │   ├── payment
+│   │   │   │   ├── application
+│   │   │   │   │   ├── ports
+│   │   │   │   │   │   ├── IPaymentGateway.ts
+│   │   │   │   │   │   └── ITransactionRepository.ts
+│   │   │   │   │   └── usecases
+│   │   │   │   │       ├── CreatePayment.ts
+│   │   │   │   │       └── ProcessPaymentCallback.ts
+│   │   │   │   ├── di
+│   │   │   │   │   └── PaymentModule.ts
+│   │   │   │   ├── domain
+│   │   │   │   │   └── entities
+│   │   │   │   │       └── Transaction.ts
+│   │   │   │   ├── infrastructure
+│   │   │   │   │   ├── gateways
+│   │   │   │   │   │   ├── MoMoGateway.ts
+│   │   │   │   │   │   ├── PayPalGateway.ts
+│   │   │   │   │   │   ├── StripeGateway.ts
+│   │   │   │   │   │   └── VNPayGateway.ts
+│   │   │   │   │   └── repositories
+│   │   │   │   │       └── SequelizeTransactionRepository.ts
+│   │   │   │   └── presentation
+│   │   │   │       ├── controllers
+│   │   │   │       │   └── PaymentController.ts
+│   │   │   │       └── routes
+│   │   │   │           └── PaymentRoutes.ts
+│   │   │   └── user
+│   │   │       ├── UserController.ts
+│   │   │       └── UserModule.ts
+│   │   ├── middlewares
+│   │   │   └── authMiddleware.ts
+│   │   ├── models
+│   │   │   └── index.ts
+│   │   ├── utils
+│   │   │   └── helpers.ts
+│   │   ├── validators
+│   │   │   └── userValidator.ts
+│   │   ├── server.ts
+│   │   └── sync.ts
+│   ├── .dockerignore
+│   ├── .env
+│   ├── .env.example
+│   ├── admin_debug.log
+│   ├── Dockerfile
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── seedAdmin.ts
+│   ├── setup.ts
+│   ├── test-db.js
+│   ├── testQuery.js
+│   ├── testQuery.ts
+│   ├── testRoutes.js
+│   ├── testVR.js
+│   └── tsconfig.json
+├── Data Analysis
+│   └── Logs
+├── frontend
+│   ├── public
+│   │   ├── icons
+│   │   ├── logo-192.png
+│   │   ├── logo-512.png
+│   │   ├── logo-heartconnect.png
+│   │   ├── manifest.json
+│   │   ├── robots.txt
+│   │   ├── sitemap.xml
+│   │   └── sw.js
+│   ├── src
+│   │   ├── components
+│   │   │   ├── admin
+│   │   │   │   └── AdminLayout.tsx
+│   │   │   ├── common
+│   │   │   │   ├── Avatar.tsx
+│   │   │   │   ├── Badge.tsx
+│   │   │   │   ├── Button.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── ImageCropperModal.tsx
+│   │   │   │   ├── ImageViewerModal.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── Input.tsx
+│   │   │   │   ├── LinkifyText.tsx
+│   │   │   │   ├── Loading.tsx
+│   │   │   │   ├── Modal.tsx
+│   │   │   │   ├── SEO.tsx
+│   │   │   │   └── Toast.tsx
+│   │   │   ├── dating
+│   │   │   │   ├── ActionButtons.tsx
+│   │   │   │   ├── DiscoverCard.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── MatchCard.tsx
+│   │   │   │   └── MatchModal.tsx
+│   │   │   ├── feed
+│   │   │   │   ├── CreateStatus.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── StatusCard.tsx
+│   │   │   ├── layout
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── MainLayout.tsx
+│   │   │   │   ├── MobileNavigation.tsx
+│   │   │   │   ├── Navbar.tsx
+│   │   │   │   └── Sidebar.tsx
+│   │   │   ├── map
+│   │   │   │   └── UserMap.tsx
+│   │   │   ├── messaging
+│   │   │   │   ├── MessageFeatures
+│   │   │   │   │   ├── AttachmentMenu.tsx
+│   │   │   │   │   ├── IconMenu.tsx
+│   │   │   │   │   ├── ImageEditorModal.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── LocationShareModal.tsx
+│   │   │   │   │   └── VideoEditorModal.tsx
+│   │   │   │   ├── CallModal.tsx
+│   │   │   │   ├── ChatHeader.tsx
+│   │   │   │   ├── ConversationItem.tsx
+│   │   │   │   ├── ConversationList.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── MessageBubble.tsx
+│   │   │   │   ├── MessageInput.tsx
+│   │   │   │   ├── MessageList.tsx
+│   │   │   │   └── MessageMap.tsx
+│   │   │   ├── notification
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── NotificationItem.tsx
+│   │   │   │   └── NotificationList.tsx
+│   │   │   ├── story
+│   │   │   │   ├── CreateStoryModal.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── StoryTray.tsx
+│   │   │   │   └── StoryViewer.tsx
+│   │   │   └── user
+│   │   │       ├── index.ts
+│   │   │       ├── InterestBadge.tsx
+│   │   │       ├── ProfileGallery.tsx
+│   │   │       ├── ProfileHeader.tsx
+│   │   │       ├── UserAvatar.tsx
+│   │   │       └── UserCard.tsx
+│   │   ├── contexts
+│   │   │   ├── AlertContext.tsx
+│   │   │   ├── AppProvider.tsx
+│   │   │   ├── AuthContext.tsx
+│   │   │   ├── ChatContext.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── MatchContext.tsx
+│   │   │   └── NotificationContext.tsx
+│   │   ├── data
+│   │   │   ├── index.ts
+│   │   │   └── interests.ts
+│   │   ├── features
+│   │   │   └── payment
+│   │   │       ├── application
+│   │   │       │   ├── ports
+│   │   │       │   │   └── IPaymentRepository.ts
+│   │   │       │   └── usecases
+│   │   │       │       └── CreatePaymentUseCase.ts
+│   │   │       ├── di
+│   │   │       │   └── PaymentContainer.ts
+│   │   │       ├── domain
+│   │   │       │   └── entities
+│   │   │       │       ├── PaymentMethod.ts
+│   │   │       │       └── Plan.ts
+│   │   │       ├── infrastructure
+│   │   │       │   └── repositories
+│   │   │       │       └── ApiPaymentRepository.ts
+│   │   │       └── presentation
+│   │   │           └── views
+│   │   │               ├── PaymentResultView.tsx
+│   │   │               └── PaymentView.tsx
+│   │   ├── hooks
+│   │   │   ├── index.ts
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useChat.ts
+│   │   │   ├── useFeed.ts
+│   │   │   ├── useLocalStorage.ts
+│   │   │   ├── useMatches.ts
+│   │   │   └── useNotifications.ts
+│   │   ├── locales
+│   │   │   ├── en.json
+│   │   │   └── vi.json
+│   │   ├── models
+│   │   │   ├── Conversation.ts
+│   │   │   ├── DatingPreference.ts
+│   │   │   ├── Feed.ts
+│   │   │   ├── index.ts
+│   │   │   ├── Interest.ts
+│   │   │   ├── Location.ts
+│   │   │   ├── Match.ts
+│   │   │   ├── Message.ts
+│   │   │   ├── Notification.ts
+│   │   │   ├── Profile.ts
+│   │   │   ├── Story.ts
+│   │   │   └── User.ts
+│   │   ├── routes
+│   │   │   └── AppRoutes.tsx
+│   │   ├── services
+│   │   │   ├── apiClient.ts
+│   │   │   ├── authService.ts
+│   │   │   ├── emailService.ts
+│   │   │   ├── feedService.ts
+│   │   │   ├── index.ts
+│   │   │   ├── matchService.ts
+│   │   │   ├── messageService.ts
+│   │   │   ├── notificationService.ts
+│   │   │   ├── storyService.ts
+│   │   │   └── userService.ts
+│   │   ├── utils
+│   │   │   └── helpers.ts
+│   │   ├── views
+│   │   │   ├── admin
+│   │   │   │   ├── AdminAnalyticsView.tsx
+│   │   │   │   ├── AdminDashboardView.tsx
+│   │   │   │   ├── AdminFeedView.tsx
+│   │   │   │   ├── AdminLoginView.tsx
+│   │   │   │   ├── AdminPlaceholderView.tsx
+│   │   │   │   ├── AdminReportsView.tsx
+│   │   │   │   ├── AdminSettingsView.tsx
+│   │   │   │   └── AdminUsersView.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── ForgotPasswordView.tsx
+│   │   │   │   ├── LoginView.tsx
+│   │   │   │   └── RegisterView.tsx
+│   │   │   ├── AdminVerificationsView.tsx
+│   │   │   ├── DiscoverView.tsx
+│   │   │   ├── FeedView.tsx
+│   │   │   ├── HomeView.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── LikesView.tsx
+│   │   │   ├── MatchesView.tsx
+│   │   │   ├── MessagesView.tsx
+│   │   │   ├── NotificationsView.tsx
+│   │   │   ├── PremiumView.tsx
+│   │   │   ├── ProfileView.tsx
+│   │   │   ├── SearchView.tsx
+│   │   │   └── SettingsView.tsx
+│   │   ├── App.tsx
+│   │   ├── i18n.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   ├── .dockerignore
+│   ├── .env.local
+│   ├── .firebaserc
+│   ├── .gitignore
+│   ├── Dockerfile
+│   ├── eslint.config.js
+│   ├── firebase.json
+│   ├── index.html
+│   ├── nginx.conf
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── README.md
+│   ├── tsconfig.json
+│   ├── vercel.json
+│   └── vite.config.ts
+├── .env
+├── .gitignore
+├── backup.sql
+├── BaoCao_PhanTichCode_HeartConnect.docx
+├── BaoCao_Test.doc
+├── create-auth.js
+├── fix.js
+├── fix2.js
+├── fix7.js
+├── fixAuthContext.js
+├── fixSettings.js
+├── fix_zod.js
+├── package-lock.json
+├── package.json
+├── patchAdmin.js
+├── patchSettings.js
+├── README.md
+├── replace.js
+├── Report.md
+├── skills.md
+├── system-architecture.drawio
+├── test.js
+├── testDb.js
+├── testHealth.js
+├── testLogin.js
+├── testNotif.ts
+├── testPostVer.js
+├── testRegister.js
+├── testRevoke.js
+├── testRole.js
+├── testSetup.js
+├── testSetup2.js
+├── testUrls.js
+├── testUsers.js
+├── testVerifications.js
+├── write.js
+└── writeAdminLayout.js
