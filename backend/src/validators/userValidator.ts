@@ -22,7 +22,7 @@ export const updateProfileSchema = z.object({
   isOnline: z.boolean().nullish(),
   profession: z.string().max(100).nullish(),
   education: z.string().max(100).nullish(),
-  relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).nullish(),
+  relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).or(z.literal('')).nullish(),
   
   interests: z.array(z.object({
     id: z.string().nullish(),
@@ -45,6 +45,6 @@ export const updateProfileSchema = z.object({
       max: z.number().max(100).nullish()
     }).nullish(),
     maxDistance: z.number().nullish(),
-    relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).nullish()
+    relationshipGoal: z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE'] as const).or(z.literal('')).nullish()
   }).nullish()
 });

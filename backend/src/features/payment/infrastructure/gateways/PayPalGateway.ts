@@ -55,8 +55,8 @@ export class PayPalGateway implements IPaymentGateway {
           }
         ],
         application_context: {
-          return_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payment/paypal/return?orderId=${orderId}&status=success`,
-          cancel_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payment/paypal/return?orderId=${orderId}&status=failed`,
+          return_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/paypal/return?orderId=${orderId}&status=success`,
+          cancel_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/paypal/return?orderId=${orderId}&status=failed`,
           user_action: 'PAY_NOW'
         }
       }, {

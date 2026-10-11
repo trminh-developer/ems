@@ -41,7 +41,9 @@ app.disable('x-powered-by'); // Hide Express signature
 import compression from 'compression';
 
 // Security Middlewares
-app.use(helmet()); // Adds security headers (Checklist #14)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+})); // Adds security headers while allowing cross-origin API calls
 app.use(compression()); // Compress responses
 
 const allowedOrigins = [
@@ -52,20 +54,29 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Cho phép origin nếu nằm trong list, hoặc không có origin (như curl/postman), 
-    // hoặc chứa từ khóa của VS Code Port Forwarding / Ngrok / Local IP
-    if (!origin || 
-        allowedOrigins.includes(origin) || 
-        origin.includes('devtunnels.ms') || 
-        origin.includes('ngrok-free.app') ||
-        origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
-        origin.match(/^https?:\/\/10\./) ||       // LAN IPs
-        origin.match(/^https?:\/\/172\./)         // LAN IPs
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.includes('devtunnels.ms') ||
+      origin.includes('ngrok-free.app') ||
+      origin.includes('vercel.app') ||
+      origin.includes('web.app') ||
+      origin.includes('firebaseapp.com') ||
+      origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
+      origin.match(/^https?:\/\/10\./) ||       // LAN IPs
+      origin.match(/^https?:\/\/172\./)         // LAN IPs
     ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
   },
   credentials: true // Allow cookies to be sent
 }));
@@ -79,7 +90,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Rate Limiter for Authentication (Checklist #2)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window`
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Relaxed limit in dev
   message: 'Too many login attempts from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,

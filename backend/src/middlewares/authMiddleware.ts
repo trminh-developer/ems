@@ -28,6 +28,10 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
       return res.status(401).json({ error: 'Unauthorized: User not found' });
     }
 
+    if ((user as any).status === 'BANNED' || (user as any).status === 'DELETED') {
+      return res.status(403).json({ error: 'Forbidden: Account has been suspended or deleted' });
+    }
+
     req.user = user;
     next();
   } catch (error) {

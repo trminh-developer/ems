@@ -55,11 +55,11 @@ export class PaymentController {
     }
   }
 
-  async vnpayReturn(req: Request, res: Response) {
+    async vnpayReturn(req: Request, res: Response) {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('VNPAY', req.query);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+      if (success) { res.redirect(frontendUrl + '/payment/result?orderId=' + orderId + '&status=success'); } else { res.redirect(frontendUrl + '/premium'); }
     } catch (error) {
       console.error(error);
       res.status(500).send('Lỗi máy chủ');
@@ -70,7 +70,7 @@ export class PaymentController {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('CARD', req.query);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+      if (success) { res.redirect(frontendUrl + '/payment/result?orderId=' + orderId + '&status=success'); } else { res.redirect(frontendUrl + '/premium'); }
     } catch (error) {
       console.error(error);
       res.status(500).send('Lỗi máy chủ');
@@ -81,7 +81,7 @@ export class PaymentController {
     try {
       const { orderId, success } = await this.processCallbackUseCase.execute('PAYPAL', req.query);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      res.redirect(`${frontendUrl}/payment/result?orderId=${orderId}&status=${success ? 'success' : 'failed'}`);
+      if (success) { res.redirect(frontendUrl + '/payment/result?orderId=' + orderId + '&status=success'); } else { res.redirect(frontendUrl + '/premium'); }
     } catch (error) {
       console.error(error);
       res.status(500).send('Lỗi máy chủ');
@@ -98,3 +98,4 @@ export class PaymentController {
     }
   }
 }
+

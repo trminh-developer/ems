@@ -30,7 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavClick }) => {
           </NavLink>
           <NavLink to="/discover" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-compass fs-5"></i>
-            <span className="fw-medium">{t('nav.home')}</span>
+            <span className="fw-medium">{t('nav.discover')}</span>
           </NavLink>
           <NavLink to="/search" onClick={onNavClick} className={({ isActive }) => `sidebar-nav-link text-decoration-none d-flex align-items-center gap-3 px-3 py-2 rounded-3 ${isActive ? 'active bg-danger text-white' : 'text-dark hover-bg-light'}`}>
             <i className="bi bi-search fs-5"></i>

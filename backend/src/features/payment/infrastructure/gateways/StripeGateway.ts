@@ -35,8 +35,8 @@ export class StripeGateway implements IPaymentGateway {
           },
         ],
         mode: 'payment',
-        success_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payment/stripe/return?orderId=${orderId}&status=success`,
-        cancel_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payment/stripe/return?orderId=${orderId}&status=failed`,
+        success_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/stripe/return?orderId=${orderId}&status=success`,
+        cancel_url: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/stripe/return?orderId=${orderId}&status=failed`,
         client_reference_id: orderId,
       });
 

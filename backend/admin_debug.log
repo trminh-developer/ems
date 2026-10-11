@@ -2,3 +2,11 @@
 2026-10-01T16:22:01.716Z - getAllUsers called by: 7b643c0d-ea04-48c1-a281-3ba36f78da96 role: ADMIN
 2026-10-01T16:31:00.057Z - getAllUsers called by: 7b643c0d-ea04-48c1-a281-3ba36f78da96 role: ADMIN
 2026-10-01T16:31:00.075Z - getAllUsers called by: 7b643c0d-ea04-48c1-a281-3ba36f78da96 role: ADMIN
+2026-10-11T15:25:21.610Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T15:25:21.625Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T15:30:41.384Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T15:30:41.392Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T15:30:48.599Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T15:30:48.615Z - getAllUsers called by: 0001 role: CENSOR
+2026-10-11T17:10:59.936Z - getAllUsers called by: 0001 role: ADMIN
+2026-10-11T17:10:59.960Z - getAllUsers called by: 0001 role: ADMIN

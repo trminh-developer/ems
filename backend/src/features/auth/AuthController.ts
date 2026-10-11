@@ -11,10 +11,11 @@ const REFRESH_SECRET = process.env.REFRESH_SECRET || 'super-refresh-key';
 // Simulated in-memory store for refresh tokens
 const refreshTokens = new Map<string, string>();
 
+const isProduction = process.env.NODE_ENV === 'production';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true, // Requires HTTPS (or proxy)
-  sameSite: 'none' as const, // Enables Cross-Origin cookies
+  secure: isProduction, // Requires HTTPS in production, works on HTTP in local dev
+  sameSite: isProduction ? ('none' as const) : ('lax' as const),
   maxAge: 15 * 60 * 1000 // 15m
 };
 

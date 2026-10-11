@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Message, MessageStatus, MessageType } from '../../models';
 import { formatTime } from '../../utils/helpers';
 import { useAlert } from '../../contexts/AlertContext';
@@ -52,7 +52,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
         className={`message-bubble p-3 rounded-4 shadow-sm position-relative ${isSent ? 'message-bubble-sent bg-primary text-white rounded-bottom-end-0' : 'message-bubble-received bg-white text-dark rounded-bottom-start-0 border'}`}
         style={{ maxWidth: '75%' }}
       >
-        {message.type === MessageType.IMAGE || message.content.startsWith('[IMAGE]') ? (
+        {message.type?.toString().toUpperCase() === 'IMAGE' || message.content.startsWith('[IMAGE]') ? (
           <div className="mb-2">
             <img src={message.content.replace('[IMAGE]', '')} alt="Sent image" className="img-fluid rounded" style={{ maxHeight: '300px' }} />
           </div>
@@ -99,7 +99,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
               <button className="dropdown-item" onClick={() => { showAlert('Chức năng trả lời sẽ sớm ra mắt!', 'info'); closeDropdown(); }}>
                 <i className="bi bi-reply me-2"></i> Trả lời
               </button>
-              {message.type !== MessageType.IMAGE && (
+              {message.type?.toString().toUpperCase() !== 'IMAGE' && (
                 <button className="dropdown-item" onClick={handleCopy}>
                   <i className="bi bi-copy me-2"></i> Sao chép
                 </button>

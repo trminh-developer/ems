@@ -12,8 +12,12 @@ const AdminLoginView = () => {
   const { showAlert } = useAlert();
   const navigate = useNavigate();
 
-  if (isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'CENSOR')) {
-    return <Navigate to="/admin" replace />;
+  if (isAuthenticated) {
+    if (user?.role === 'ADMIN' || user?.role === 'CENSOR') {
+      return <Navigate to="/admin" replace />;
+    } else {
+      return <Navigate to="/" replace />;
+    }
   }
 
   const handleLogin = async (e: React.FormEvent) => {

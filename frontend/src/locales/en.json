@@ -1,6 +1,7 @@
 {
   "nav": {
-    "home": "Discover",
+    "home": "Home",
+    "discover": "Discover",
     "matches": "Matches",
     "messages": "Messages",
     "likes": "Likes",
