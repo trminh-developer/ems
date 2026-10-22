@@ -1,14 +1,16 @@
 import apiClient from './apiClient';
+import { mapStatus } from '../utils/helpers';
 
 export const getStatuses = async (userId?: string) => {
   const url = userId ? `/feed/${userId}` : '/feed/all';
   const res = await apiClient.get(url);
-  return res.data;
+  return Array.isArray(res.data) ? res.data.map(mapStatus) : [];
 };
 
 export const createStatus = async (userId: string, content: string, mediaUrls?: string[]) => {
   const res = await apiClient.post('/feed', { userId, content, mediaUrls });
-  return res.data;
+  const rawStatus = res.data?.status || res.data;
+  return mapStatus(rawStatus);
 };
 
 export const toggleLike = async (statusId: string, userId: string, isLiked: boolean) => {

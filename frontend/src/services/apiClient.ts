@@ -1,7 +1,25 @@
 import axios from "axios";
 
+// Tự động phát hiện môi trường:
+// Nếu đang chạy trên thiết bị khác (devtunnels, LAN IP) mà URL chứa localhost -> dùng "/api" để qua proxy
+const getBaseURL = (): string => {
+  const envUrl = (import.meta.env.VITE_API_URL as string) || '';
+  if (!envUrl || envUrl === '/api') return '/api';
+  
+  if (
+    typeof window !== 'undefined' &&
+    envUrl.includes('localhost') &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1'
+  ) {
+    return '/api';
+  }
+  
+  return envUrl;
+};
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
+  baseURL: getBaseURL(),
   timeout: 60000,
   withCredentials: true // Required for sending/receiving HttpOnly cookies
 });

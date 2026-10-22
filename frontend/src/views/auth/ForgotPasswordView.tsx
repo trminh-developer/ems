@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Input, Button, Toast } from '../../components/common';
+import { useTranslation } from 'react-i18next';
+import { Input, Button } from '../../components/common';
 import { authService } from '../../services';
 
 const ForgotPasswordView = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
@@ -45,11 +47,11 @@ const ForgotPasswordView = () => {
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp!');
+      setError(t('auth.passwords_mismatch'));
       return;
     }
     if (newPassword.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự!');
+      setError('Password must be at least 6 characters');
       return;
     }
 
@@ -57,7 +59,7 @@ const ForgotPasswordView = () => {
     setError('');
     try {
       await authService.resetPassword(email, newPassword);
-      setSuccessMsg('Đặt lại mật khẩu thành công!');
+      setSuccessMsg(t('auth.reset_success'));
       setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
       setError(err.message);
@@ -69,72 +71,76 @@ const ForgotPasswordView = () => {
   return (
     <div className="auth-page fade-in">
       <div className="auth-card">
-        <h2 className="text-center mb-4">Quên mật khẩu</h2>
+        <h2 className="text-center mb-4">{t('auth.forgot_password_title')}</h2>
         
         {error && <div className="alert alert-danger p-2 mb-3 fs-7">{error}</div>}
         {successMsg && <div className="alert alert-success p-2 mb-3 fs-7">{successMsg}</div>}
 
         {step === 1 && (
           <form onSubmit={handleSendOTP}>
-            <p className="text-center mb-4 text-muted small">Nhập email của bạn để nhận mã OTP 6 số.</p>
+            <p className="text-center mb-4 text-muted small">{t('auth.enter_email_desc')}</p>
             <Input 
-              label="Email"
+              label={t('auth.email')}
               type="email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required 
             />
             <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isLoading}>
-              {isLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
+              {isLoading ? t('auth.sending_otp') : t('auth.send_otp')}
             </Button>
             <div className="text-center">
-              <Link to="/login" className="text-decoration-none text-muted small"><i className="bi bi-arrow-left me-1"></i>Quay lại đăng nhập</Link>
+              <Link to="/login" className="text-decoration-none text-muted small">
+                <i className="bi bi-arrow-left me-1"></i>{t('auth.back_to_login')}
+              </Link>
             </div>
           </form>
         )}
 
         {step === 2 && (
           <form onSubmit={handleVerifyOTP}>
-            <p className="text-center mb-4 text-muted small">Mã OTP gồm 6 chữ số đã được gửi đến <strong>{email}</strong>.</p>
+            <p className="text-center mb-4 text-muted small">{t('auth.otp_sent_to')} <strong>{email}</strong>.</p>
             <div className="mb-4">
               <Input 
-                label="Nhập mã OTP"
+                label={t('auth.enter_otp')}
                 type="text" 
                 value={otp} 
                 onChange={(e) => setOtp(e.target.value)} 
-                maxLength={6}
+                maxLength={6} 
                 required 
                 style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '1.2rem', fontWeight: 'bold' }}
               />
             </div>
             <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isLoading || otp.length !== 6}>
-              {isLoading ? 'Đang kiểm tra...' : 'Xác nhận OTP'}
+              {isLoading ? '...' : t('auth.verify_otp')}
             </Button>
             <div className="text-center">
-              <span className="text-muted small cursor-pointer" onClick={() => setStep(1)}>Thử lại email khác</span>
+              <span className="text-muted small cursor-pointer" onClick={() => setStep(1)} style={{ cursor: 'pointer' }}>
+                Email
+              </span>
             </div>
           </form>
         )}
 
         {step === 3 && (
           <form onSubmit={handleResetPassword}>
-            <p className="text-center mb-4 text-muted small">Tạo mật khẩu mới cho tài khoản của bạn.</p>
+            <p className="text-center mb-4 text-muted small">{t('auth.new_password')}</p>
             <Input 
-              label="Mật khẩu mới"
+              label={t('auth.new_password')}
               type="password" 
               value={newPassword} 
               onChange={(e) => setNewPassword(e.target.value)} 
               required 
             />
             <Input 
-              label="Xác nhận mật khẩu mới"
+              label={t('auth.confirm_password')}
               type="password" 
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)} 
               required 
             />
-            <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isLoading || !successMsg && false}>
-              {isLoading ? 'Đang lưu...' : 'Lưu mật khẩu mới'}
+            <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isLoading}>
+              {t('auth.reset_password')}
             </Button>
           </form>
         )}

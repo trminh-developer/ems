@@ -33,15 +33,18 @@ export const getMatches = async (req: AuthRequest, res: Response) => {
       return {
         id: match.id,
         user_id: userId,
-        matched_user_id: matchedUser.id,
-        matched_user: matchedUser,
+        matched_user_id: matchedUser?.id || (isUser1 ? match.user2_id : match.user1_id),
+        matched_user: matchedUser || null,
         match_percentage: match.match_percentage,
         matched_at: match.matched_at,
         is_new: false
       };
     });
     return res.json(formattedMatches);
-  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
+  } catch (e: any) { 
+    console.error('Error in getMatches:', e);
+    return res.status(500).json({ error: 'Internal server error' }); 
+  }
 };
 
 export const likeUser = async (req: AuthRequest, res: Response) => {
@@ -66,6 +69,7 @@ export const likeUser = async (req: AuthRequest, res: Response) => {
     if (existingMatch) {
       // If match already exists, it means they clicked again or it's a mutual like.
       const sender = await User.findByPk(userId);
+      const targetUser = await User.findByPk(targetId);
       await Notification.create({
         user_id: targetId,
         type: 'like',
@@ -73,7 +77,16 @@ export const likeUser = async (req: AuthRequest, res: Response) => {
         is_read: false,
         from_user_id: userId
       });
-      return res.json({ matched: true, match: existingMatch });
+      const formattedMatch = {
+        id: existingMatch.id,
+        user_id: userId,
+        matched_user_id: targetId,
+        matched_user: targetUser,
+        match_percentage: existingMatch.match_percentage,
+        matched_at: existingMatch.matched_at,
+        is_new: false
+      };
+      return res.json({ matched: true, match: formattedMatch });
     }
 
     const match = await Match.create({
@@ -88,37 +101,40 @@ export const likeUser = async (req: AuthRequest, res: Response) => {
     const sender = await User.findByPk(userId);
     const targetUser = await User.findByPk(targetId);
 
-    await Notification.create({
-      user_id: targetId,
-      type: 'like',
-      message: `${sender.first_name} đã thả tim (Heart) cho bạn! Hai bạn đã tương hợp.`,
-      is_read: false,
-      from_user_id: userId
-    });
+    if (targetUser) {
+      await Notification.create({
+        user_id: targetId,
+        type: 'like',
+        message: `${sender?.first_name || 'Ai đó'} đã thả tim (Heart) cho bạn! Hai bạn đã tương hợp.`,
+        is_read: false,
+        from_user_id: userId
+      });
+    }
 
     // Create Notification for the liker (userId)
     await Notification.create({
       user_id: userId,
       type: 'match',
-      message: `Bạn đã thả tim và tương hợp với ${targetUser.first_name}!`,
+      message: `Bạn đã thả tim và tương hợp với ${targetUser?.first_name || 'đối phương'}!`,
       is_read: false,
       from_user_id: targetId
     });
 
-    const matchedUser = targetUser;
-    
     const formattedMatch = {
       id: match.id,
       user_id: userId,
       matched_user_id: targetId,
-      matched_user: matchedUser,
+      matched_user: targetUser,
       match_percentage: match.match_percentage,
       matched_at: match.matched_at,
       is_new: true
     };
 
     return res.json({ matched: true, match: formattedMatch });
-  } catch (e: any) { return res.status(500).json({ error: 'Internal server error' }); }
+  } catch (e: any) { 
+    console.error('Error in likeUser:', e);
+    return res.status(500).json({ error: 'Internal server error' }); 
+  }
 };
 
 export const passUser = async (req: Request, res: Response) => {
@@ -146,6 +162,7 @@ export const superlikeUser = async (req: AuthRequest, res: Response) => {
 
     if (existingMatch) {
       const sender = await User.findByPk(userId);
+      const targetUser = await User.findByPk(targetId);
       await Notification.create({
         user_id: targetId,
         type: 'super_like',
@@ -153,7 +170,16 @@ export const superlikeUser = async (req: AuthRequest, res: Response) => {
         is_read: false,
         from_user_id: userId
       });
-      return res.json({ matched: true, match: existingMatch });
+      const formattedMatch = {
+        id: existingMatch.id,
+        user_id: userId,
+        matched_user_id: targetId,
+        matched_user: targetUser,
+        match_percentage: existingMatch.match_percentage,
+        matched_at: existingMatch.matched_at,
+        is_new: false
+      };
+      return res.json({ matched: true, match: formattedMatch });
     }
 
     const match = await Match.create({
@@ -168,29 +194,29 @@ export const superlikeUser = async (req: AuthRequest, res: Response) => {
     const sender = await User.findByPk(userId);
     const targetUser = await User.findByPk(targetId);
 
-    await Notification.create({
-      user_id: targetId,
-      type: 'super_like', // Use super_like for star
-      message: `${sender.first_name} đã gửi tặng bạn 1 Super Like (Ngôi sao)! Hai bạn đã tương hợp.`,
-      is_read: false,
-      from_user_id: userId
-    });
+    if (targetUser) {
+      await Notification.create({
+        user_id: targetId,
+        type: 'super_like', // Use super_like for star
+        message: `${sender?.first_name || 'Ai đó'} đã gửi tặng bạn 1 Super Like (Ngôi sao)! Hai bạn đã tương hợp.`,
+        is_read: false,
+        from_user_id: userId
+      });
+    }
 
     // Create Notification for the liker (userId)
     await Notification.create({
       user_id: userId,
       type: 'match',
-      message: `Super Like thành công! Bạn đã tương hợp với ${targetUser.first_name}.`,
+      message: `Super Like thành công! Bạn đã tương hợp với ${targetUser?.first_name || 'đối phương'}.`,
       is_read: false
     });
 
-    const matchedUser = targetUser;
-    
     const formattedMatch = {
       id: match.id,
       user_id: userId,
       matched_user_id: targetId,
-      matched_user: matchedUser,
+      matched_user: targetUser,
       match_percentage: match.match_percentage,
       matched_at: match.matched_at,
       is_new: true
@@ -198,6 +224,7 @@ export const superlikeUser = async (req: AuthRequest, res: Response) => {
     
     return res.json({ matched: true, match: formattedMatch });
   } catch (e: any) { 
+    console.error('Error in superlikeUser:', e);
     return res.status(500).json({ error: 'Internal server error' }); 
   }
 };

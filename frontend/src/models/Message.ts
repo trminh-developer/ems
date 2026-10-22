@@ -20,4 +20,6 @@ export interface Message {
   type: MessageType;
   status: MessageStatus;
   isDeleted?: boolean;
+  isRecalled?: boolean;
+  deletedFor?: string[];
 }

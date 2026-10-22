@@ -27,6 +27,7 @@ User.init({
   is_verified: { type: DataTypes.BOOLEAN, defaultValue: false },
   role: { type: DataTypes.ENUM('ADMIN', 'CENSOR', 'USER'), defaultValue: 'USER' },
   status: { type: DataTypes.ENUM('ACTIVE', 'BANNED', 'DELETED'), defaultValue: 'ACTIVE' },
+  violation_count: { type: DataTypes.INTEGER, defaultValue: 0 },
   is_premium: { type: DataTypes.BOOLEAN, defaultValue: false },
   premium_expires_at: { type: DataTypes.DATE }
 }, { sequelize, modelName: 'User', tableName: 'users', timestamps: true });
@@ -79,6 +80,8 @@ Message.init({
   content: { type: DataTypes.TEXT, allowNull: false },
   type: { type: DataTypes.STRING, defaultValue: 'text' },
   status: { type: DataTypes.STRING, defaultValue: 'sent' },
+  is_recalled: { type: DataTypes.BOOLEAN, defaultValue: false },
+  deleted_for: { type: DataTypes.JSON, defaultValue: [] },
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { 
   sequelize, 
@@ -234,6 +237,13 @@ Transaction.init({
   created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { sequelize, modelName: 'Transaction', tableName: 'transactions', timestamps: false });
 
+class SystemSetting extends Model {}
+SystemSetting.init({
+  key: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
+  value: { type: DataTypes.TEXT, allowNull: false },
+  description: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, modelName: 'SystemSetting', tableName: 'system_settings', timestamps: true });
+
 export {
   sequelize,
   User,
@@ -249,7 +259,8 @@ export {
   StatusComment,
   Report,
   VerificationRequest,
-  Transaction
+  Transaction,
+  SystemSetting
 };
 
 

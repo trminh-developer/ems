@@ -29,6 +29,10 @@ export const CreateStatus: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để đăng trạng thái.');
+      return;
+    }
     if (!content.trim() && files.length === 0) return;
     
     try {
@@ -40,9 +44,24 @@ export const CreateStatus: React.FC = () => {
         setPreviewUrls([]);
       }
     } catch (error: any) {
-      alert(`Lỗi khi đăng bài: ${error.message}\n\nGợi ý: Hãy đăng xuất và đăng nhập lại nếu bạn đang dùng tài khoản cũ (ID không phải UUID).`);
+      alert(`Lỗi khi đăng bài: ${error.message || 'Không thể đăng trạng thái. Vui lòng thử lại.'}`);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="card mb-4 border-0 shadow-sm text-center p-4">
+        <i className="bi bi-chat-heart text-danger fs-1 mb-2"></i>
+        <h5 className="fw-bold mb-1">Tham gia cùng cộng đồng HeartConnect</h5>
+        <p className="text-muted small mb-3">Đăng nhập để chia sẻ cảm nghĩ, ảnh và kết nối bạn bè ngay hôm nay!</p>
+        <div>
+          <a href="/login" className="btn btn-primary rounded-pill px-4 fw-bold">
+            Đăng nhập để đăng bài
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card mb-4 border-0 shadow-sm">

@@ -57,6 +57,18 @@ const AdminUsersView = () => {
     }
   };
 
+  const resetViolations = async (id: string, username: string) => {
+    if (!window.confirm(`Bạn có chắc muốn đặt lại số lần vi phạm của @${username} về 0?`)) return;
+    try {
+      await apiClient.put(`/admin/users/${id}/reset-violations`);
+      setUsers(users.map(u => u.id === id ? { ...u, violation_count: 0 } : u));
+      alert(`Đã đặt lại số vi phạm của @${username} về 0.`);
+    } catch (e: any) {
+      console.error(e);
+      alert('Lỗi đặt lại số vi phạm: ' + (e.response?.data?.error || e.message));
+    }
+  };
+
   if (isLoading) return <Loading text="Đang tải danh sách người dùng..." />;
 
   return (
@@ -77,6 +89,7 @@ const AdminUsersView = () => {
                   <th>Email</th>
                   <th>Phân quyền</th>
                   <th>Trạng thái</th>
+                  <th>Vi phạm</th>
                   <th>Tick xanh</th>
                   <th>Ngày tham gia</th>
                   <th>Hành động</th>
@@ -102,8 +115,20 @@ const AdminUsersView = () => {
                         </select>
                       </td>
                     <td className="align-middle">
-                      <span className={`badge ${u.status === 'ACTIVE' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                      <span className={`badge ${u.status === 'ACTIVE' ? 'bg-success' : 'bg-danger text-white'}`}>
                         {u.status || 'ACTIVE'}
+                      </span>
+                    </td>
+                    <td className="align-middle">
+                      <span className={`badge ${
+                        (u.violation_count || 0) >= 5 
+                          ? 'bg-danger' 
+                          : (u.violation_count || 0) > 0 
+                            ? 'bg-warning text-dark' 
+                            : 'bg-secondary'
+                      }`}>
+                        {(u.violation_count || 0) >= 5 && <i className="bi bi-shield-x me-1"></i>}
+                        {u.violation_count || 0} / 5
                       </span>
                     </td>
                     <td className="align-middle">
@@ -111,7 +136,7 @@ const AdminUsersView = () => {
                     </td>
                     <td className="align-middle">{new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
                       <td className="align-middle">
-                        <div className="d-flex gap-2">
+                        <div className="d-flex flex-wrap gap-2">
                           {u.role !== 'ADMIN' && (
                             <Button 
                               variant={u.status === 'ACTIVE' ? 'danger' : 'success'}
@@ -119,6 +144,16 @@ const AdminUsersView = () => {
                               onClick={() => toggleUserStatus(u.id, u.status || 'ACTIVE')}
                             >
                               {u.status === 'ACTIVE' ? 'Khóa (Ban)' : 'Mở khóa'}
+                            </Button>
+                          )}
+                          {(u.violation_count || 0) > 0 && (
+                            <Button
+                              variant="outline-warning"
+                              size="sm"
+                              title="Đặt lại số lần vi phạm về 0"
+                              onClick={() => resetViolations(u.id, u.username)}
+                            >
+                              <i className="bi bi-arrow-counterclockwise me-1"></i>Reset vi phạm
                             </Button>
                           )}
                           {(u.isVerified || u.is_verified) && (

@@ -1,17 +1,19 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { CreateStatus, StatusCard } from '../components/feed';
 import { StoryTray } from '../components/story';
 import { useFeed } from '../hooks';
 import { Loading, EmptyState } from '../components/common';
 
 const FeedView = () => {
+  const { t } = useTranslation();
   const { statuses, isLoading, toggleLike } = useFeed();
 
   return (
     <div className="container-fluid py-4 fade-in">
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8 col-xl-6">
-          <h2 className="mb-4 fw-bold">Bảng tin</h2>
+          <h2 className="mb-4 fw-bold">{t('feed.title')}</h2>
           
           <StoryTray />
           
@@ -33,8 +35,8 @@ const FeedView = () => {
             </div>
           ) : (
             <EmptyState 
-              title="Chưa có bài viết nào" 
-              description="Hãy là người đầu tiên chia sẻ khoảnh khắc của bạn!" 
+              title={t('feed.empty_title')} 
+              description={t('feed.empty_desc')} 
               icon="bi-journal-x"
             />
           )}

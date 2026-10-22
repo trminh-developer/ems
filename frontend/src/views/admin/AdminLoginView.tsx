@@ -39,7 +39,10 @@ const AdminLoginView = () => {
       
       navigate('/admin');
     } catch (error: any) {
-      showAlert(error.message || 'Đăng nhập quản trị thất bại. Vui lòng kiểm tra lại quyền truy cập.', 'error');
+      const msg = error.message === 'Invalid credentials'
+        ? 'Email hoặc mật khẩu không chính xác. Vui lòng thử lại.'
+        : (error.message || 'Đăng nhập quản trị thất bại. Vui lòng kiểm tra lại quyền truy cập.');
+      showAlert(msg, 'error');
     } finally {
       setIsLoading(false);
     }

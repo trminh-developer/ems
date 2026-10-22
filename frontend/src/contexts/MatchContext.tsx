@@ -73,24 +73,36 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const likeUser = async (targetId: string) => {
     const currentUserId = getCurrentUserId();
     if (!currentUserId) return;
-    const result = await matchService.likeUser(currentUserId, targetId);
-    if (result.matched && result.match) {
-      dispatch({ type: 'NEW_MATCH', payload: result.match });
+    try {
+      const result = await matchService.likeUser(currentUserId, targetId);
+      if (result.matched && result.match) {
+        dispatch({ type: 'NEW_MATCH', payload: result.match });
+      }
+    } catch (error) {
+      console.error('Error liking user:', error);
     }
   };
 
   const dislikeUser = async (targetId: string) => {
     const currentUserId = getCurrentUserId();
     if (!currentUserId) return;
-    await matchService.dislikeUser(currentUserId, targetId);
+    try {
+      await matchService.dislikeUser(currentUserId, targetId);
+    } catch (error) {
+      console.error('Error disliking user:', error);
+    }
   };
 
   const superLikeUser = async (targetId: string) => {
     const currentUserId = getCurrentUserId();
     if (!currentUserId) return;
-    const result = await matchService.superLikeUser(currentUserId, targetId);
-    if (result.matched && result.match) {
-      dispatch({ type: 'NEW_MATCH', payload: result.match });
+    try {
+      const result = await matchService.superLikeUser(currentUserId, targetId);
+      if (result.matched && result.match) {
+        dispatch({ type: 'NEW_MATCH', payload: result.match });
+      }
+    } catch (error) {
+      console.error('Error superliking user:', error);
     }
   };
 

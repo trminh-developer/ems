@@ -1,30 +1,35 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { matchService } from '../services';
 import { User } from '../models';
 import { UserCard } from '../components/user';
 import { Loading, EmptyState } from '../components/common';
+import { useAuth } from '../hooks/useAuth';
 
 const LikesView = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'likedMe' | 'iLiked'>('likedMe');
   const [likedMeUsers, setLikedMeUsers] = useState<User[]>([]);
   const [iLikedUsers, setILikedUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
     const fetchLikes = async () => {
-      if (!user) return;
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       try {
         const [likedMe, iLiked] = await Promise.all([
           matchService.getWhoLikedMe(user.id),
           matchService.getWhoILiked(user.id)
         ]);
-        setLikedMeUsers(likedMe);
-        setILikedUsers(iLiked);
+        setLikedMeUsers(Array.isArray(likedMe) ? likedMe : []);
+        setILikedUsers(Array.isArray(iLiked) ? iLiked : []);
       } catch (error) {
         console.error('Error fetching likes:', error);
       } finally {
@@ -32,7 +37,7 @@ const LikesView = () => {
       }
     };
     fetchLikes();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="likes-view fade-in">
@@ -43,21 +48,21 @@ const LikesView = () => {
             className={`btn ${activeTab === 'likedMe' ? 'btn-hc-primary text-white' : 'btn-light'}`}
             onClick={() => setActiveTab('likedMe')}
           >
-            Người đã thích bạn ({likedMeUsers.length})
+            {t('likes.liked_me')} ({likedMeUsers.length})
           </button>
           <button 
             type="button" 
             className={`btn ${activeTab === 'iLiked' ? 'btn-hc-primary text-white' : 'btn-light'}`}
             onClick={() => setActiveTab('iLiked')}
           >
-            Người bạn đã thích ({iLikedUsers.length})
+            {t('likes.i_liked')} ({iLikedUsers.length})
           </button>
         </div>
       </div>
 
       <div className="hc-card p-4">
         {isLoading ? (
-          <Loading text="Đang tải danh sách..." />
+          <Loading text={t('common.loading')} />
         ) : (
           <>
             {activeTab === 'likedMe' && (
@@ -68,7 +73,7 @@ const LikesView = () => {
                       <div className="position-relative">
                         {/* Fake Blur cho tính năng Premium */}
                         <div className="position-absolute top-0 end-0 m-2 badge bg-warning text-dark z-3">
-                          <i className="bi bi-star-fill me-1"></i> Mới
+                          <i className="bi bi-star-fill me-1"></i> {t('likes.new_badge')}
                         </div>
                         <UserCard user={u} onClick={() => navigate(`/profile/${u.username || u.id}`)} />
                       </div>
@@ -77,8 +82,8 @@ const LikesView = () => {
                 ) : (
                   <EmptyState 
                     icon="bi bi-heartbreak" 
-                    title="Chưa có ai thích bạn" 
-                    description="Hãy cập nhật hồ sơ để thu hút thêm sự chú ý nhé!" 
+                    title={t('likes.empty_liked_me_title')} 
+                    description={t('likes.empty_liked_me_desc')} 
                   />
                 )}
               </div>
@@ -95,8 +100,8 @@ const LikesView = () => {
                 ) : (
                   <EmptyState 
                     icon="bi bi-emoji-frown" 
-                    title="Bạn chưa thích ai" 
-                    description="Quay lại trang Khám phá để thả tim cho những người bạn quan tâm." 
+                    title={t('likes.empty_i_liked_title')} 
+                    description={t('likes.empty_i_liked_desc')} 
                   />
                 )}
               </div>
@@ -109,4 +114,3 @@ const LikesView = () => {
 };
 
 export default LikesView;
-

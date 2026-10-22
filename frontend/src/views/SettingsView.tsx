@@ -3,10 +3,17 @@ import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
 import { Gender, RelationshipGoal } from "../models";
 import { useAlert } from "../contexts/AlertContext";
+import { useTheme } from "../contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 const SettingsView = () => {
   const { user, logout, updateUser } = useAuth();
   const { showAlert } = useAlert();
+  const { isDarkMode, toggleTheme, setTheme } = useTheme();
+  const { t, i18n } = useTranslation();
+  const currentLang = (i18n.language || 'vi').startsWith('en') ? 'en' : 'vi';
+
+
 
   // Initialize state from user data
   const [onlineStatus, setOnlineStatus] = useState(user?.isOnline ?? true);
@@ -255,11 +262,11 @@ useEffect(() => {
 
   return (
     <div className="settings-view fade-in position-relative">
-      <h3 className="mb-4">Cài đặt</h3>
+      <h3 className="mb-4">{t('settings.title')}</h3>
 
       <div className="hc-card mb-4 settings-section">
         <div className="hc-card-header settings-section-title">
-          <h5 className="mb-0">Tài khoản</h5>
+          <h5 className="mb-0">{t('settings.account')}</h5>
         </div>
         <div className="hc-card-body">
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
@@ -267,7 +274,7 @@ useEffect(() => {
             <span className="text-muted">{user?.email}</span>
           </div>
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
-            <span>Username</span>
+            <span>{t('settings.username')}</span>
             {isEditingUsername ? (
               <div className="d-flex gap-2">
                 <input
@@ -283,7 +290,7 @@ useEffect(() => {
                     setIsEditingUsername(false);
                   }}
                 >
-                  Lưu
+                  {t('common.save')}
                 </Button>
                 <Button
                   className="btn-outline-secondary btn-sm"
@@ -292,7 +299,7 @@ useEffect(() => {
                     setIsEditingUsername(false);
                   }}
                 >
-                  Hủy
+                  {t('common.cancel')}
                 </Button>
               </div>
             ) : (
@@ -310,11 +317,11 @@ useEffect(() => {
             className="btn-link p-0 text-decoration-none mt-2 d-block"
             onClick={() => setIsChangingPassword(true)}
           >
-            Đổi mật khẩu
+            {t('settings.change_password')}
           </Button>
           <hr className="my-3" />
           <div className="settings-item d-flex justify-content-between align-items-center">
-            <span>Xác thực danh tính</span>
+            <span>{t('settings.verify_identity')}</span>
             {user?.isVerified ? (
               <span className="text-primary fw-bold"><i className="bi bi-patch-check-fill me-1"></i>Đã xác thực</span>
             ) : isVerificationPending ? (
@@ -343,11 +350,11 @@ useEffect(() => {
 
       <div className="hc-card mb-4 settings-section">
         <div className="hc-card-header settings-section-title">
-          <h5 className="mb-0">Quyền riêng tư</h5>
+          <h5 className="mb-0">{t('settings.privacy')}</h5>
         </div>
         <div className="hc-card-body">
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
-            <span>Trạng thái hoạt động</span>
+            <span>{t('settings.show_online')}</span>
             <label className="form-check form-switch toggle-switch">
               <input
                 className="form-check-input"
@@ -359,17 +366,17 @@ useEffect(() => {
             </label>
           </div>
           <div className="settings-item mb-3 d-flex justify-content-between align-items-center">
-            <span>Định vị chính xác</span>
+            <span>GPS</span>
             <Button
               className="btn-outline-primary btn-sm"
               onClick={handleGetLocation}
             >
-              <i className="bi bi-geo-alt me-1"></i> Cập nhật vị trí
+              <i className="bi bi-geo-alt me-1"></i> GPS
             </Button>
           </div>
           {user?.location?.latitude && user?.location?.longitude && (
             <div className="settings-item text-muted small text-end fst-italic">
-              Đã cập nhật: {user.location.latitude.toFixed(4)},{" "}
+              {user.location.latitude.toFixed(4)},{" "}
               {user.location.longitude.toFixed(4)}
             </div>
           )}
@@ -378,27 +385,27 @@ useEffect(() => {
 
         <div className="hc-card mb-4 settings-section">
           <div className="hc-card-header settings-section-title">
-            <h5 className="mb-0">Tùy chọn hẹn hò</h5>
+            <h5 className="mb-0">{t('settings.dating_pref')}</h5>
           </div>
           <div className="hc-card-body">
             <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label mb-0 fw-medium">Giới tính mong muốn</label>
+                <label className="form-label mb-0 fw-medium">{t('settings.interested_in')}</label>
                 <select
                   className="form-select form-select-sm w-auto"
                   value={preferredGender}
                   onChange={handleGenderChange}
                 >
-                  <option value={Gender.FEMALE}>Nữ</option>
-                  <option value={Gender.MALE}>Nam</option>
-                  <option value={Gender.OTHER}>Khác</option>
+                  <option value={Gender.FEMALE}>{t('common.female')}</option>
+                  <option value={Gender.MALE}>{t('common.male')}</option>
+                  <option value={Gender.OTHER}>{t('common.other')}</option>
                 </select>
               </div>
             </div>
 
             <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label mb-0 fw-medium">Độ tuổi</label>
+                <label className="form-label mb-0 fw-medium">{t('settings.age_range')}</label>
                 <div className="d-flex align-items-center gap-2" style={{ maxWidth: "160px" }}>
                   <input
                     type="number"
@@ -425,7 +432,7 @@ useEffect(() => {
 
             <div className="settings-item mb-3 flex-column align-items-stretch border-0 p-0 pb-3">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label mb-0 fw-medium">Khoảng cách tối đa</label>
+                <label className="form-label mb-0 fw-medium">{t('settings.max_distance')}</label>
                 <span className="text-primary fw-bold">{maxDistance} km</span>
               </div>
               <input
@@ -442,30 +449,107 @@ useEffect(() => {
 
             <div className="settings-item flex-column align-items-stretch border-0 p-0">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <label className="form-label mb-0 fw-medium">Mục tiêu hẹn hò</label>
+                <label className="form-label mb-0 fw-medium">{t('settings.relationship_goal')}</label>
                 <select
                   className="form-select form-select-sm w-auto"
                   value={relationshipGoal}
                   onChange={handleGoalChange}
                 >
-                  <option value={RelationshipGoal.LONG_TERM}>Tìm mối quan hệ nghiêm túc</option>
-                  <option value={RelationshipGoal.SHORT_TERM}>Hẹn hò vui vẻ</option>
-                  <option value={RelationshipGoal.FRIENDSHIP}>Tìm bạn bè mới</option>
-                  <option value={RelationshipGoal.NOT_SURE}>Chưa xác định</option>
+                  <option value={RelationshipGoal.LONG_TERM}>Serious Relationship</option>
+                  <option value={RelationshipGoal.SHORT_TERM}>Casual Dating</option>
+                  <option value={RelationshipGoal.FRIENDSHIP}>New Friends</option>
+                  <option value={RelationshipGoal.NOT_SURE}>Not Sure Yet</option>
                 </select>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Appearance & Theme Section */}
+        <div className="hc-card mb-4 settings-section">
+          <div className="hc-card-header settings-section-title">
+            <h5 className="mb-0 d-flex align-items-center gap-2">
+              <i className="bi bi-palette text-primary"></i>
+              {t('settings.appearance')}
+            </h5>
+          </div>
+          <div className="hc-card-body">
+            {/* Dark Mode */}
+            <div className="settings-item d-flex justify-content-between align-items-center border-0 p-0 mb-3">
+              <div>
+                <label className="form-label mb-0 fw-medium d-block">{t('settings.dark_mode_title')}</label>
+                <small className="text-muted">{t('settings.dark_mode_desc')}</small>
+              </div>
+              <div className="form-check form-switch m-0 p-0">
+                <input 
+                  className="form-check-input ms-0 fs-5" 
+                  type="checkbox" 
+                  checked={isDarkMode} 
+                  onChange={toggleTheme}
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
+            </div>
+
+            <div className="d-flex gap-3 pt-2 mb-4">
+              <button 
+                type="button" 
+                className={`btn flex-fill d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 border ${!isDarkMode ? 'btn-primary text-white' : 'btn-outline-secondary'}`}
+                onClick={() => setTheme('light')}
+              >
+                <i className="bi bi-sun-fill"></i>
+                <span>{t('settings.light_mode_btn')}</span>
+              </button>
+              <button 
+                type="button" 
+                className={`btn flex-fill d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 border ${isDarkMode ? 'btn-primary text-white' : 'btn-outline-secondary'}`}
+                onClick={() => setTheme('dark')}
+              >
+                <i className="bi bi-moon-stars-fill"></i>
+                <span>{t('settings.dark_mode_btn')}</span>
+              </button>
+            </div>
+
+            {/* Language Synchronized Switcher */}
+            <div className="settings-item d-flex justify-content-between align-items-center border-0 p-0 mb-3 pt-3 border-top">
+              <div>
+                <label className="form-label mb-0 fw-medium d-block">
+                  <i className="bi bi-globe me-2 text-primary"></i>
+                  {t('settings.language_title')}
+                </label>
+                <small className="text-muted">{t('settings.language_desc')}</small>
+              </div>
+            </div>
+
+            <div className="d-flex gap-3 pt-1">
+              <button 
+                type="button" 
+                className={`btn flex-fill d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 border ${currentLang === 'vi' ? 'btn-danger text-white shadow-sm' : 'btn-outline-secondary'}`}
+                onClick={() => i18n.changeLanguage('vi')}
+              >
+                <span className="fw-medium">🇻🇳 {t('settings.vietnamese')}</span>
+              </button>
+              <button 
+                type="button" 
+                className={`btn flex-fill d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 border ${currentLang === 'en' ? 'btn-danger text-white shadow-sm' : 'btn-outline-secondary'}`}
+                onClick={() => i18n.changeLanguage('en')}
+              >
+                <span className="fw-medium">🇬🇧 {t('settings.english')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
         <div className="hc-card mb-4 settings-section border-danger border">
           <div className="hc-card-body">
             <Button className="btn-danger w-100 mb-3" onClick={logout}>
-            Đăng xuất
-          </Button>
-          <Button className="btn-outline-danger w-100">Xóa tài khoản</Button>
+              {t('settings.logout_btn')}
+            </Button>
+            <Button className="btn-outline-danger w-100">{t('settings.delete_account')}</Button>
+          </div>
         </div>
-      </div>
+
 
       <div
         style={{

@@ -56,20 +56,24 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
     alert('Đã sao chép liên kết!');
   };
 
+  const author = status.user || (status as any).User || {};
+  const authorName = `${author.firstName || author.first_name || author.username || 'Người dùng'} ${author.lastName || author.last_name || ''}`.trim();
+  const authorAvatar = author.avatar || '';
+
   return (
     <div className="card mb-4 border-0 shadow-sm">
       <div className="card-body">
         {/* Header */}
         <div className="d-flex align-items-center mb-3">
-          <div className="cursor-pointer" onClick={() => navigate(`/profile/${status.user?.username || status.user?.id}`)}>
-            <Avatar src={status.user?.avatar || ''} alt={status.user?.firstName || 'User'} size="md" />
+          <div className="cursor-pointer" onClick={() => navigate(`/profile/${author.username || author.id}`)}>
+            <Avatar src={authorAvatar} alt={authorName} size="md" />
           </div>
           <div className="ms-2">
-            <h6 className="mb-0 cursor-pointer" onClick={() => navigate(`/profile/${status.user?.username || status.user?.id}`)}>
-              {status.user?.firstName} {status.user?.lastName}
+            <h6 className="mb-0 cursor-pointer" onClick={() => navigate(`/profile/${author.username || author.id}`)}>
+              {authorName}
             </h6>
             <small className="text-muted">
-              {new Date(status.createdAt).toLocaleString('vi-VN')}
+              {new Date(status.createdAt || (status as any).created_at || Date.now()).toLocaleString('vi-VN')}
             </small>
           </div>
           
@@ -185,18 +189,22 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
               </div>
             
             <div className="comments-list">
-              {comments.map((comment, index) => (
-                <div key={index} className="d-flex mb-3">
-                  <Avatar src={comment.user?.avatar || ''} alt={comment.user?.firstName} size="sm" />
-                  <div className="ms-2 flex-grow-1 bg-light p-2 rounded">
-                    <h6 className="mb-0 fs-6">{comment.user?.firstName} {comment.user?.lastName}</h6>
-                    <p className="mb-0 small">{comment.content}</p>
+              {comments.map((comment, index) => {
+                const commentAuthor = comment.user || comment.User || {};
+                const commentAuthorName = `${commentAuthor.firstName || commentAuthor.first_name || commentAuthor.username || 'Người dùng'} ${commentAuthor.lastName || commentAuthor.last_name || ''}`.trim();
+                return (
+                  <div key={index} className="d-flex mb-3">
+                    <Avatar src={commentAuthor.avatar || ''} alt={commentAuthorName} size="sm" />
+                    <div className="ms-2 flex-grow-1 bg-light p-2 rounded">
+                      <h6 className="mb-0 fs-6">{commentAuthorName}</h6>
+                      <p className="mb-0 small">{comment.content}</p>
                       <small className="text-muted" style={{ fontSize: '11px' }}>
                         {new Date(comment.createdAt || comment.created_at || Date.now()).toLocaleString('vi-VN')}
                       </small>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {comments.length === 0 && (
                 <p className="text-center text-muted small">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
               )}

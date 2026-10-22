@@ -39,6 +39,25 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
+export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    let token = req.cookies?.accessToken;
+    if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    if (token) {
+      const decoded: any = jwt.verify(token, JWT_SECRET);
+      const user = await User.findByPk(decoded.id);
+      if (user && (user as any).status !== 'BANNED' && (user as any).status !== 'DELETED') {
+        req.user = user;
+      }
+    }
+  } catch (error) {
+    // Ignore invalid token for optional auth
+  }
+  next();
+};
+
 export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
     return res.status(401).json({ error: 'Unauthorized' });

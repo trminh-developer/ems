@@ -9,5 +9,5 @@ export { default as EmptyState } from './EmptyState';
 export { default as ImageCropperModal } from './ImageCropperModal';
 export * from './LinkifyText';
 export * from './SEO';
-
 export * from './ImageViewerModal';
+export { default as AuthPromptModal } from './AuthPromptModal';

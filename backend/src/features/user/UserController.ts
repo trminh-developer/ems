@@ -14,7 +14,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json(user);
-  } catch (e) {
+  } catch (error: any) {
     console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
@@ -27,7 +27,7 @@ export const getUserById = async (req: Request, res: Response) => {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
     return res.json(user);
-  } catch (e) {
+  } catch (error: any) {
     console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
@@ -36,7 +36,7 @@ export const getRecommendedUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
-  } catch (e) {
+  } catch (error: any) {
     console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
@@ -45,7 +45,7 @@ export const getNearbyUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
-  } catch (e) {
+  } catch (error: any) {
     console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
@@ -54,7 +54,7 @@ export const searchUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.findAll({ limit: 20 });
     return res.json(users);
-  } catch (e) {
+  } catch (error: any) {
     console.error(error); return res.status(500).json({ error: error.message || 'Internal server error' });
   }
 };
@@ -90,7 +90,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     if (body.isOnline !== undefined) updateData.is_online = body.isOnline;
     
     // Hash password if updated
-    if (body.password !== undefined && body.password.trim() !== '') {
+    if (body.password && body.password.trim() !== '') {
       updateData.password = await bcrypt.hash(body.password, 10);
     }
     
@@ -107,7 +107,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
     if (body.avatar !== undefined) updateData.avatar = body.avatar;
     if (body.photos !== undefined) updateData.photos = body.photos;
     
-    if (body.interests !== undefined) {
+    if (body.interests && Array.isArray(body.interests)) {
       const { Interest } = require('../../models');
       const interestRecords = [];
       for (const i of body.interests) {

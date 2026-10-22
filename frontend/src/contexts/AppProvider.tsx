@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { ThemeProvider } from './ThemeContext';
 import { AuthProvider } from './AuthContext';
 import { MatchProvider } from './MatchContext';
 import { ChatProvider } from './ChatContext';
@@ -7,16 +8,19 @@ import { AlertProvider } from './AlertContext';
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
-    <AlertProvider>
-      <AuthProvider>
-        <MatchProvider>
-          <ChatProvider>
-            <NotificationProvider>
-              {children}
-            </NotificationProvider>
-          </ChatProvider>
-        </MatchProvider>
-      </AuthProvider>
-    </AlertProvider>
+    <ThemeProvider>
+      <AlertProvider>
+        <AuthProvider>
+          <MatchProvider>
+            <ChatProvider>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+            </ChatProvider>
+          </MatchProvider>
+        </AuthProvider>
+      </AlertProvider>
+    </ThemeProvider>
   );
 };
+

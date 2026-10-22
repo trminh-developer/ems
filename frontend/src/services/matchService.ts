@@ -1,15 +1,18 @@
-﻿import { Match } from '../models';
+import { Match } from '../models';
 import apiClient from './apiClient';
-import { mapUser } from '../utils/helpers';
+import { mapMatch, mapUser } from '../utils/helpers';
 
 export const getMatches = async (userId: string): Promise<Match[]> => {
   const res = await apiClient.get('/matches/' + userId);
-  return res.data; // Matches don't need mapUser yet unless we map nested User
+  return Array.isArray(res.data) ? res.data.map(mapMatch) : [];
 };
 
 export const likeUser = async (userId: string, targetId: string): Promise<{ matched: boolean; match?: Match }> => {
   const res = await apiClient.post('/matches/like', { userId, targetId });
-  return res.data;
+  return {
+    matched: Boolean(res.data?.matched),
+    match: res.data?.match ? mapMatch(res.data.match) : undefined
+  };
 };
 
 export const dislikeUser = async (userId: string, targetId: string): Promise<void> => {
@@ -18,7 +21,10 @@ export const dislikeUser = async (userId: string, targetId: string): Promise<voi
 
 export const superLikeUser = async (userId: string, targetId: string): Promise<{ matched: boolean; match?: Match }> => {
   const res = await apiClient.post('/matches/superlike', { userId, targetId });
-  return res.data;
+  return {
+    matched: Boolean(res.data?.matched),
+    match: res.data?.match ? mapMatch(res.data.match) : undefined
+  };
 };
 
 export const unmatch = async (matchId: string): Promise<void> => {

@@ -1,4 +1,4 @@
-﻿/* ===================================================
+/* ===================================================
    HeartConnect — Global Styles
    Premium Dating App Theme
    =================================================== */
@@ -87,25 +87,30 @@ html, body {
   --hc-mobile-nav-height: 64px;
 }
 
-[data-bs-theme="dark"] {
-  --hc-body-bg: #121212;
-  --hc-card-bg: #1e1e1e;
-  --hc-border: #333333;
-  --hc-text: #e0e0e0;
-  --hc-text-secondary: #aaaaaa;
-  --hc-text-muted: #777777;
-  --hc-sidebar-bg: #1a1a1a;
-  --hc-sidebar-text: #888888;
+[data-bs-theme="dark"],
+body.dark-mode {
+  --hc-body-bg: #12121a;
+  --hc-card-bg: #1e1e2d;
+  --hc-border: #2c2c3e;
+  --hc-text: #f1f1f5;
+  --hc-text-secondary: #9e9eb3;
+  --hc-text-muted: #727288;
+  --hc-sidebar-bg: #161626;
+  --hc-sidebar-text: #8e8ea6;
   --hc-sidebar-active: #ffffff;
+  color-scheme: dark;
 }
 
-/* Override hardcoded Bootstrap utilities for Dark Mode */
+/* Comprehensive Dark Mode Overrides */
 [data-bs-theme="dark"] .bg-white, 
-[data-bs-theme="dark"] .bg-light {
+[data-bs-theme="dark"] .bg-light,
+body.dark-mode .bg-white,
+body.dark-mode .bg-light {
   background-color: var(--hc-card-bg) !important;
 }
 
-[data-bs-theme="dark"] .text-dark {
+[data-bs-theme="dark"] .text-dark,
+body.dark-mode .text-dark {
   color: var(--hc-text) !important;
 }
 
@@ -113,9 +118,104 @@ html, body {
 [data-bs-theme="dark"] .border-top,
 [data-bs-theme="dark"] .border-bottom,
 [data-bs-theme="dark"] .border-start,
-[data-bs-theme="dark"] .border-end {
+[data-bs-theme="dark"] .border-end,
+body.dark-mode .border,
+body.dark-mode .border-top,
+body.dark-mode .border-bottom,
+body.dark-mode .border-start,
+body.dark-mode .border-end {
   border-color: var(--hc-border) !important;
 }
+
+[data-bs-theme="dark"] .app-navbar,
+body.dark-mode .app-navbar {
+  background: rgba(26, 26, 46, 0.95);
+  border-bottom: 1px solid var(--hc-border);
+}
+
+[data-bs-theme="dark"] .modal-content,
+body.dark-mode .modal-content {
+  background-color: var(--hc-card-bg);
+  border: 1px solid var(--hc-border);
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select,
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #171724;
+  border-color: var(--hc-border);
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus,
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #1a1a29;
+  border-color: var(--hc-primary);
+  color: #ffffff;
+}
+
+[data-bs-theme="dark"] .dropdown-menu,
+body.dark-mode .dropdown-menu {
+  background-color: var(--hc-card-bg);
+  border: 1px solid var(--hc-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-bs-theme="dark"] .dropdown-item,
+body.dark-mode .dropdown-item {
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .dropdown-item:hover,
+body.dark-mode .dropdown-item:hover {
+  background-color: #28283c;
+  color: #ffffff;
+}
+
+[data-bs-theme="dark"] .list-group-item,
+body.dark-mode .list-group-item {
+  background-color: var(--hc-card-bg);
+  border-color: var(--hc-border);
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .table,
+body.dark-mode .table {
+  color: var(--hc-text);
+  border-color: var(--hc-border);
+}
+
+[data-bs-theme="dark"] .message-bubble.received,
+[data-bs-theme="dark"] .message-bubble-received,
+body.dark-mode .message-bubble.received,
+body.dark-mode .message-bubble-received {
+  background-color: #28283c;
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .chat-input-container,
+body.dark-mode .chat-input-container {
+  background-color: var(--hc-card-bg);
+  border-top-color: var(--hc-border);
+}
+
+[data-bs-theme="dark"] .btn-light,
+body.dark-mode .btn-light {
+  background-color: #28283c;
+  border-color: #383852;
+  color: var(--hc-text);
+}
+
+[data-bs-theme="dark"] .btn-light:hover,
+body.dark-mode .btn-light:hover {
+  background-color: #32324b;
+  color: #ffffff;
+}
+
 
 /* ===================================================
    Base Reset & Typography
@@ -1546,20 +1646,18 @@ div.user-avatar {
 
 .mobile-nav-link {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
   color: var(--hc-text-muted);
-  font-size: 10px;
-  font-weight: 500;
   text-decoration: none;
-  padding: 4px 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
   transition: var(--hc-transition-fast);
   position: relative;
 }
 
 .mobile-nav-link i {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 
 .mobile-nav-link.active {

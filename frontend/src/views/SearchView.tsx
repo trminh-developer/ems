@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UserCard } from '../components/user';
-import { Input, Button, EmptyState, Loading } from '../components/common';
+import { Input, Button, EmptyState, Loading, AuthPromptModal } from '../components/common';
+import { useAuth } from '../hooks/useAuth';
 import { userService } from '../services';
 import { User } from '../models';
 import { calculateAge } from '../utils/helpers';
 
 const SearchView = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   
@@ -29,7 +34,7 @@ const SearchView = () => {
   const [hasSearched, setHasSearched] = useState(false);
 
   // Real-time automatic search effect
-  React.useEffect(() => {
+  useEffect(() => {
     const performSearch = async () => {
       setIsSearching(true);
       try {
@@ -72,7 +77,6 @@ const SearchView = () => {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // The useEffect already handles the search automatically
   };
 
   const handleClear = () => {
@@ -90,35 +94,36 @@ const SearchView = () => {
       <div className="row">
         <div className="col-md-4 mb-4">
           <div className="search-filters hc-card p-3">
-            <h5 className="mb-3">Bộ lọc tìm kiếm</h5>
+            <h5 className="mb-3">{t('search.filters_title')}</h5>
             <form onSubmit={handleSearch}>
               <Input 
-                label="Từ khóa" 
+                label={t('search.keyword')} 
                 value={query} 
                 onChange={e => setQuery(e.target.value)} 
-                placeholder="Tên, sở thích..." 
+                placeholder={t('search.keyword_placeholder')} 
               />
               
               <div className="mb-3">
-                <label className="form-label">Giới tính</label>
+                <label className="form-label">{t('search.gender')}</label>
                 <select className="form-select" value={gender} onChange={e => setGender(e.target.value)}>
-                  <option value="all">Tất cả</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
+                  <option value="all">{t('common.all')}</option>
+                  <option value="male">{t('common.male')}</option>
+                  <option value="female">{t('common.female')}</option>
+                  <option value="other">{t('common.other')}</option>
                 </select>
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Trạng thái (AI Lọc)</label>
+                <label className="form-label">{t('search.status')}</label>
                 <select className="form-select" value={onlineStatus} onChange={e => setOnlineStatus(e.target.value)}>
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="online">🟢 Đang Online</option>
-                  <option value="offline">⚪ Đang Offline</option>
+                  <option value="all">{t('common.all')}</option>
+                  <option value="online">🟢 {t('search.online_only')}</option>
+                  <option value="offline">⚪ {t('search.offline_only')}</option>
                 </select>
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Độ tuổi</label>
+                <label className="form-label">{t('search.age_range')}</label>
                 <div className="d-flex align-items-center gap-2">
                   <Input 
                     type="text" 
@@ -143,8 +148,8 @@ const SearchView = () => {
               </div>
 
               <div className="d-flex gap-2 mt-4">
-                <Button type="submit" className="btn-hc-primary flex-grow-1">Tìm kiếm</Button>
-                <Button type="button" className="btn-outline-secondary" onClick={handleClear}>Xóa bộ lọc</Button>
+                <Button type="submit" className="btn-hc-primary flex-grow-1">{t('common.search')}</Button>
+                <Button type="button" className="btn-outline-secondary" onClick={handleClear}>{t('search.clear_filters')}</Button>
               </div>
             </form>
           </div>
@@ -152,30 +157,46 @@ const SearchView = () => {
 
         <div className="col-md-8">
           <div className="hc-card p-3 h-100">
-            <h5 className="mb-3">Kết quả tìm kiếm</h5>
+            <h5 className="mb-3">{t('search.results_title')}</h5>
             {isSearching ? (
-              <Loading text="Đang tìm kiếm..." />
+              <Loading text={t('search.searching')} />
             ) : hasSearched ? (
               <>
-                <p className="text-muted">Tìm thấy {results.length} người</p>
+                <p className="text-muted">{results.length} profiles</p>
                 {results.length > 0 ? (
                   <div className="row">
                     {results.map(u => (
                       <div key={u.id} className="col-md-4 col-6 mb-3">
-                        <UserCard user={u} onClick={() => navigate(`/profile/${u.username || u.id}`)} />
+                        <UserCard 
+                          user={u} 
+                          onClick={() => {
+                            if (!user) {
+                              setShowAuthModal(true);
+                            } else {
+                              navigate(`/profile/${u.username || u.id}`);
+                            }
+                          }} 
+                        />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <EmptyState icon="bi bi-search" title="Không tìm thấy kết quả nào phù hợp" description="" />
+                  <EmptyState icon="bi bi-search" title={t('search.no_results')} description={t('search.no_results_desc')} />
                 )}
               </>
             ) : (
-              <EmptyState icon="bi bi-funnel" title="Sử dụng bộ lọc để tìm kiếm người dùng" description="" />
+              <EmptyState icon="bi bi-funnel" title={t('search.filters_title')} description={t('search.no_results_desc')} />
             )}
           </div>
         </div>
       </div>
+
+      <AuthPromptModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title={t('auth_prompt.title')}
+        description={t('auth_prompt.desc')}
+      />
     </div>
   );
 };

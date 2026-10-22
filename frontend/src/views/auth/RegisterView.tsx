@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Input, Button } from '../../components/common';
 import { useAuth } from '../../hooks/useAuth';
 
 const RegisterView = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -25,7 +27,7 @@ const RegisterView = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwords_mismatch'));
       return;
     }
     setError('');
@@ -36,7 +38,6 @@ const RegisterView = () => {
     } catch (err: any) {
       setError(err.message || 'Registration failed');
       setIsSubmitting(false);
-      // Reset form data when error occurs (e.g., user already registered)
       setFormData({
         firstName: '',
         lastName: '',
@@ -55,36 +56,36 @@ const RegisterView = () => {
         <div className="text-center mb-4">
           <img src="/logo-heartconnect.png" alt="HeartConnect" height="48" className="mb-2" />
           <h2 className="fw-bold text-danger mb-3">HeartConnect</h2>
-          <h4 className="text-muted">Tạo tài khoản mới</h4>
+          <h4 className="text-muted">{t('auth.create_account')}</h4>
         </div>
         {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-md-6">
-              <Input label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} required />
+              <Input label={t('auth.first_name')} name="firstName" value={formData.firstName} onChange={handleChange} required />
             </div>
             <div className="col-md-6">
-              <Input label="Last Name" name="lastName" value={formData.lastName} onChange={handleChange} required />
+              <Input label={t('auth.last_name')} name="lastName" value={formData.lastName} onChange={handleChange} required />
             </div>
           </div>
-          <Input label="Email" type="email" name="email" value={formData.email} onChange={handleChange} required />
-          <Input label="Password" type="password" name="password" value={formData.password} onChange={handleChange} required />
-          <Input label="Confirm Password" type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
+          <Input label={t('auth.email')} type="email" name="email" value={formData.email} onChange={handleChange} required />
+          <Input label={t('auth.password')} type="password" name="password" value={formData.password} onChange={handleChange} required />
+          <Input label={t('auth.confirm_password')} type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
           <div className="mb-3">
-            <label className="form-label">Gender</label>
+            <label className="form-label">{t('auth.gender')}</label>
             <select className="form-select" name="gender" value={formData.gender} onChange={handleChange}>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
+              <option value="male">{t('common.male')}</option>
+              <option value="female">{t('common.female')}</option>
+              <option value="other">{t('common.other')}</option>
             </select>
           </div>
-          <Input label="Date of Birth" type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
+          <Input label={t('auth.date_of_birth')} type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
           
           <Button type="submit" className="btn-hc-primary w-100 mb-3" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đăng ký...' : 'Register'}
+            {isSubmitting ? t('auth.registering') : t('auth.register_btn')}
           </Button>
           <div className="text-center">
-            <Link to="/login">Đã có tài khoản? Đăng nhập</Link>
+            <Link to="/login">{t('auth.already_have_account')}</Link>
           </div>
         </form>
       </div>

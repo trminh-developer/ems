@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from '../../models';
 import Avatar from '../common/Avatar';
 import { calculateAge } from '../../utils/helpers';
@@ -13,6 +14,7 @@ interface UserCardProps {
 }
 
 export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onClick }) => {
+  const { t } = useTranslation();
   const age = calculateAge(user.dateOfBirth);
 
   return (
@@ -43,12 +45,12 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
         <div className="d-flex gap-2 w-100 mt-auto">
           {onMessage && (
             <Button variant="outline" className="flex-grow-1" onClick={(e) => { e.stopPropagation(); onMessage(); }}>
-              <i className="bi bi-chat-dots me-2"></i> Message
+              <i className="bi bi-chat-dots me-2"></i> {t('common.message')}
             </Button>
           )}
           {onLike && (
             <Button variant="primary" className="flex-grow-1" onClick={(e) => { e.stopPropagation(); onLike(); }}>
-              <i className="bi bi-heart me-2"></i> Like
+              <i className="bi bi-heart me-2"></i> {t('common.like')}
             </Button>
           )}
         </div>
@@ -57,3 +59,4 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
   );
 };
 
+export default UserCard;

@@ -5,7 +5,7 @@ export class Transaction {
     public planId: string,
     public amount: number,
     public status: 'PENDING' | 'SUCCESS' | 'FAILED',
-    public provider: 'VNPAY' | 'MOMO',
+    public provider: 'VNPAY' | 'MOMO' | 'CARD' | 'PAYPAL' | string,
     public createdAt: Date
   ) {}
 }

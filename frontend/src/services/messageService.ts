@@ -1,4 +1,4 @@
-﻿import { Conversation, Message, MessageType } from '../models';
+import { Conversation, Message, MessageType } from '../models';
 import apiClient from './apiClient';
 import { mapConversation, mapMessage } from '../utils/helpers';
 
@@ -21,4 +21,11 @@ export const markAsRead = async (conversationId: string, userId: string): Promis
   await apiClient.put('/messages/' + conversationId + '/read', { userId });
 };
 
-export const deleteMessage = async (messageId: string) => { await apiClient.delete('/messages/' + messageId); };
+export const deleteMessage = async (messageId: string): Promise<void> => {
+  await apiClient.delete('/messages/' + messageId);
+};
+
+export const recallMessage = async (messageId: string): Promise<Message> => {
+  const res = await apiClient.put('/messages/' + messageId + '/recall');
+  return mapMessage(res.data?.message || res.data);
+};

@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { Status, StatusLike, StatusComment, User } from '../../models';
 import { AuthRequest } from '../../middlewares/authMiddleware';
 
-// Regex to check if base64 string is a valid image (jpeg, png, webp, gif)
+// Regex to check if base64 string is a valid image (jpeg, jpg, png, webp, gif, svg)
 const isBase64Image = (str: string) => {
-  return /^data:image\/(jpeg|png|webp|gif);base64,/.test(str);
+  return typeof str === 'string' && /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(str);
 };
 
 export const getStatuses = async (req: AuthRequest, res: Response) => {
@@ -46,12 +46,22 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
         hasLiked = sLikes.some((l: any) => l.user_id === req.user?.id);
       }
       
+      const author = s.User || {};
+
       return {
         id: s.id,
         userId: s.user_id,
-        user: s.User,
+        user: {
+          id: author.id,
+          username: author.username,
+          firstName: author.first_name || author.firstName || author.username || 'Người dùng',
+          lastName: author.last_name || author.lastName || '',
+          first_name: author.first_name,
+          last_name: author.last_name,
+          avatar: author.avatar || ''
+        },
         content: s.content,
-        mediaUrls: s.media_urls,
+        mediaUrls: s.media_urls || [],
         likesCount: sLikes.length,
         commentsCount: sComments.length,
         hasLiked,
@@ -63,7 +73,8 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
     // or wrap in { data: results, page, totalPages } if frontend supports it.
     // For now, return array directly to avoid breaking useFeed.ts
     return res.json(results);
-  } catch (err) {
+  } catch (err: any) {
+    console.error('Error in getStatuses:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -90,9 +101,33 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
       content,
       media_urls: mediaUrls || []
     });
-    return res.json({ success: true, status });
-  } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
+
+    const statusData = status.toJSON ? status.toJSON() : (status as any);
+
+    const formattedStatus = {
+      id: statusData.id,
+      userId: statusData.user_id,
+      user: {
+        id: req.user.id,
+        username: req.user.username,
+        firstName: req.user.first_name || req.user.firstName || req.user.username || 'Người dùng',
+        lastName: req.user.last_name || req.user.lastName || '',
+        first_name: req.user.first_name,
+        last_name: req.user.last_name,
+        avatar: req.user.avatar || ''
+      },
+      content: statusData.content,
+      mediaUrls: statusData.media_urls || [],
+      likesCount: 0,
+      commentsCount: 0,
+      hasLiked: false,
+      createdAt: statusData.created_at
+    };
+
+    return res.json({ success: true, status: formattedStatus });
+  } catch (err: any) {
+    console.error('Error in createStatus:', err);
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 };
 

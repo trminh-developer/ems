@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ConversationList, ChatHeader, MessageList, MessageInput, CallModal } from '../components/messaging';
 import { EmptyState, Loading } from '../components/common';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
 
 const MessagesView = () => {
+  const { t } = useTranslation();
   const { conversations, activeConversation, messages, isLoading, selectConversation, sendMessage, loadConversations } = useChat();
   const { user } = useAuth();
   const [showList, setShowList] = useState(true);
@@ -34,7 +36,7 @@ const MessagesView = () => {
     return () => clearInterval(interval);
   }, [activeConversation, selectConversation]);
 
-  if (isLoading && conversations.length === 0) return <Loading text="Đang tải tin nhắn..." />;
+  if (isLoading && conversations.length === 0) return <Loading text={t('messages.loading')} />;
 
   const activePartner = activeConversation?.participants?.find((p: any) => p.id !== user?.id) || activeConversation?.participants?.[0];
 
@@ -53,8 +55,8 @@ const MessagesView = () => {
             <div className="flex-grow-1 d-flex justify-content-center align-items-center">
               <EmptyState 
                 icon="chat-square-text" 
-                title="Chưa có tin nhắn" 
-                description="Hãy kết nối và bắt đầu trò chuyện" 
+                title={t('messages.empty_title')} 
+                description={t('messages.empty_desc')} 
               />
             </div>
           )}
@@ -80,7 +82,7 @@ const MessagesView = () => {
             </>
           ) : (
             <div className="flex-grow-1 d-flex align-items-center justify-content-center">
-              <EmptyState icon="bi bi-chat-dots" title="Chọn một cuộc trò chuyện để bắt đầu" description="" />
+              <EmptyState icon="bi bi-chat-dots" title={t('messages.select_prompt')} description="" />
             </div>
           )}
         </div>
@@ -98,4 +100,3 @@ const MessagesView = () => {
 };
 
 export default MessagesView;
-

@@ -1,4 +1,4 @@
-﻿import { UserLocation } from './Location';
+import { UserLocation } from './Location';
 import { Interest } from './Interest';
 import { DatingPreference, RelationshipGoal } from './DatingPreference';
 
@@ -38,5 +38,6 @@ export interface User {
   first_name?: string;
   last_name?: string;
   is_verified?: boolean;
+  violation_count?: number;
   created_at?: string;
 }

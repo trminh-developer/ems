@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Button from '../common/Button';
 import { useAlert } from '../../contexts/AlertContext';
 import { 
@@ -14,6 +15,7 @@ interface MessageInputProps {
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const { showAlert } = useAlert();
 
@@ -119,7 +121,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
         <input 
           type="text" 
           className="form-control border-0 bg-transparent py-2 shadow-none flex-grow-1" 
-          placeholder="Nhập tin nhắn..." 
+          placeholder={t('messages.input_placeholder')} 
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onFocus={() => {
@@ -162,3 +164,5 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend }) => {
     </form>
   );
 };
+
+export default MessageInput;

@@ -14,7 +14,8 @@ type ChatAction =
   | { type: 'LOAD_CONVERSATIONS_SUCCESS'; payload: Conversation[] }
   | { type: 'SELECT_CONVERSATION'; payload: { conversation: Conversation, messages: Message[] } }
   | { type: 'NEW_MESSAGE'; payload: Message }
-  | { type: 'DELETE_MESSAGE'; payload: string };
+  | { type: 'DELETE_MESSAGE'; payload: string }
+  | { type: 'RECALL_MESSAGE'; payload: Message };
 
 const initialState: ChatState = {
   conversations: [],
@@ -32,8 +33,38 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return { ...state, activeConversation: action.payload.conversation, messages: action.payload.messages };
     case 'NEW_MESSAGE':
       return { ...state, messages: [...state.messages, action.payload] };
-    case 'DELETE_MESSAGE':
-      return { ...state, messages: state.messages.filter(m => m.id !== action.payload) };
+    case 'DELETE_MESSAGE': {
+      const remainingMessages = state.messages.filter(m => m.id !== action.payload);
+      const updatedConversations = state.conversations.map(c => {
+        if (c.lastMessage?.id === action.payload) {
+          return {
+            ...c,
+            lastMessage: remainingMessages.length > 0 ? remainingMessages[remainingMessages.length - 1] : undefined
+          };
+        }
+        return c;
+      });
+      return { ...state, messages: remainingMessages, conversations: updatedConversations };
+    }
+    case 'RECALL_MESSAGE': {
+      const updatedMessages = state.messages.map(m =>
+        m.id === action.payload.id ? { ...m, isRecalled: true, content: 'Tin nhắn đã được thu hồi' } : m
+      );
+      const updatedConversations = state.conversations.map(c => {
+        if (c.lastMessage?.id === action.payload.id) {
+          return {
+            ...c,
+            lastMessage: {
+              ...c.lastMessage,
+              isRecalled: true,
+              content: 'Tin nhắn đã được thu hồi'
+            }
+          };
+        }
+        return c;
+      });
+      return { ...state, messages: updatedMessages, conversations: updatedConversations };
+    }
     default:
       return state;
   }
@@ -44,6 +75,7 @@ export interface ChatContextType extends ChatState {
   selectConversation: (conversationId: string) => Promise<void>;
   sendMessage: (conversationId: string, content: string, type?: MessageType) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
+  recallMessage: (messageId: string) => Promise<void>;
 }
 
 export const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -101,12 +133,26 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteMessage = async (messageId: string) => {
-    await messageService.deleteMessage(messageId);
     dispatch({ type: 'DELETE_MESSAGE', payload: messageId });
+    try {
+      await messageService.deleteMessage(messageId);
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const recallMessage = async (messageId: string) => {
+    try {
+      const recalled = await messageService.recallMessage(messageId);
+      dispatch({ type: 'RECALL_MESSAGE', payload: recalled || { id: messageId, isRecalled: true, content: 'Tin nhắn đã được thu hồi' } as any });
+    } catch (error) {
+      console.error('Error recalling message:', error);
+      throw error;
+    }
   };
 
   return (
-    <ChatContext.Provider value={{ ...state, loadConversations, selectConversation, sendMessage, deleteMessage }}>
+    <ChatContext.Provider value={{ ...state, loadConversations, selectConversation, sendMessage, deleteMessage, recallMessage }}>
       {children}
     </ChatContext.Provider>
   );

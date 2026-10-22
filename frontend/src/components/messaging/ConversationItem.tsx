@@ -41,9 +41,16 @@ export const ConversationItem: React.FC<ConversationItemProps> = React.memo(({ c
         <div className="d-flex justify-content-between align-items-center">
           <p className={`mb-0 small text-truncate ${isUnread ? 'text-dark fw-semibold' : 'text-muted'}`}>
             {lastMessage ? (
-              lastMessage.senderId === currentUserId ? `You: ${lastMessage.content}` : lastMessage.content
+              lastMessage.isRecalled || lastMessage.content === 'Tin nhắn đã được thu hồi' ? (
+                <span className="fst-italic opacity-75">
+                  <i className="bi bi-slash-circle me-1"></i>
+                  {lastMessage.senderId === currentUserId ? 'Bạn đã thu hồi một tin nhắn' : 'Tin nhắn đã được thu hồi'}
+                </span>
+              ) : (
+                lastMessage.senderId === currentUserId ? `Bạn: ${lastMessage.content}` : lastMessage.content
+              )
             ) : (
-              <span className="fst-italic opacity-75">Start chatting...</span>
+              <span className="fst-italic opacity-75">Bắt đầu trò chuyện...</span>
             )}
           </p>
           {isUnread && <Badge variant="primary" text={conversation.unreadCount.toString()} />}

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-const { User, VerificationRequest, Notification, Status, Report } = require('../../models');
+const { User, VerificationRequest, Notification, Status, Report, SystemSetting } = require('../../models');
 
 // Client submits a request
 export const submitVerification = async (req: Request, res: Response) => {
@@ -80,10 +80,10 @@ export const rejectVerification = async (req: Request, res: Response) => {
 
 // USER MANAGEMENT (Phase 1)
 // Admin gets all users
-export const getAllUsers = async (req: Request, res: Response) => { require('fs').appendFileSync('admin_debug.log', new Date().toISOString() + ' - getAllUsers called by: ' + req.user?.id + ' role: ' + req.user?.role + '\n');
+export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.findAll({
-      attributes: ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'status', 'is_verified', 'createdAt']
+      attributes: ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'status', 'is_verified', 'violation_count', 'createdAt']
     });
     return res.json(users);
   } catch (error: any) { console.error(error); return res.status(500).json({ error: error.message }); }
@@ -156,16 +156,60 @@ export const getAllReports = async (req: Request, res: Response) => {
 export const resolveReport = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // 'RESOLVED', 'DISMISSED'
+    const { status, penalize } = req.body; // 'RESOLVED', 'DISMISSED', penalize: boolean
     
     const report = await Report.findByPk(id);
     if (!report) return res.status(404).json({ error: 'Report not found' });
     
     report.status = status;
     await report.save();
+
+    let autoBanned = false;
+    let currentViolations = 0;
+
+    // If report is resolved and admin chose to penalize the reported user
+    if (status === 'RESOLVED' && penalize && report.reported_user_id) {
+      const reportedUser = await User.findByPk(report.reported_user_id);
+      if (reportedUser) {
+        currentViolations = (reportedUser.violation_count || 0) + 1;
+        reportedUser.violation_count = currentViolations;
+
+        const maxViolationsStr = await getSettingValue('MAX_VIOLATIONS', '5');
+        const maxViolations = parseInt(maxViolationsStr, 10) || 5;
+        const autoBanEnabledStr = await getSettingValue('AUTO_BAN_ENABLED', 'true');
+        const autoBanEnabled = autoBanEnabledStr === 'true';
+
+        if (currentViolations >= maxViolations && autoBanEnabled) {
+          reportedUser.status = 'BANNED';
+          autoBanned = true;
+          await Notification.create({
+            type: 'SYSTEM',
+            user_id: reportedUser.id,
+            message: `Tài khoản của bạn đã bị KHÓA TỰ ĐỘNG do tích lũy đủ ${currentViolations}/${maxViolations} lần vi phạm tiêu chuẩn cộng đồng.`,
+            is_read: false
+          });
+        } else {
+          await Notification.create({
+            type: 'SYSTEM',
+            user_id: reportedUser.id,
+            message: `Cảnh báo vi phạm: Bạn vừa nhận 1 gậy vi phạm vì lý do: "${report.reason}". Số lần vi phạm hiện tại: ${currentViolations}/${maxViolations}. Chạm mốc ${maxViolations} sẽ bị khóa tài khoản tự động.`,
+            is_read: false
+          });
+        }
+        await reportedUser.save();
+      }
+    }
     
-    return res.json({ message: 'Report updated', report });
-  } catch (error: any) { console.error(error); return res.status(500).json({ error: error.message }); }
+    return res.json({ 
+      message: 'Report updated', 
+      report, 
+      autoBanned, 
+      currentViolations 
+    });
+  } catch (error: any) { 
+    console.error(error); 
+    return res.status(500).json({ error: error.message }); 
+  }
 };
 
 
@@ -210,4 +254,110 @@ export const revokeUserVerification = async (req: Request, res: Response) => {
     return res.json({ message: 'User verification revoked successfully', user });
   } catch (error: any) { console.error(error); return res.status(500).json({ error: error.message }); }
 };
+
+// ==============================
+// PHASE 4: SYSTEM SETTINGS & PARAMETERS
+// ==============================
+
+// System Setting Helper
+export const getSettingValue = async (key: string, defaultValue: string = ''): Promise<string> => {
+  try {
+    const setting = await SystemSetting.findByPk(key);
+    return setting ? setting.value : defaultValue;
+  } catch (e) {
+    return defaultValue;
+  }
+};
+
+// GET SYSTEM SETTINGS (Phase 4)
+export const getSystemSettings = async (req: Request, res: Response) => {
+  try {
+    const defaultSettings = [
+      { key: 'MAX_VIOLATIONS', value: '5', description: 'Số lần vi phạm tối đa trước khi tự động khóa tài khoản (Auto-Ban)' },
+      { key: 'AUTO_BAN_ENABLED', value: 'true', description: 'Tự động khóa tài khoản khi số lần vi phạm đạt ngưỡng' },
+      { key: 'WARNING_NOTIFICATION_ENABLED', value: 'true', description: 'Tự động gửi thông báo cảnh cáo mỗi khi người dùng bị phạt' },
+      { key: 'MAINTENANCE_MODE', value: 'false', description: 'Chế độ bảo trì toàn bộ hệ thống' },
+      { key: 'DEFAULT_MAX_DISTANCE', value: '100', description: 'Khoảng cách tìm kiếm ghép đôi mặc định (km)' },
+      { key: 'MIN_AGE', value: '18', description: 'Độ tuổi tối thiểu đăng ký tham gia ứng dụng' }
+    ];
+
+    // Seed defaults if not exist
+    for (const item of defaultSettings) {
+      await SystemSetting.findOrCreate({
+        where: { key: item.key },
+        defaults: item
+      });
+    }
+
+    const settings = await SystemSetting.findAll();
+    const settingsMap: Record<string, string> = {};
+    settings.forEach((s: any) => {
+      settingsMap[s.key] = s.value;
+    });
+
+    return res.json({
+      settings: settingsMap,
+      list: settings
+    });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// UPDATE SYSTEM SETTINGS (Phase 4)
+export const updateSystemSettings = async (req: Request, res: Response) => {
+  try {
+    const { settings } = req.body;
+    if (!settings || typeof settings !== 'object') {
+      return res.status(400).json({ error: 'Settings object is required' });
+    }
+
+    for (const [key, value] of Object.entries(settings)) {
+      const existing = await SystemSetting.findByPk(key);
+      if (existing) {
+        existing.value = String(value);
+        await existing.save();
+      } else {
+        await SystemSetting.create({ key, value: String(value) });
+      }
+    }
+
+    const updated = await SystemSetting.findAll();
+    const settingsMap: Record<string, string> = {};
+    updated.forEach((s: any) => {
+      settingsMap[s.key] = s.value;
+    });
+
+    return res.json({ message: 'Cài đặt tham số hệ thống đã được lưu thành công', settings: settingsMap });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// RESET USER VIOLATIONS
+export const resetUserViolations = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.violation_count = 0;
+    await user.save();
+
+    await Notification.create({
+      type: 'SYSTEM',
+      user_id: user.id,
+      message: 'Số lần vi phạm của bạn đã được quản trị viên đặt lại về 0.',
+      is_read: false
+    });
+
+    return res.json({ message: 'Số lần vi phạm đã được đặt lại về 0 thành công', user });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 

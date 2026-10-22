@@ -1,4 +1,4 @@
-﻿import { User } from '../models';
+import { User } from '../models';
 import apiClient from './apiClient';
 
 import { mapUser } from '../utils/helpers';
@@ -47,6 +47,11 @@ export const blockUser = async (blockerId: string, blockedId: string): Promise<v
 
 export const reportUser = async (reporterId: string, reportedId: string, reason: string, details?: string): Promise<void> => {
   await apiClient.post('/users/report', { reporterId, reportedId, reason, details });
+};
+
+export const updateProfile = async (id: string, data: Partial<User>): Promise<User> => {
+  const res = await apiClient.put(`/users/${id}`, data);
+  return mapUser(res.data);
 };
 
 

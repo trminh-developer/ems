@@ -7,7 +7,7 @@ export class ProcessPaymentCallbackUseCase {
     private paymentGateways: Record<string, IPaymentGateway>
   ) {}
 
-  async execute(provider: 'VNPAY' | 'MOMO', queryData: any): Promise<{ success: boolean, orderId: string }> {
+  async execute(provider: string, queryData: any): Promise<{ success: boolean, orderId: string }> {
     const gateway = this.paymentGateways[provider];
     if (!gateway) throw new Error('Provider not supported');
 

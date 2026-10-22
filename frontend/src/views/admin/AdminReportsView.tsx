@@ -21,12 +21,20 @@ const AdminReportsView = () => {
     }
   };
 
-  const resolveReport = async (id: string, action: string) => {
+  const resolveReport = async (id: string, action: string, penalize: boolean = false, username?: string) => {
     try {
-      await apiClient.put(`/admin/reports/${id}`, { status: action });
+      const res = await apiClient.put(`/admin/reports/${id}`, { status: action, penalize });
       setReports(reports.map(r => r.id === id ? { ...r, status: action } : r));
-    } catch (e) {
-      alert('Lỗi cập nhật Ticket');
+
+      if (action === 'RESOLVED' && penalize) {
+        if (res.data?.autoBanned) {
+          alert(`🚨 CẢNH BÁO TỰ ĐỘNG KHÓA:\nNgười dùng @${username || 'được báo cáo'} đã tích lũy ${res.data.currentViolations} lần vi phạm và ĐÃ BỊ TỰ ĐỘNG KHÓA TÀI KHOẢN (BANNED)!`);
+        } else {
+          alert(`✅ Đã duyệt ticket và xử phạt 1 vi phạm cho @${username || 'user'}.\nSố lần vi phạm hiện tại: ${res.data.currentViolations}/5.`);
+        }
+      }
+    } catch (e: any) {
+      alert('Lỗi cập nhật Ticket: ' + (e.response?.data?.error || e.message));
     }
   };
 
@@ -34,7 +42,12 @@ const AdminReportsView = () => {
 
   return (
     <div>
-      <h2 className="mb-4">Quản Lý Reports / Tickets</h2>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-1">Quản Lý Reports / Tickets</h2>
+          <p className="text-muted mb-0">Xử lý tố cáo vi phạm, tích lũy số gậy phạt (5 vi phạm tự động khóa tài khoản)</p>
+        </div>
+      </div>
       <div className="card bg-dark border-secondary">
         <div className="card-body p-0">
           <div className="table-responsive">
@@ -57,7 +70,7 @@ const AdminReportsView = () => {
                 {reports.map(r => (
                   <tr key={r.id}>
                     <td className="align-middle">@{r.Reporter?.username}</td>
-                    <td className="align-middle text-danger">@{r.ReportedUser?.username || 'N/A'}</td>
+                    <td className="align-middle text-danger fw-bold">@{r.ReportedUser?.username || 'N/A'}</td>
                     <td className="align-middle fw-bold">{r.reason}</td>
                     <td className="align-middle text-wrap" style={{ maxWidth: '250px' }}>{r.description}</td>
                     <td className="align-middle">
@@ -68,9 +81,28 @@ const AdminReportsView = () => {
                     <td className="align-middle">{new Date(r.createdAt).toLocaleString()}</td>
                     <td className="align-middle">
                       {r.status === 'PENDING' && (
-                        <div className="d-flex gap-2">
-                          <Button className="btn-sm btn-success" onClick={() => resolveReport(r.id, 'RESOLVED')}>Duyệt</Button>
-                          <Button className="btn-sm btn-secondary" onClick={() => resolveReport(r.id, 'DISMISSED')}>Hủy</Button>
+                        <div className="d-flex flex-wrap gap-2">
+                          <Button 
+                            className="btn-sm btn-danger" 
+                            title="Xử phạt người bị tố cáo (+1 vi phạm, chạm mốc 5 sẽ tự động khóa)"
+                            onClick={() => resolveReport(r.id, 'RESOLVED', true, r.ReportedUser?.username)}
+                          >
+                            <i className="bi bi-shield-slash me-1"></i>Xử phạt (+1)
+                          </Button>
+                          <Button 
+                            className="btn-sm btn-outline-success" 
+                            title="Duyệt đóng ticket nhưng không xử phạt người dùng"
+                            onClick={() => resolveReport(r.id, 'RESOLVED', false)}
+                          >
+                            Duyệt
+                          </Button>
+                          <Button 
+                            className="btn-sm btn-secondary" 
+                            title="Bỏ qua tố cáo"
+                            onClick={() => resolveReport(r.id, 'DISMISSED', false)}
+                          >
+                            Hủy
+                          </Button>
                         </div>
                       )}
                     </td>

@@ -1,4 +1,4 @@
-﻿import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { Loading } from '../components/common';
@@ -75,11 +75,14 @@ const AppRoutes = () => (
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomeView />} />
-          <Route path="/discover" element={<DiscoverView />} />
-          <Route path="/search" element={<SearchView />} />
+      <Route element={<MainLayout />}>
+        {/* Công khai cho cả Guest và User */}
+        <Route path="/" element={<HomeView />} />
+        <Route path="/discover" element={<DiscoverView />} />
+        <Route path="/search" element={<SearchView />} />
+
+        {/* Riêng tư: Yêu cầu đăng nhập */}
+        <Route element={<ProtectedRoute />}>
           <Route path="/matches" element={<MatchesView />} />
           <Route path="/likes" element={<LikesView />} />
           <Route path="/messages" element={<MessagesView />} />

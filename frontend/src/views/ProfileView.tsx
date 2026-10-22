@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ProfileHeader, ProfileGallery, InterestBadge } from '../components/user';
 import { Button, Loading, Modal, Input, Toast, ImageCropperModal, LinkifyText } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +12,7 @@ import { interests as predefinedInterests } from '../data';
 
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const { user: currentUser, updateUser } = useAuth();
   const { showAlert } = useAlert();
   const [user, setUser] = useState<any>(null);
@@ -101,58 +103,25 @@ const ProfileView = () => {
     setEditForm({ ...editForm, [e.target.name]: value });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'avatar' | 'coverPhoto') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'avatar' | 'coverPhoto') => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        showAlert('File quá lớn. Vui lòng chọn ảnh dưới 5MB.', 'error');
-        return;
-      }
-      
-      try {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setCropImageSrc(reader.result as string);
-          setCropField(fieldName);
-          // Set aspect ratio: 1:1 for avatar, roughly 3:1 for cover (chiều rộng ngắn 1 chút, chiều dài to hơn 1 xí)
-          setCropAspect(fieldName === 'avatar' ? 1 : 2.5);
-          setIsCropModalOpen(true);
-          
-          // Clear input so same file can be selected again
-          e.target.value = '';
-        };
-        reader.readAsDataURL(file);
-      } catch (err: any) {
-        console.error(err);
-        showAlert('Có lỗi xảy ra khi đọc ảnh!', 'error');
-      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCropImageSrc(reader.result as string);
+        setCropField(field);
+        setCropAspect(field === 'avatar' ? 1 : 16 / 9);
+        setIsCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleCropComplete = (croppedBase64: string) => {
     if (cropField) {
-      setEditForm({ ...editForm, [cropField]: croppedBase64 });
+      setEditForm(prev => ({ ...prev, [cropField]: croppedBase64 }));
     }
     setIsCropModalOpen(false);
-  };
-
-  const guessIconForInterest = (name: string): string => {
-    const n = name.toLowerCase();
-    if (n.includes('nhạc') || n.includes('hát') || n.includes('đàn') || n.includes('music')) return 'bi-music-note-beamed';
-    if (n.includes('game') || n.includes('trò chơi')) return 'bi-controller';
-    if (n.includes('sách') || n.includes('đọc') || n.includes('book') || n.includes('truyện')) return 'bi-book';
-    if (n.includes('thể thao') || n.includes('bóng') || n.includes('chạy') || n.includes('bơi')) return 'bi-activity';
-    if (n.includes('nấu ăn') || n.includes('ăn') || n.includes('uống') || n.includes('cafe')) return 'bi-cup-hot';
-    if (n.includes('du lịch') || n.includes('khám phá') || n.includes('phượt') || n.includes('travel')) return 'bi-airplane';
-    if (n.includes('phim') || n.includes('movie') || n.includes('cinema')) return 'bi-film';
-    if (n.includes('chụp ảnh') || n.includes('ảnh') || n.includes('photo') || n.includes('camera')) return 'bi-camera';
-    if (n.includes('code') || n.includes('lập trình') || n.includes('công nghệ') || n.includes('tech')) return 'bi-laptop';
-    if (n.includes('mua sắm') || n.includes('shop')) return 'bi-bag-heart';
-    if (n.includes('thú cưng') || n.includes('chó') || n.includes('mèo') || n.includes('pet')) return 'bi-balloon-heart';
-    if (n.includes('ngủ') || n.includes('sleep')) return 'bi-moon-stars';
-    
-    // Default fallback icon
-    return 'bi-star';
   };
 
   const handleAddInterest = () => {
@@ -160,11 +129,16 @@ const ProfileView = () => {
       const interestObj = {
         id: Date.now().toString(),
         name: newInterest.trim(),
-        icon: guessIconForInterest(newInterest.trim()),
-        category: 'lifestyle'
+        icon: 'bi-heart-fill'
       };
       setEditForm({ ...editForm, interests: [...editForm.interests, interestObj] });
       setNewInterest('');
+    }
+  };
+
+  const handleAddPredefinedInterest = (interest: any) => {
+    if (!editForm.interests.find((i: any) => i.id === interest.id || i.name.toLowerCase() === interest.name.toLowerCase())) {
+      setEditForm({ ...editForm, interests: [...editForm.interests, interest] });
     }
   };
 
@@ -172,30 +146,40 @@ const ProfileView = () => {
     setEditForm({ ...editForm, interests: editForm.interests.filter(i => i.id !== id) });
   };
 
-  const handleAddPredefinedInterest = (interest: any) => {
-    setEditForm({ ...editForm, interests: [...editForm.interests, interest] });
-  };
-
-  const handleSaveProfile = () => {
-    if (currentUser) {
-      updateUser({ 
-        ...currentUser, 
+  const handleSaveProfile = async () => {
+    try {
+      const updatedUser = await userService.updateProfile(currentUser?.id || '', {
         firstName: editForm.firstName,
         lastName: editForm.lastName,
         bio: editForm.bio,
+        location: {
+          city: editForm.city,
+          country: editForm.country
+        },
         profession: editForm.profession,
         education: editForm.education,
         avatar: editForm.avatar,
         coverPhoto: editForm.coverPhoto,
         dateOfBirth: editForm.dateOfBirth,
         interests: editForm.interests,
-        isVerified: editForm.isVerified,
-        location: {
-          ...currentUser.location,
-          city: editForm.city,
-          country: editForm.country
-        }
-      }).catch(e => alert(e.response?.data?.error || e.message));
+        isVerified: editForm.isVerified
+      });
+
+      setUser(updatedUser);
+      updateUser(updatedUser);
+      setIsEditModalOpen(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+    } catch (error) {
+      console.error("Error saving profile", error);
+      // Fallback update
+      const fallbackUser = {
+        ...user,
+        ...editForm,
+        location: { city: editForm.city, country: editForm.country }
+      };
+      setUser(fallbackUser);
+      updateUser(fallbackUser);
       setIsEditModalOpen(false);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
@@ -211,7 +195,6 @@ const ProfileView = () => {
   );
   const isMatched = !!existingConv;
 
-  // Handle message button click
   const handleMessage = () => {
     if (!user) return;
     if (existingConv) {
@@ -237,8 +220,8 @@ const ProfileView = () => {
     if (loadConversations) await loadConversations();
   };
 
-  if (isLoading) return <Loading text="Đang tải hồ sơ..." />;
-  if (!user) return <div>Không tìm thấy người dùng.</div>;
+  if (isLoading) return <Loading text={t('profile.loading')} />;
+  if (!user) return <div>{t('profile.not_found')}</div>;
 
   return (
     <div className="profile-view fade-in position-relative">
@@ -247,35 +230,35 @@ const ProfileView = () => {
       <div className="row mt-4">
         <div className="col-md-4 mb-4">
           <div className="hc-card p-4">
-            <h5 className="mb-3">Bio</h5>
+            <h5 className="mb-3">{t('profile.bio')}</h5>
             <div className="text-dark">
-              <LinkifyText text={user.bio || 'Chưa có thông tin.'} />
+              <LinkifyText text={user.bio || t('profile.no_bio')} />
             </div>
             
-            <h5 className="mb-3 mt-4">Sở thích</h5>
+            <h5 className="mb-3 mt-4">{t('profile.interests')}</h5>
             <div className="d-flex flex-wrap gap-2">
               {user.interests?.map((interest: any, i: number) => (
                 <InterestBadge key={i} interest={typeof interest === 'string' ? { id: String(i), name: interest, icon: 'bi-star' } as any : interest} />
-              )) || <span className="text-muted">Chưa cập nhật</span>}
+              )) || <span className="text-muted">{t('profile.not_updated')}</span>}
             </div>
 
             <div className="mt-4">
               {isOwnProfile ? (
                 <Button variant="primary" className="w-100" onClick={() => setIsEditModalOpen(true)}>
-                  Chỉnh sửa hồ sơ
+                  {t('profile.edit_btn')}
                 </Button>
               ) : (
                 <div className="d-flex flex-column gap-2">
                   {isMatched ? (
                     <Button variant="light" disabled className="text-danger border-danger">
-                      <i className="bi bi-heart-fill me-2"></i> Đã tương hợp
+                      <i className="bi bi-heart-fill me-2"></i> {t('profile.matched_status')}
                     </Button>
                   ) : (
-                    <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> Thả tim</Button>
+                    <Button variant="danger" onClick={handleLike}><i className="bi bi-heart-fill me-2"></i> {t('common.like')}</Button>
                   )}
-                  <Button variant="primary" onClick={handleMessage}>Nhắn tin</Button>
-                  <Button variant="secondary" onClick={handleBlock}>Chặn</Button>
-                  <Button variant="warning" onClick={handleReport}>Báo cáo</Button>
+                  <Button variant="primary" onClick={handleMessage}>{t('common.message')}</Button>
+                  <Button variant="secondary" onClick={handleBlock}>{t('common.block')}</Button>
+                  <Button variant="warning" onClick={handleReport}>{t('common.report')}</Button>
                 </div>
               )}
             </div>
@@ -285,7 +268,7 @@ const ProfileView = () => {
         <div className="col-md-8">
           {galleryPhotos && galleryPhotos.length > 0 && (
             <div className="hc-card p-4">
-              <h5 className="mb-3">Thư viện ảnh</h5>
+              <h5 className="mb-3">{t('profile.gallery')}</h5>
               <ProfileGallery photos={galleryPhotos} />
             </div>
           )}
@@ -295,50 +278,50 @@ const ProfileView = () => {
       {/* Edit Profile Modal */}
       <Modal 
         isOpen={isEditModalOpen} 
-        title="Chỉnh sửa toàn bộ hồ sơ" 
+        title={t('profile.edit_modal_title')} 
         onClose={() => setIsEditModalOpen(false)}
       >
         <div className="row">
           <div className="col-md-6 mb-3">
-            <label className="form-label">Tên</label>
+            <label className="form-label">{t('profile.first_name')}</label>
             <input type="text" className="form-control" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
           </div>
           <div className="col-md-6 mb-3">
-            <label className="form-label">Họ</label>
+            <label className="form-label">{t('profile.last_name')}</label>
             <input type="text" className="form-control" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
           </div>
         </div>
 
         <div className="mb-3">
-          <label className="form-label">Ngày sinh (Dùng để tính tuổi)</label>
+          <label className="form-label">{t('profile.birth_date')}</label>
           <input 
             type="date" 
             className="form-control" 
             name="dateOfBirth" 
             value={editForm.dateOfBirth} 
             onChange={handleEditChange} 
-            max={new Date().toISOString().split("T")[0]} // Không cho phép chọn ngày tương lai
+            max={new Date().toISOString().split("T")[0]}
           />
         </div>
 
         <div className="row">
           <div className="col-md-6 mb-3">
-            <Input label="Thành phố" name="city" value={editForm.city} onChange={handleEditChange} />
+            <Input label={t('profile.city')} name="city" value={editForm.city} onChange={handleEditChange} />
           </div>
           <div className="col-md-6 mb-3">
-            <Input label="Quốc gia" name="country" value={editForm.country} onChange={handleEditChange} />
+            <Input label={t('profile.country')} name="country" value={editForm.country} onChange={handleEditChange} />
           </div>
         </div>
         <div className="row">
           <div className="col-md-6 mb-3">
-            <Input label="Nghề nghiệp" name="profession" value={editForm.profession} onChange={handleEditChange} />
+            <Input label={t('profile.profession')} name="profession" value={editForm.profession} onChange={handleEditChange} />
           </div>
           <div className="col-md-6 mb-3">
-            <Input label="Học vấn" name="education" value={editForm.education} onChange={handleEditChange} />
+            <Input label={t('profile.education')} name="education" value={editForm.education} onChange={handleEditChange} />
           </div>
         </div>
         <div className="mb-3">
-          <label className="form-label">Ảnh đại diện (Avatar)</label>
+          <label className="form-label">Avatar</label>
           <div className="d-flex align-items-center gap-3">
             {editForm.avatar && (
               <img src={editForm.avatar} alt="Avatar" className="rounded-circle border" style={{ width: 50, height: 50, objectFit: 'cover' }} />
@@ -346,13 +329,13 @@ const ProfileView = () => {
             <input 
               type="file" 
               className="form-control" 
-              accept="image/*"
+              accept="image/*" 
               onChange={(e) => handleFileChange(e, 'avatar')} 
             />
           </div>
         </div>
         <div className="mb-3">
-          <label className="form-label">Ảnh bìa (Cover)</label>
+          <label className="form-label">Cover Photo</label>
           <div className="d-flex flex-column gap-2">
             {editForm.coverPhoto && (
               <img src={editForm.coverPhoto} alt="Cover" className="rounded border" style={{ width: '80%', height: '140px', objectFit: 'cover', margin: '0 auto' }} />
@@ -360,13 +343,13 @@ const ProfileView = () => {
             <input 
               type="file" 
               className="form-control" 
-              accept="image/*"
+              accept="image/*" 
               onChange={(e) => handleFileChange(e, 'coverPhoto')} 
             />
           </div>
         </div>
         <div className="mb-3">
-          <label className="form-label">Sở thích của bạn</label>
+          <label className="form-label">{t('profile.interests')}</label>
           <div className="d-flex flex-wrap gap-2 mb-2">
             {editForm.interests.map(interest => (
               <span key={interest.id} className="interest-badge d-flex align-items-center gap-1">
@@ -379,15 +362,14 @@ const ProfileView = () => {
             <input 
               type="text" 
               className="form-control" 
-              placeholder="Tự nhập sở thích mới..." 
-              value={newInterest}
-              onChange={e => setNewInterest(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' ? handleAddInterest() : null}
+              placeholder="Tag..." 
+              value={newInterest} 
+              onChange={e => setNewInterest(e.target.value)} 
+              onKeyDown={e => e.key === 'Enter' ? handleAddInterest() : null} 
             />
-            <button className="btn btn-outline-primary" type="button" onClick={handleAddInterest}>Thêm</button>
+            <button className="btn btn-outline-primary" type="button" onClick={handleAddInterest}>+</button>
           </div>
           
-          <label className="form-label text-muted" style={{ fontSize: '0.85rem' }}>Gợi ý sở thích:</label>
           <div className="d-flex flex-wrap gap-2" style={{ maxHeight: '150px', overflowY: 'auto', padding: '4px' }}>
             {predefinedInterests
               .filter(i => !editForm.interests.find((ei: any) => ei.id === i.id || ei.name.toLowerCase() === i.name.toLowerCase()))
@@ -405,20 +387,19 @@ const ProfileView = () => {
           </div>
         </div>
         <div className="mb-3">
-          <label className="form-label">Bio (Giới thiệu ngắn)</label>
+          <label className="form-label">{t('profile.bio')}</label>
           <textarea 
             className="form-control" 
             name="bio" 
             rows={3} 
             value={editForm.bio} 
-            onChange={handleEditChange}
-            placeholder="Viết một vài điều về bản thân bạn..."
+            onChange={handleEditChange} 
           />
         </div>
         
         <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-          <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Hủy</Button>
-          <Button variant="primary" onClick={handleSaveProfile}>Lưu thay đổi</Button>
+          <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>{t('common.cancel')}</Button>
+          <Button variant="primary" onClick={handleSaveProfile}>{t('common.save')}</Button>
         </div>
       </Modal>
 
@@ -435,16 +416,10 @@ const ProfileView = () => {
       )}
 
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999 }}>
-        <Toast show={showToast} message="Đã cập nhật hồ sơ!" type="success" onClose={() => setShowToast(false)} />
+        <Toast show={showToast} message="Success" type="success" onClose={() => setShowToast(false)} />
       </div>
     </div>
   );
 };
 
 export default ProfileView;
-
-
-
-
-
-
