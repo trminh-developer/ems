@@ -1,0 +1,17 @@
+[
+  {
+    "key": "APP_NAME",
+    "value": "HeartConnect",
+    "description": "Tên ứng dụng"
+  },
+  {
+    "key": "MAINTENANCE_MODE",
+    "value": "false",
+    "description": "Chế độ bảo trì hệ thống"
+  },
+  {
+    "key": "MAX_DAILY_SWIPES",
+    "value": "100",
+    "description": "Số lượt quẹt tối đa mỗi ngày"
+  }
+]

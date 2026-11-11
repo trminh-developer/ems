@@ -13,6 +13,10 @@
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@emailjs/browser": "^4.4.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
     "@sentry/browser": "^11.0.0",
     "@sentry/react": "^11.0.0",
     "@types/react-linkify": "^1.0.4",

@@ -1,10 +1,13 @@
-import { Request, Response } from 'express';
-import { Status, StatusLike, StatusComment, User } from '../../models';
-import { AuthRequest } from '../../middlewares/authMiddleware';
+import { Request, Response } from "express";
+import { Status, StatusLike, StatusComment, User } from "../../models";
+import { AuthRequest } from "../../middlewares/authMiddleware";
 
 // Regex to check if base64 string is a valid image (jpeg, jpg, png, webp, gif, svg)
 const isBase64Image = (str: string) => {
-  return typeof str === 'string' && /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(str);
+  return (
+    typeof str === "string" &&
+    /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(str)
+  );
 };
 
 export const getStatuses = async (req: AuthRequest, res: Response) => {
@@ -15,7 +18,7 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
     const offset = (page - 1) * limit;
 
     let whereClause = {};
-    if (userId && userId !== 'all') {
+    if (userId && userId !== "all") {
       whereClause = { user_id: userId };
     }
 
@@ -24,9 +27,12 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
       limit,
       offset,
       include: [
-        { model: User, attributes: ['id', 'username', 'first_name', 'last_name', 'avatar'] }
+        {
+          model: User,
+          attributes: ["id", "username", "first_name", "last_name", "avatar"],
+        },
       ],
-      order: [['created_at', 'DESC']]
+      order: [["created_at", "DESC"]],
     });
 
     const statusIds = statuses.map((s: any) => s.id);
@@ -34,18 +40,18 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
     // Bulk fetch likes and comments for only these statuses to eliminate N+1 Query
     const [likes, comments] = await Promise.all([
       StatusLike.findAll({ where: { status_id: statusIds } }),
-      StatusComment.findAll({ where: { status_id: statusIds } })
+      StatusComment.findAll({ where: { status_id: statusIds } }),
     ]);
 
     const results = statuses.map((s: any) => {
       const sLikes = likes.filter((l: any) => l.status_id === s.id);
       const sComments = comments.filter((c: any) => c.status_id === s.id);
-      
+
       let hasLiked = false;
       if (req.user) {
         hasLiked = sLikes.some((l: any) => l.user_id === req.user?.id);
       }
-      
+
       const author = s.User || {};
 
       return {
@@ -54,28 +60,32 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
         user: {
           id: author.id,
           username: author.username,
-          firstName: author.first_name || author.firstName || author.username || 'Người dùng',
-          lastName: author.last_name || author.lastName || '',
+          firstName:
+            author.first_name ||
+            author.firstName ||
+            author.username ||
+            "Người dùng",
+          lastName: author.last_name || author.lastName || "",
           first_name: author.first_name,
           last_name: author.last_name,
-          avatar: author.avatar || ''
+          avatar: author.avatar || "",
         },
         content: s.content,
         mediaUrls: s.media_urls || [],
         likesCount: sLikes.length,
         commentsCount: sComments.length,
         hasLiked,
-        createdAt: s.created_at
+        createdAt: s.created_at,
       };
     });
 
-    // We can return an array to keep it compatible with current frontend, 
+    // We can return an array to keep it compatible with current frontend,
     // or wrap in { data: results, page, totalPages } if frontend supports it.
     // For now, return array directly to avoid breaking useFeed.ts
     return res.json(results);
   } catch (err: any) {
-    console.error('Error in getStatuses:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error("Error in getStatuses:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -85,13 +95,17 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
     // ALWAYS use the authenticated user's ID
     const userId = req.user?.id;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     // Validate mediaUrls (Checklist #7: Giới hạn loại file)
     if (mediaUrls && Array.isArray(mediaUrls)) {
       for (const media of mediaUrls) {
         if (!isBase64Image(media)) {
-          return res.status(400).json({ error: 'Invalid file type. Only image uploads are allowed.' });
+          return res
+            .status(400)
+            .json({
+              error: "Invalid file type. Only image uploads are allowed.",
+            });
         }
       }
     }
@@ -99,7 +113,7 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
     const status = await Status.create({
       user_id: userId,
       content,
-      media_urls: mediaUrls || []
+      media_urls: mediaUrls || [],
     });
 
     const statusData = status.toJSON ? status.toJSON() : (status as any);
@@ -110,24 +124,30 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
       user: {
         id: req.user.id,
         username: req.user.username,
-        firstName: req.user.first_name || req.user.firstName || req.user.username || 'Người dùng',
-        lastName: req.user.last_name || req.user.lastName || '',
+        firstName:
+          req.user.first_name ||
+          req.user.firstName ||
+          req.user.username ||
+          "Người dùng",
+        lastName: req.user.last_name || req.user.lastName || "",
         first_name: req.user.first_name,
         last_name: req.user.last_name,
-        avatar: req.user.avatar || ''
+        avatar: req.user.avatar || "",
       },
       content: statusData.content,
       mediaUrls: statusData.media_urls || [],
       likesCount: 0,
       commentsCount: 0,
       hasLiked: false,
-      createdAt: statusData.created_at
+      createdAt: statusData.created_at,
     };
 
     return res.json({ success: true, status: formattedStatus });
   } catch (err: any) {
-    console.error('Error in createStatus:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    console.error("Error in createStatus:", err);
+    return res
+      .status(500)
+      .json({ error: err.message || "Internal server error" });
   }
 };
 
@@ -136,16 +156,18 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
     const { statusId, isLiked } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     if (isLiked) {
       await StatusLike.create({ status_id: statusId, user_id: userId });
     } else {
-      await StatusLike.destroy({ where: { status_id: statusId, user_id: userId } });
+      await StatusLike.destroy({
+        where: { status_id: statusId, user_id: userId },
+      });
     }
     return res.json({ success: true });
   } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -154,16 +176,16 @@ export const addComment = async (req: AuthRequest, res: Response) => {
     const { statusId, content } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
     const comment = await StatusComment.create({
       status_id: statusId,
       user_id: userId,
-      content
+      content,
     });
     return res.json({ success: true, comment });
   } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -173,13 +195,16 @@ export const getComments = async (req: Request, res: Response) => {
     const comments = await StatusComment.findAll({
       where: { status_id: statusId },
       include: [
-        { model: User, attributes: ['id', 'username', 'first_name', 'last_name', 'avatar'] }
+        {
+          model: User,
+          attributes: ["id", "username", "first_name", "last_name", "avatar"],
+        },
       ],
-      order: [['created_at', 'ASC']]
+      order: [["created_at", "ASC"]],
     });
     return res.json(comments);
   } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -189,16 +214,16 @@ export const deleteStatus = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id;
 
     const status: any = await Status.findByPk(statusId as string);
-    if (!status) return res.status(404).json({ error: 'Status not found' });
+    if (!status) return res.status(404).json({ error: "Status not found" });
 
     // IDOR Check: Only the owner or admin can delete
-    if (status.user_id !== userId && req.user?.role !== 'ADMIN') {
-      return res.status(403).json({ error: 'Forbidden' });
+    if (status.user_id !== userId && req.user?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     await status.destroy();
     return res.json({ success: true });
   } catch (err) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

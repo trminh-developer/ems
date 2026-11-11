@@ -1,24 +1,24 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import path from 'path'
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
     host: true, // Lắng nghe trên mọi card mạng (0.0.0.0) để chia sẻ ra ngoài mạng LAN hoặc Dev Tunnels
     port: 5173,
-    allowedHosts: true, // Cho phép mọi domain như devtunnels.ms, ngrok, LAN IP kết nối
+    allowedHosts: true, // Share Port connect of app
     proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
+      "/api": {
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
     },
   },
-})
+});

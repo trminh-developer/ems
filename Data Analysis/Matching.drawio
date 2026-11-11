@@ -1,0 +1,96 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="uQHL8NRP5dc5SxblrjwP">
+    <mxGraphModel dx="1288" dy="783" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <UserObject label="" mermaidData="{&#xa;  &quot;data&quot;: &quot;graph TD\n    Start[\&quot;User A vuốt phải Like User B\&quot;] --&gt; Check{\&quot;User B đã Like User A chưa?\&quot;}\n    \n    Check -- \&quot;Chưa\&quot; --&gt; SaveLike[\&quot;Lưu vào bảng user_likes: A -&gt; B\&quot;]\n    \n    Check -- \&quot;Rồi\&quot; --&gt; CreateMatch[\&quot;Tạo bản ghi trong bảng matches: A &amp; B\&quot;]\n    CreateMatch --&gt; CreateChat[\&quot;Tạo phòng chat trong conversations\&quot;]\n    CreateChat --&gt; AddParticipants[\&quot;Thêm A và B vào conversation_participants\&quot;]\n    AddParticipants --&gt; ShowPopup[\&quot;Hiển thị Popup &#39;It&#39;s a Match!&#39; cho User A\&quot;]&quot;,&#xa;  &quot;config&quot;: null&#xa;}" id="S8HtQ5pnQ9dUO07sMsvo-1">
+          <mxCell connectable="0" parent="1" style="group;transparentBounds=1;editIcon=1;lockedGroup=0;groupPadding=10;" vertex="1">
+            <mxGeometry as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="User A vuốt phải Like User B" mermaidId="n:Start" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="User A vuốt phải Like User B" id="S8HtQ5pnQ9dUO07sMsvo-2">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="263" x="222" y="30" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="User B đã Like User A chưa?" mermaidId="n:Check" mermaidBaseStyle="rhombus;html=1;strokeWidth=1;whiteSpace=wrap;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="User B đã Like User A chưa?" id="S8HtQ5pnQ9dUO07sMsvo-3">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="rhombus;html=1;strokeWidth=1;whiteSpace=wrap;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="333" width="333" x="187" y="134" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Lưu vào bảng user_likes: A -&gt; B" mermaidId="n:SaveLike" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Lưu vào bảng user_likes: A -&gt; B" id="S8HtQ5pnQ9dUO07sMsvo-4">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="284" x="30" y="536" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Tạo bản ghi trong bảng matches: A &amp; B" mermaidId="n:CreateMatch" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Tạo bản ghi trong bảng matches: A &amp; B" id="S8HtQ5pnQ9dUO07sMsvo-5">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="342" x="364" y="536" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Tạo phòng chat trong conversations" mermaidId="n:CreateChat" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Tạo phòng chat trong conversations" id="S8HtQ5pnQ9dUO07sMsvo-6">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="317" x="377" y="640" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Thêm A và B vào conversation_participants" mermaidId="n:AddParticipants" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Thêm A và B vào conversation_participants" id="S8HtQ5pnQ9dUO07sMsvo-7">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="367" x="352" y="744" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="Hiển thị Popup &#39;It&#39;s a Match!&#39; cho User A" mermaidId="n:ShowPopup" mermaidBaseStyle="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" mermaidBaseValue="Hiển thị Popup &#39;It&#39;s a Match!&#39; cho User A" id="S8HtQ5pnQ9dUO07sMsvo-8">
+          <mxCell parent="S8HtQ5pnQ9dUO07sMsvo-1" style="html=1;whiteSpace=wrap;strokeWidth=1;fillColor=light-dark(#ECECFF,#1f2020);strokeColor=light-dark(#9370DB,#cccccc);fontColor=light-dark(#333333,#cccccc);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontSize=16;" vertex="1">
+            <mxGeometry height="54" width="342" x="364" y="848" as="geometry" />
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:Start-&gt;Check#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="S8HtQ5pnQ9dUO07sMsvo-9">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-2" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-3">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="Chưa" mermaidId="e:Check-&gt;SaveLike#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.05;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="Chưa" id="S8HtQ5pnQ9dUO07sMsvo-10">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-3" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.05;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-4">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="172" y="501" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="Rồi" mermaidId="e:Check-&gt;CreateMatch#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.95;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="Rồi" id="S8HtQ5pnQ9dUO07sMsvo-11">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-3" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);html=1;fontSize=16;labelBackgroundColor=light-dark(#E8E8E88D,#2a2a2a8D);fontFamily=Trebuchet MS,Verdana,Arial,sans-serif;fontColor=light-dark(#333333,#cccccc);exitX=0.95;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-5">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points">
+                <mxPoint x="535" y="501" />
+              </Array>
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:CreateMatch-&gt;CreateChat#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="S8HtQ5pnQ9dUO07sMsvo-12">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-5" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-6">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:CreateChat-&gt;AddParticipants#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="S8HtQ5pnQ9dUO07sMsvo-13">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-6" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-7">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+        <UserObject label="" mermaidId="e:AddParticipants-&gt;ShowPopup#0" mermaidBaseStyle="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;" mermaidBaseValue="" id="S8HtQ5pnQ9dUO07sMsvo-14">
+          <mxCell edge="1" parent="S8HtQ5pnQ9dUO07sMsvo-1" source="S8HtQ5pnQ9dUO07sMsvo-7" style="curved=1;startArrow=none;endArrow=block;endSize=7;strokeColor=light-dark(#333333,#cccccc);exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;" target="S8HtQ5pnQ9dUO07sMsvo-8">
+            <mxGeometry relative="1" as="geometry">
+              <Array as="points" />
+            </mxGeometry>
+          </mxCell>
+        </UserObject>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

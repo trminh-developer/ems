@@ -1,0 +1,22 @@
+[
+  {
+    "id": "rep-01",
+    "reporter_id": "00000000-0000-0000-0000-000000000003",
+    "reported_user_id": "00000000-0000-0000-0000-000000000008",
+    "reported_status_id": null,
+    "reason": "Spam / Tin nhắn rác",
+    "description": "Người dùng gửi liên tục các liên kết quảng cáo và lừa đảo.",
+    "status": "PENDING",
+    "createdAt": "2026-11-10T11:00:00.000Z"
+  },
+  {
+    "id": "rep-02",
+    "reporter_id": "00000000-0000-0000-0000-000000000005",
+    "reported_user_id": "00000000-0000-0000-0000-000000000006",
+    "reported_status_id": null,
+    "reason": "Ngôn từ xúc phạm",
+    "description": "Bình luận khiếm nhã trong cuộc trò chuyện.",
+    "status": "RESOLVED",
+    "createdAt": "2026-11-08T09:20:00.000Z"
+  }
+]

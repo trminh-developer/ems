@@ -1,0 +1,16 @@
+[
+  {
+    "id": "sc-01",
+    "status_id": "status-01",
+    "user_id": "00000000-0000-0000-0000-000000000002",
+    "content": "Mùa thu Hà Nội luôn có một nét rất riêng, ảnh chụp thơ mộng ghê!",
+    "created_at": "2026-11-11T08:35:00.000Z"
+  },
+  {
+    "id": "sc-02",
+    "status_id": "status-01",
+    "user_id": "00000000-0000-0000-0000-000000000003",
+    "content": "Cảm ơn anh Minh nhé ^^",
+    "created_at": "2026-11-11T08:40:00.000Z"
+  }
+]

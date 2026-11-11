@@ -1,0 +1,74 @@
+[
+  {
+    "id": "i1",
+    "name": "Nghe nhạc",
+    "icon": "bi-music-note-beamed",
+    "category": "Giải trí"
+  },
+  {
+    "id": "i2",
+    "name": "Du lịch",
+    "icon": "bi-airplane",
+    "category": "Lối sống"
+  },
+  {
+    "id": "i3",
+    "name": "Cà phê",
+    "icon": "bi-cup-hot",
+    "category": "Ẩm thực"
+  },
+  {
+    "id": "i4",
+    "name": "Xem phim",
+    "icon": "bi-film",
+    "category": "Giải trí"
+  },
+  {
+    "id": "i5",
+    "name": "Chơi game",
+    "icon": "bi-controller",
+    "category": "Công nghệ"
+  },
+  {
+    "id": "i6",
+    "name": "Tập Gym",
+    "icon": "bi-activity",
+    "category": "Thể thao"
+  },
+  {
+    "id": "i7",
+    "name": "Nấu ăn",
+    "icon": "bi-egg-fried",
+    "category": "Ẩm thực"
+  },
+  {
+    "id": "i8",
+    "name": "Đọc sách",
+    "icon": "bi-book",
+    "category": "Học tập"
+  },
+  {
+    "id": "i9",
+    "name": "Nhiếp ảnh",
+    "icon": "bi-camera",
+    "category": "Nghệ thuật"
+  },
+  {
+    "id": "i10",
+    "name": "Nuôi thú cưng",
+    "icon": "bi-heart",
+    "category": "Lối sống"
+  },
+  {
+    "id": "i11",
+    "name": "Chạy bộ",
+    "icon": "bi-lightning",
+    "category": "Thể thao"
+  },
+  {
+    "id": "i12",
+    "name": "Vẽ tranh",
+    "icon": "bi-palette",
+    "category": "Nghệ thuật"
+  }
+]

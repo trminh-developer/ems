@@ -1,4 +1,9 @@
 {
+  "name": "dating-app",
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix frontend"
+  },
   "dependencies": {
     "react-router-dom": "^7.18.4"
   }

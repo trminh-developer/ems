@@ -1,0 +1,658 @@
+import bcrypt from "bcrypt";
+import fs from "fs";
+import path from "path";
+
+async function generateMockDatabase() {
+  const saltRounds = 10;
+  const defaultUserPassword = await bcrypt.hash("123456", saltRounds);
+  const defaultAdminPassword = await bcrypt.hash("admin123", saltRounds);
+
+  const users = [
+    {
+      id: "00000000-0000-0000-0000-000000000001",
+      email: "admin@heartconnect.com",
+      password: defaultAdminPassword,
+      username: "admin",
+      first_name: "Quản Trị",
+      last_name: "Viên",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1000&auto=format&fit=crop&q=80",
+      gender: "other",
+      date_of_birth: "1995-01-01",
+      city: "Hồ Chí Minh",
+      country: "Việt Nam",
+      latitude: 10.7769,
+      longitude: 106.7009,
+      bio: "Tài khoản Quản trị viên hệ thống HeartConnect.",
+      profession: "System Administrator",
+      education: "Đại học Bách Khoa",
+      photos: [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Tìm bạn tâm sự",
+      is_online: true,
+      last_active: new Date().toISOString(),
+      is_verified: true,
+      role: "ADMIN",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: true,
+      premium_expires_at: "2028-12-31T23:59:59.000Z",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000002",
+      email: "trminhdev@heartconnect.com",
+      password: defaultUserPassword,
+      username: "trminhdev",
+      first_name: "Trần Đức",
+      last_name: "Minh",
+      avatar:
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000&auto=format&fit=crop&q=80",
+      gender: "male",
+      date_of_birth: "2001-08-15",
+      city: "Đà Nẵng",
+      country: "Việt Nam",
+      latitude: 16.0471,
+      longitude: 108.2062,
+      bio: "Software Engineer đam mê công nghệ, thích du lịch biển và nghe nhạc Indie 🎸.",
+      profession: "Kỹ sư Phần mềm",
+      education: "Đại học FPT",
+      photos: [
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Hẹn hò nghiêm túc",
+      is_online: true,
+      last_active: new Date().toISOString(),
+      is_verified: true,
+      role: "CENSOR",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: true,
+      premium_expires_at: "2027-01-01T00:00:00.000Z",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000003",
+      email: "thanhthuy@gmail.com",
+      password: defaultUserPassword,
+      username: "thanhthuy",
+      first_name: "Thanh",
+      last_name: "Thúy",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=1000&auto=format&fit=crop&q=80",
+      gender: "female",
+      date_of_birth: "2002-11-20",
+      city: "Hà Nội",
+      country: "Việt Nam",
+      latitude: 21.0285,
+      longitude: 105.8542,
+      bio: "Thích cà phê sáng, sách và ngắm hoàng hôn Tây Hồ ☕📖. Tìm kiếm một tâm hồn đồng điệu.",
+      profession: "UI/UX Designer",
+      education: "Đại học Mỹ Thuật Công Nghiệp",
+      photos: [
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Người yêu lâu dài",
+      is_online: true,
+      last_active: new Date().toISOString(),
+      is_verified: true,
+      role: "USER",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: false,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000004",
+      email: "hoanganh@gmail.com",
+      password: defaultUserPassword,
+      username: "hoanganh",
+      first_name: "Hoàng",
+      last_name: "Anh",
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1000&auto=format&fit=crop&q=80",
+      gender: "male",
+      date_of_birth: "1999-04-10",
+      city: "Hồ Chí Minh",
+      country: "Việt Nam",
+      latitude: 10.8231,
+      longitude: 106.6297,
+      bio: "Nhiếp ảnh gia tự do. Yêu thích khám phá ẩm thực đường phố và cắm trại cuối tuần 📸🏕️.",
+      profession: "Photographer",
+      education: "Đại học Kiến Trúc",
+      photos: [
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Tìm bạn hẹn hò",
+      is_online: false,
+      last_active: "2026-11-10T18:30:00.000Z",
+      is_verified: true,
+      role: "USER",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: true,
+      premium_expires_at: "2027-06-01T00:00:00.000Z",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000005",
+      email: "linhdan@gmail.com",
+      password: defaultUserPassword,
+      username: "linhdan",
+      first_name: "Linh",
+      last_name: "Đan",
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=1000&auto=format&fit=crop&q=80",
+      gender: "female",
+      date_of_birth: "2003-02-14",
+      city: "Đà Lạt",
+      country: "Việt Nam",
+      latitude: 11.9404,
+      longitude: 108.4583,
+      bio: "Sống tại xứ sở sương mù. Thích trồng hoa, làm bánh và nuôi mèo 🐱🌷.",
+      profession: "Pastry Chef & Barista",
+      education: "Cao đẳng Du Lịch Đà Lạt",
+      photos: [
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Bạn bè & Kết nối",
+      is_online: true,
+      last_active: new Date().toISOString(),
+      is_verified: true,
+      role: "USER",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: false,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000006",
+      email: "quocviet@gmail.com",
+      password: defaultUserPassword,
+      username: "quocviet",
+      first_name: "Quốc",
+      last_name: "Việt",
+      avatar:
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1000&auto=format&fit=crop&q=80",
+      gender: "male",
+      date_of_birth: "2000-09-22",
+      city: "Cần Thơ",
+      country: "Việt Nam",
+      latitude: 10.0452,
+      longitude: 105.7469,
+      bio: "Chàng trai miền Tây chân chất, thích chơi thể thao và tập gym mỗi buổi chiều 🏋️‍♂️.",
+      profession: "Fitness Coach",
+      education: "Đại học Thể Dục Thể Thao",
+      photos: [
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Tìm bạn hẹn hò",
+      is_online: false,
+      last_active: "2026-11-11T08:00:00.000Z",
+      is_verified: false,
+      role: "USER",
+      status: "ACTIVE",
+      violation_count: 1,
+      is_premium: false,
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000007",
+      email: "maichi@gmail.com",
+      password: defaultUserPassword,
+      username: "maichi",
+      first_name: "Mai",
+      last_name: "Chi",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      cover_photo:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000&auto=format&fit=crop&q=80",
+      gender: "female",
+      date_of_birth: "2001-05-18",
+      city: "Hồ Chí Minh",
+      country: "Việt Nam",
+      latitude: 10.7769,
+      longitude: 106.7009,
+      bio: "Bác sĩ thú y yêu động vật 🐕🐈. Hy vọng tìm được người thích chó mèo như mình!",
+      profession: "Veterinarian",
+      education: "Đại học Nông Lâm",
+      photos: [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+      ],
+      relationship_goal: "Tìm kiếm người yêu lâu dài",
+      is_online: true,
+      last_active: new Date().toISOString(),
+      is_verified: true,
+      role: "USER",
+      status: "ACTIVE",
+      violation_count: 0,
+      is_premium: true,
+      premium_expires_at: "2027-03-15T00:00:00.000Z",
+    },
+    {
+      id: "00000000-0000-0000-0000-000000000008",
+      email: "spammer@fake.com",
+      password: defaultUserPassword,
+      username: "baduser_spam",
+      first_name: "Tài Khoản",
+      last_name: "Vi Phạm",
+      avatar:
+        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&auto=format&fit=crop&q=80",
+      cover_photo: "",
+      gender: "male",
+      date_of_birth: "1998-12-12",
+      city: "Hà Nội",
+      country: "Việt Nam",
+      latitude: 21.0285,
+      longitude: 105.8542,
+      bio: "Tài khoản thử nghiệm bị cảnh cáo vi phạm trong trang quản trị.",
+      profession: "Không xác định",
+      education: "",
+      photos: [],
+      relationship_goal: "Chưa xác định",
+      is_online: false,
+      last_active: "2026-10-01T00:00:00.000Z",
+      is_verified: false,
+      role: "USER",
+      status: "BANNED",
+      violation_count: 5,
+      is_premium: false,
+    },
+  ];
+
+  const interests = [
+    {
+      id: "i1",
+      name: "Nghe nhạc",
+      icon: "bi-music-note-beamed",
+      category: "Giải trí",
+    },
+    { id: "i2", name: "Du lịch", icon: "bi-airplane", category: "Lối sống" },
+    { id: "i3", name: "Cà phê", icon: "bi-cup-hot", category: "Ẩm thực" },
+    { id: "i4", name: "Xem phim", icon: "bi-film", category: "Giải trí" },
+    {
+      id: "i5",
+      name: "Chơi game",
+      icon: "bi-controller",
+      category: "Công nghệ",
+    },
+    { id: "i6", name: "Tập Gym", icon: "bi-activity", category: "Thể thao" },
+    { id: "i7", name: "Nấu ăn", icon: "bi-egg-fried", category: "Ẩm thực" },
+    { id: "i8", name: "Đọc sách", icon: "bi-book", category: "Học tập" },
+    { id: "i9", name: "Nhiếp ảnh", icon: "bi-camera", category: "Nghệ thuật" },
+    {
+      id: "i10",
+      name: "Nuôi thú cưng",
+      icon: "bi-heart",
+      category: "Lối sống",
+    },
+    { id: "i11", name: "Chạy bộ", icon: "bi-lightning", category: "Thể thao" },
+    { id: "i12", name: "Vẽ tranh", icon: "bi-palette", category: "Nghệ thuật" },
+  ];
+
+  const user_interests = [
+    { user_id: users[1].id, interest_id: "i1" },
+    { user_id: users[1].id, interest_id: "i2" },
+    { user_id: users[1].id, interest_id: "i5" },
+    { user_id: users[2].id, interest_id: "i3" },
+    { user_id: users[2].id, interest_id: "i4" },
+    { user_id: users[2].id, interest_id: "i8" },
+    { user_id: users[3].id, interest_id: "i2" },
+    { user_id: users[3].id, interest_id: "i9" },
+    { user_id: users[4].id, interest_id: "i3" },
+    { user_id: users[4].id, interest_id: "i7" },
+    { user_id: users[4].id, interest_id: "i10" },
+    { user_id: users[5].id, interest_id: "i6" },
+    { user_id: users[5].id, interest_id: "i11" },
+    { user_id: users[6].id, interest_id: "i10" },
+    { user_id: users[6].id, interest_id: "i7" },
+  ];
+
+  const user_preferences = [
+    {
+      id: "p1",
+      user_id: users[1].id,
+      preferred_gender: ["female"],
+      age_min: 18,
+      age_max: 30,
+      max_distance: 50,
+    },
+    {
+      id: "p2",
+      user_id: users[2].id,
+      preferred_gender: ["male"],
+      age_min: 22,
+      age_max: 35,
+      max_distance: 30,
+    },
+  ];
+
+  const matchId1 = "11111111-1111-1111-1111-111111111111";
+  const matchId2 = "22222222-2222-2222-2222-222222222222";
+
+  const matches = [
+    {
+      id: matchId1,
+      user1_id: users[1].id,
+      user2_id: users[2].id,
+      match_percentage: 92,
+      matched_at: "2026-11-01T10:00:00.000Z",
+    },
+    {
+      id: matchId2,
+      user1_id: users[1].id,
+      user2_id: users[4].id,
+      match_percentage: 88,
+      matched_at: "2026-11-05T14:30:00.000Z",
+    },
+  ];
+
+  const convId1 = "c1111111-1111-1111-1111-111111111111";
+  const convId2 = "c2222222-2222-2222-2222-222222222222";
+
+  const conversations = [
+    {
+      id: convId1,
+      match_id: matchId1,
+      updated_at: "2026-11-11T09:30:00.000Z",
+    },
+    {
+      id: convId2,
+      match_id: matchId2,
+      updated_at: "2026-11-10T16:00:00.000Z",
+    },
+  ];
+
+  const messages = [
+    {
+      id: "msg-01",
+      conversation_id: convId1,
+      sender_id: users[1].id,
+      content: "Chào Thúy! Rất vui được tương hợp với bạn trên HeartConnect 😊",
+      type: "text",
+      status: "seen",
+      is_recalled: false,
+      deleted_for: [],
+      created_at: "2026-11-11T09:00:00.000Z",
+    },
+    {
+      id: "msg-02",
+      conversation_id: convId1,
+      sender_id: users[2].id,
+      content:
+        "Chào Minh! Mình thấy bạn cũng thích nghe Indie và đi dạo cuối tuần nhỉ?",
+      type: "text",
+      status: "seen",
+      is_recalled: false,
+      deleted_for: [],
+      created_at: "2026-11-11T09:05:00.000Z",
+    },
+    {
+      id: "msg-03",
+      conversation_id: convId1,
+      sender_id: users[1].id,
+      content:
+        "Đúng rồi, mình hay nghe ban nhạc Ngọt và Chillies. Hôm nào mình cùng đi cà phê nghe nhạc nhé!",
+      type: "text",
+      status: "seen",
+      is_recalled: false,
+      deleted_for: [],
+      created_at: "2026-11-11T09:10:00.000Z",
+    },
+    {
+      id: "msg-04",
+      conversation_id: convId1,
+      sender_id: users[1].id,
+      content: "Tin nhắn đã được thu hồi",
+      type: "text",
+      status: "sent",
+      is_recalled: true,
+      deleted_for: [],
+      created_at: "2026-11-11T09:15:00.000Z",
+    },
+    {
+      id: "msg-05",
+      conversation_id: convId1,
+      sender_id: users[2].id,
+      content: "Oke nè, cuối tuần này mình rảnh chiều Chủ nhật đó!",
+      type: "text",
+      status: "delivered",
+      is_recalled: false,
+      deleted_for: [],
+      created_at: "2026-11-11T09:30:00.000Z",
+    },
+    {
+      id: "msg-06",
+      conversation_id: convId2,
+      sender_id: users[4].id,
+      content: "Chào anh Minh! Đà Lạt hôm nay se lạnh lắm 🌲☕",
+      type: "text",
+      status: "seen",
+      is_recalled: false,
+      deleted_for: [],
+      created_at: "2026-11-10T16:00:00.000Z",
+    },
+  ];
+
+  const statuses = [
+    {
+      id: "status-01",
+      user_id: users[2].id,
+      content:
+        "Hà Nội vào thu đẹp quá mọi người ơi! Một buổi chiều thong thả bên Hồ Tây với ly latte ấm áp 🍂☕✨",
+      media_urls: [
+        "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&auto=format&fit=crop&q=80",
+      ],
+      created_at: "2026-11-11T08:00:00.000Z",
+    },
+    {
+      id: "status-02",
+      user_id: users[1].id,
+      content:
+        "Chuyến đi săn mây và trekking cuối tuần tại đỉnh Fansipan. Thiên nhiên Việt Nam luôn làm con người ta cảm thấy nhỏ bé mà kỳ vĩ ⛰️🇻🇳",
+      media_urls: [
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80",
+      ],
+      created_at: "2026-11-10T15:30:00.000Z",
+    },
+    {
+      id: "status-03",
+      user_id: users[4].id,
+      content:
+        "Hôm nay tiệm bánh nhỏ vừa ra lò mẻ croissant bơ Pháp thơm lừng. Ai ghé Đà Lạt nhớ ghé tiệm mình nếm thử nhé! 🥐🍰",
+      media_urls: [
+        "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop&q=80",
+      ],
+      created_at: "2026-11-09T10:15:00.000Z",
+    },
+  ];
+
+  const status_likes = [
+    {
+      status_id: "status-01",
+      user_id: users[1].id,
+      created_at: "2026-11-11T08:30:00.000Z",
+    },
+    {
+      status_id: "status-01",
+      user_id: users[3].id,
+      created_at: "2026-11-11T08:45:00.000Z",
+    },
+    {
+      status_id: "status-02",
+      user_id: users[2].id,
+      created_at: "2026-11-10T16:00:00.000Z",
+    },
+  ];
+
+  const status_comments = [
+    {
+      id: "sc-01",
+      status_id: "status-01",
+      user_id: users[1].id,
+      content:
+        "Mùa thu Hà Nội luôn có một nét rất riêng, ảnh chụp thơ mộng ghê!",
+      created_at: "2026-11-11T08:35:00.000Z",
+    },
+    {
+      id: "sc-02",
+      status_id: "status-01",
+      user_id: users[2].id,
+      content: "Cảm ơn anh Minh nhé ^^",
+      created_at: "2026-11-11T08:40:00.000Z",
+    },
+  ];
+
+  const notifications = [
+    {
+      id: "notif-01",
+      user_id: users[1].id,
+      from_user_id: users[2].id,
+      type: "match",
+      message: "Bạn và Thanh Thúy đã tương hợp với nhau!",
+      is_read: false,
+      created_at: "2026-11-11T09:00:00.000Z",
+    },
+    {
+      id: "notif-02",
+      user_id: users[1].id,
+      from_user_id: users[4].id,
+      type: "like",
+      message: "Linh Đan đã thích hồ sơ của bạn.",
+      is_read: true,
+      created_at: "2026-11-10T14:00:00.000Z",
+    },
+    {
+      id: "notif-03",
+      user_id: users[1].id,
+      from_user_id: null,
+      type: "system",
+      message:
+        "Chào mừng bạn đến với HeartConnect - Ứng dụng hẹn hò thế hệ mới!",
+      is_read: true,
+      created_at: "2026-11-01T00:00:00.000Z",
+    },
+  ];
+
+  const reports = [
+    {
+      id: "rep-01",
+      reporter_id: users[2].id,
+      reported_user_id: users[7].id,
+      reported_status_id: null,
+      reason: "Spam / Tin nhắn rác",
+      description: "Người dùng gửi liên tục các liên kết quảng cáo và lừa đảo.",
+      status: "PENDING",
+      createdAt: "2026-11-10T11:00:00.000Z",
+    },
+    {
+      id: "rep-02",
+      reporter_id: users[4].id,
+      reported_user_id: users[5].id,
+      reported_status_id: null,
+      reason: "Ngôn từ xúc phạm",
+      description: "Bình luận khiếm nhã trong cuộc trò chuyện.",
+      status: "RESOLVED",
+      createdAt: "2026-11-08T09:20:00.000Z",
+    },
+  ];
+
+  const verification_requests = [
+    {
+      id: "ver-01",
+      user_id: users[5].id,
+      id_card_image:
+        "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&auto=format&fit=crop&q=80",
+      selfie_image:
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=600&auto=format&fit=crop&q=80",
+      status: "PENDING",
+      createdAt: "2026-11-11T07:15:00.000Z",
+    },
+  ];
+
+  const transactions = [
+    {
+      id: "tx-001",
+      user_id: users[1].id,
+      plan_id: "GOLD_3M",
+      amount: 299000,
+      status: "SUCCESS",
+      provider: "VNPAY",
+      created_at: "2026-11-01T10:15:00.000Z",
+    },
+    {
+      id: "tx-002",
+      user_id: users[3].id,
+      plan_id: "PLATINUM_1M",
+      amount: 199000,
+      status: "SUCCESS",
+      provider: "MOMO",
+      created_at: "2026-11-05T16:20:00.000Z",
+    },
+  ];
+
+  const system_settings = [
+    { key: "APP_NAME", value: "HeartConnect", description: "Tên ứng dụng" },
+    {
+      key: "MAINTENANCE_MODE",
+      value: "false",
+      description: "Chế độ bảo trì hệ thống",
+    },
+    {
+      key: "MAX_DAILY_SWIPES",
+      value: "100",
+      description: "Số lượt quẹt tối đa mỗi ngày",
+    },
+  ];
+
+  const db = {
+    users,
+    interests,
+    user_interests,
+    user_preferences,
+    matches,
+    conversations,
+    messages,
+    statuses,
+    status_likes,
+    status_comments,
+    notifications,
+    reports,
+    verification_requests,
+    transactions,
+    system_settings,
+  };
+
+  const dbDir = path.join(__dirname, "Database");
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  for (const [table, data] of Object.entries(db)) {
+    const filePath = path.join(dbDir, `${table}.json`);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+    console.log(
+      `Generated ${data.length} mock records -> Database/${table}.json`,
+    );
+  }
+
+  fs.writeFileSync(
+    path.join(dbDir, "db.json"),
+    JSON.stringify(db, null, 2),
+    "utf8",
+  );
+  console.log("Generated unified mock db.json successfully!");
+}
+
+generateMockDatabase().catch(console.error);

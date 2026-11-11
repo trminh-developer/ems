@@ -1,0 +1,20 @@
+[
+  {
+    "id": "tx-001",
+    "user_id": "00000000-0000-0000-0000-000000000002",
+    "plan_id": "GOLD_3M",
+    "amount": 299000,
+    "status": "SUCCESS",
+    "provider": "VNPAY",
+    "created_at": "2026-11-01T10:15:00.000Z"
+  },
+  {
+    "id": "tx-002",
+    "user_id": "00000000-0000-0000-0000-000000000004",
+    "plan_id": "PLATINUM_1M",
+    "amount": 199000,
+    "status": "SUCCESS",
+    "provider": "MOMO",
+    "created_at": "2026-11-05T16:20:00.000Z"
+  }
+]

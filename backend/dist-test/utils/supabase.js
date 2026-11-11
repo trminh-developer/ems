@@ -1,15 +1,20 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault =
+  (this && this.__importDefault) ||
+  function (mod) {
+    return mod && mod.__esModule ? mod : { default: mod };
+  };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.supabaseAdmin = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ''; // Use service_role key for backend bypass RLS
+const supabaseUrl = process.env.SUPABASE_URL || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || ""; // Use service_role key for backend bypass RLS
 if (!supabaseUrl || !supabaseServiceKey) {
-    console.warn('Missing Supabase URL or Service Key in .env');
+  console.warn("Missing Supabase URL or Service Key in .env");
 }
-exports.supabaseAdmin = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey);
+exports.supabaseAdmin = (0, supabase_js_1.createClient)(
+  supabaseUrl,
+  supabaseServiceKey,
+);

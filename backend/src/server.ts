@@ -1,20 +1,20 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
-import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
-import { initPaymentModule } from './features/payment/di/PaymentModule';
-import { initAuthModule } from './features/auth/AuthModule';
-import userModule from './features/user/UserModule';
-import matchModule from './features/match/MatchModule';
-import messageModule from './features/message/MessageModule';
-import feedModule from './features/feed/FeedModule';
-import notificationModule from './features/notification/NotificationModule';
-import adminModule from './features/admin/AdminModule';
+import { initPaymentModule } from "./features/payment/di/PaymentModule";
+import { initAuthModule } from "./features/auth/AuthModule";
+import userModule from "./features/user/UserModule";
+import matchModule from "./features/match/MatchModule";
+import messageModule from "./features/message/MessageModule";
+import feedModule from "./features/feed/FeedModule";
+import notificationModule from "./features/notification/NotificationModule";
+import adminModule from "./features/admin/AdminModule";
 
 // Load env vars
 dotenv.config();
@@ -26,86 +26,89 @@ const PORT = process.env.PORT || 3000;
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    integrations: [
-      nodeProfilingIntegration(),
-    ],
-    tracesSampleRate: 1.0, 
+    integrations: [nodeProfilingIntegration()],
+    tracesSampleRate: 1.0,
     // profilesSampleRate: 1.0,
   });
 }
 
 // Security Configurations
-app.set('trust proxy', 1); // Trust first proxy to allow secure cookies over HTTPS (Checklist #13, #15)
-app.disable('x-powered-by'); // Hide Express signature
+app.set("trust proxy", 1); // Trust first proxy to allow secure cookies over HTTPS (Checklist #13, #15)
+app.disable("x-powered-by"); // Hide Express signature
 
-import compression from 'compression';
+import compression from "compression";
 
 // Security Middlewares
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
-})); // Adds security headers while allowing cross-origin API calls
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+); // Adds security headers while allowing cross-origin API calls
 app.use(compression()); // Compress responses
 
 const allowedOrigins = [
-  'http://localhost:5173',
-  'https://heartconnect-8e934.web.app',
-  'https://heartconnect-8e934.firebaseapp.com'
+  "http://localhost:5173",
+  "https://heartconnect-8e934.web.app",
+  "https://heartconnect-8e934.firebaseapp.com",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
 
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.startsWith('http://localhost:') ||
-      origin.startsWith('http://127.0.0.1:') ||
-      origin.includes('devtunnels.ms') ||
-      origin.includes('ngrok-free.app') ||
-      origin.includes('vercel.app') ||
-      origin.includes('web.app') ||
-      origin.includes('firebaseapp.com') ||
-      origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
-      origin.match(/^https?:\/\/10\./) ||       // LAN IPs
-      origin.match(/^https?:\/\/172\./)         // LAN IPs
-    ) {
-      return callback(null, true);
-    }
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:") ||
+        origin.includes("devtunnels.ms") ||
+        origin.includes("ngrok-free.app") ||
+        origin.includes("vercel.app") ||
+        origin.includes("web.app") ||
+        origin.includes("firebaseapp.com") ||
+        origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
+        origin.match(/^https?:\/\/10\./) || // LAN IPs
+        origin.match(/^https?:\/\/172\./) // LAN IPs
+      ) {
+        return callback(null, true);
+      }
 
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
+      if (process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
 
-    return callback(null, false);
-  },
-  credentials: true // Allow cookies to be sent
-}));
+      return callback(null, false);
+    },
+    credentials: true, // Allow cookies to be sent
+  }),
+);
 
 app.use(cookieParser());
 
 // Limit payload size to prevent DoS (Checklist #7, #8)
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Rate Limiter for Authentication (Checklist #2)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Relaxed limit in dev
-  message: 'Too many login attempts from this IP, please try again after 15 minutes',
+  max: process.env.NODE_ENV === "production" ? 100 : 1000, // Relaxed limit in dev
+  message:
+    "Too many login attempts from this IP, please try again after 15 minutes",
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Routes
-app.get('/', (req, res) => {
-  res.send('Dating App Backend is running!');
+app.get("/", (req, res) => {
+  res.send("Dating App Backend is running!");
 });
 
 const paymentRoutes = initPaymentModule();
-app.use('/api/payments', paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 
 const authRoutes = initAuthModule();
-app.use('/api/auth', authLimiter, authRoutes); // Apply rate limiter to auth
+app.use("/api/auth", authLimiter, authRoutes); // Apply rate limiter to auth
 
 app.use(userModule);
 app.use(matchModule);
@@ -114,15 +117,20 @@ app.use(feedModule);
 app.use(notificationModule);
 app.use(adminModule);
 
-import sequelize from './config/db';
+import sequelize from "./config/db";
+import { seedMockData } from "./utils/seedMockData";
 
 // Health check
-app.get('/api', (req, res) => {
-  res.json({ status: 'OK', message: 'HeartConnect API is running', version: '1.0' });
+app.get("/api", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "HeartConnect API is running",
+    version: "1.0",
+  });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Backend is running' });
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", message: "Backend is running" });
 });
 
 if (process.env.SENTRY_DSN) {
@@ -130,17 +138,21 @@ if (process.env.SENTRY_DSN) {
 }
 
 // Sync database and start server
-sequelize.sync({ alter: true })
-  .then(() => {
-    console.log('Database synced successfully');
+sequelize
+  .sync()
+  .then(async () => {
+    console.log("Database synced successfully");
+    await seedMockData();
     app.listen(PORT, () => {
       console.log(`Backend server is running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('Failed to sync database:', err);
-    // Vẫn bật server kể cả khi DB lỗi để lấy log 
+    console.error("Failed to sync database:", err);
+    // Vẫn bật server kể cả khi DB lỗi để lấy log
     app.listen(PORT, () => {
-      console.log(`Backend server is running (DB Error) on http://localhost:${PORT}`);
+      console.log(
+        `Backend server is running (DB Error) on http://localhost:${PORT}`,
+      );
     });
   });

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "status-01",
+    "user_id": "00000000-0000-0000-0000-000000000003",
+    "content": "Hà Nội vào thu đẹp quá mọi người ơi! Một buổi chiều thong thả bên Hồ Tây với ly latte ấm áp 🍂☕✨",
+    "media_urls": [
+      "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&auto=format&fit=crop&q=80"
+    ],
+    "created_at": "2026-11-11T08:00:00.000Z"
+  },
+  {
+    "id": "status-02",
+    "user_id": "00000000-0000-0000-0000-000000000002",
+    "content": "Chuyến đi săn mây và trekking cuối tuần tại đỉnh Fansipan. Thiên nhiên Việt Nam luôn làm con người ta cảm thấy nhỏ bé mà kỳ vĩ ⛰️🇻🇳",
+    "media_urls": [
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80"
+    ],
+    "created_at": "2026-11-10T15:30:00.000Z"
+  },
+  {
+    "id": "status-03",
+    "user_id": "00000000-0000-0000-0000-000000000005",
+    "content": "Hôm nay tiệm bánh nhỏ vừa ra lò mẻ croissant bơ Pháp thơm lừng. Ai ghé Đà Lạt nhớ ghé tiệm mình nếm thử nhé! 🥐🍰",
+    "media_urls": [
+      "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop&q=80"
+    ],
+    "created_at": "2026-11-09T10:15:00.000Z"
+  }
+]
