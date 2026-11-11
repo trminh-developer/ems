@@ -16,6 +16,7 @@ import messageModule from "./features/message/MessageModule";
 import feedModule from "./features/feed/FeedModule";
 import notificationModule from "./features/notification/NotificationModule";
 import adminModule from "./features/admin/AdminModule";
+import { createCorsOptions } from './config/cors';
 
 // Load env vars
 dotenv.config();
@@ -47,42 +48,7 @@ app.use(
 ); // Adds security headers while allowing cross-origin API calls
 app.use(compression()); // Compress responses
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://heartconnect-8e934.web.app",
-  "https://heartconnect-8e934.firebaseapp.com",
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-
-      if (
-        allowedOrigins.includes(origin) ||
-        origin.startsWith("http://localhost:") ||
-        origin.startsWith("http://127.0.0.1:") ||
-        origin.includes("devtunnels.ms") ||
-        origin.includes("ngrok-free.app") ||
-        origin.includes("vercel.app") ||
-        origin.includes("web.app") ||
-        origin.includes("firebaseapp.com") ||
-        origin.match(/^https?:\/\/192\.168\./) || // LAN IPs
-        origin.match(/^https?:\/\/10\./) || // LAN IPs
-        origin.match(/^https?:\/\/172\./) // LAN IPs
-      ) {
-        return callback(null, true);
-      }
-
-      if (process.env.NODE_ENV !== "production") {
-        return callback(null, true);
-      }
-
-      return callback(null, false);
-    },
-    credentials: true, // Allow cookies to be sent
-  }),
-);
+app.use(cors(createCorsOptions()));
 
 app.use(cookieParser());
 

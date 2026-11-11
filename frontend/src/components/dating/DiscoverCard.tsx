@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { User } from '../../models';
 import { calculateAge } from '../../utils/helpers';
 import InterestBadge from '../user/InterestBadge';
+import UserBadge from '../user/UserBadge';
 
 interface DiscoverCardProps {
   user: User;
@@ -159,6 +160,7 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
       <div className="discover-card-overlay position-absolute bottom-0 start-0 w-100 p-4 text-white pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
         <h2 className="fw-bold mb-1 d-flex align-items-center gap-2 text-white">
           {(user.firstName || user.username)}, {age}
+          <UserBadge user={user} />
         </h2>
         
         <p className="mb-2 fs-6 opacity-75">

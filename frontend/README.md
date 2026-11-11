@@ -49,5 +49,15 @@ Dating App là một ứng dụng hẹn hò trực tuyến hiện đại, đư�
    npm run build
    ```
 
+## Kết nối API khi đăng nhập
+
+- Chạy backend bằng `npm run dev --prefix backend` và frontend bằng `npm run dev --prefix frontend` từ thư mục gốc repository.
+- Localhost, LAN, Dev Tunnel và Vercel dùng `/api` trên cùng địa chỉ frontend. Vite proxy mặc định tới `http://127.0.0.1:3000`; thay backend/port bằng `API_PROXY_TARGET` trong `frontend/.env.local` rồi khởi động lại Vite. Xem `frontend/.env.example`.
+- Vercel đã có rewrite `/api/:path*` tới Render trong cả hai file `vercel.json`. Với custom domain trên Vercel, đặt `VITE_API_URL=/api` trước khi build. Firebase/static hosting chưa có API rewrite thì dùng URL HTTPS của backend cho `VITE_API_URL`.
+- Khi gọi backend trực tiếp từ domain khác, cấu hình `FRONTEND_URL` hoặc `CORS_ORIGINS` (danh sách origin phân cách bằng dấu phẩy) ở backend. Origin cần đầy đủ giao thức và port. Khởi động/deploy lại backend sau khi đổi cấu hình.
+- Chẩn đoán: `/api/health` phải trả JSON `status: OK`; POST `/api/auth/login` bằng thông tin không hợp lệ phải trả HTTP 401, không phải lỗi kết nối hoặc HTML. Kiểm tra cả OPTIONS và POST vì CORS phải áp dụng trên cả hai phản hồi.
+
+Tham khảo: [Vite proxy](https://vite.dev/config/server-options#server-proxy), [Vercel rewrites](https://vercel.com/docs/rewrites).
+
 ## 🔒 Bản quyền & Bảo mật
 Toàn bộ mã nguồn cốt lõi, thiết kế cơ sở dữ liệu và thuật toán ghép đôi của dự án đều là tài sản nội bộ và được bảo mật tuyệt đối. Vui lòng không sao chép hoặc phân phối với mục đích thương mại mà không có sự cho phép.

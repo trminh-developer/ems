@@ -2,7 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Match } from '../../models';
 import Avatar from '../common/Avatar';
-import { calculateAge, formatTime } from '../../utils/helpers';
+import { calculateAge, formatTime, mapUser } from '../../utils/helpers';
+import UserBadge from '../user/UserBadge';
 import Button from '../common/Button';
 
 interface MatchCardProps {
@@ -13,7 +14,7 @@ interface MatchCardProps {
 
 export const MatchCard: React.FC<MatchCardProps> = React.memo(({ match, onMessage, onClick }) => {
   const { t } = useTranslation();
-  const partner = match?.matchedUser || (match as any)?.matched_user || {};
+  const partner = mapUser(match?.matchedUser || (match as any)?.matched_user || {});
   const age = calculateAge(partner.dateOfBirth || partner.date_of_birth);
   const partnerName = partner.firstName || partner.first_name || partner.username || 'Người dùng';
   const partnerAvatar = partner.avatar || partner.photos?.[0] || '';
@@ -32,6 +33,7 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({ match, onMessag
       <div className="card-body p-3 d-flex flex-column text-center">
         <h6 className="card-title fw-bold mb-1">
           {partnerName}, {age}
+          <UserBadge user={partner} />
         </h6>
         <p className="card-text text-muted small mb-3">
           <i className="bi bi-geo-alt me-1"></i> {city}

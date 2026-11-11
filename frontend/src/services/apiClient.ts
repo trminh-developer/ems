@@ -1,24 +1,9 @@
 import axios from "axios";
-
-// Tự động phát hiện môi trường:
-// - Nếu ở localhost -> dùng "/api" để qua Vite dev proxy
-// - Nếu ở production (server deploy như Vercel / Firebase) -> ưu tiên VITE_API_URL, nếu không có thì trỏ trực tiếp đến Render backend
-const getBaseURL = (): string => {
-  const envUrl = (import.meta.env.VITE_API_URL as string) || '';
-  if (envUrl && envUrl !== '/api') return envUrl;
-  
-  if (
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ) {
-    return '/api';
-  }
-  
-  return 'https://heartconnect-qa29.onrender.com/api';
-};
+import { resolveApiBaseUrl } from '../config/network';
 
 const apiClient = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: resolveApiBaseUrl(import.meta.env.VITE_API_URL, import.meta.env.DEV,
+    typeof window === 'undefined' ? '' : window.location.hostname),
   timeout: 60000,
   withCredentials: true // Required for sending/receiving HttpOnly cookies
 });
@@ -28,17 +13,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-
-function onRefreshed(token: string) {
-  refreshSubscribers.map((cb) => cb(token));
-  refreshSubscribers = [];
-}
-
-function addRefreshSubscriber(cb: (token: string) => void) {
-  refreshSubscribers.push(cb);
-}
+let refreshPromise: Promise<unknown> | null = null;
 
 const toCamelCase = (str: string) => {
   return str.replace(/([-_][a-z])/gi, ($1) => {
@@ -106,10 +81,12 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    if (!originalRequest) return Promise.reject(error);
 
     // Bỏ qua lỗi 401 cho các route login và refresh để component tự xử lý hiển thị lỗi
     if (
       originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
       originalRequest.url?.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
@@ -119,30 +96,17 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      if (isRefreshing) {
-        return new Promise((resolve) => {
-          addRefreshSubscriber(() => {
-            resolve(apiClient(originalRequest));
-          });
-        });
-      }
-
-      isRefreshing = true;
-
       try {
-        await axios.post(
-          `${apiClient.defaults.baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-        
-        isRefreshing = false;
-        onRefreshed('');
-
+        if (!refreshPromise) {
+          refreshPromise = axios.post(
+            `${apiClient.defaults.baseURL}/auth/refresh`, {},
+            { withCredentials: true, timeout: apiClient.defaults.timeout },
+          ).finally(() => { refreshPromise = null; });
+        }
+        await refreshPromise;
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        isRefreshing = false;
-        window.location.href = "/login";
+      } catch (refreshError: any) {
+        if ([401, 403].includes(refreshError.response?.status)) window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

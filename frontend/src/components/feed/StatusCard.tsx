@@ -3,6 +3,7 @@ import { Status } from '../../models';
 import { Avatar, Button, Input } from '../common';
 import { useFeed } from '../../hooks';
 import { useNavigate } from 'react-router-dom';
+import UserBadge from '../user/UserBadge';
 
 interface StatusCardProps {
   status: Status;
@@ -71,6 +72,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
           <div className="ms-2">
             <h6 className="mb-0 cursor-pointer" onClick={() => navigate(`/profile/${author.username || author.id}`)}>
               {authorName}
+              <UserBadge user={author} />
             </h6>
             <small className="text-muted">
               {new Date(status.createdAt || (status as any).created_at || Date.now()).toLocaleString('vi-VN')}
@@ -196,7 +198,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
                   <div key={index} className="d-flex mb-3">
                     <Avatar src={commentAuthor.avatar || ''} alt={commentAuthorName} size="sm" />
                     <div className="ms-2 flex-grow-1 bg-light p-2 rounded">
-                      <h6 className="mb-0 fs-6">{commentAuthorName}</h6>
+                      <h6 className="mb-0 fs-6">{commentAuthorName}<UserBadge user={commentAuthor} /></h6>
                       <p className="mb-0 small">{comment.content}</p>
                       <small className="text-muted" style={{ fontSize: '11px' }}>
                         {new Date(comment.createdAt || comment.created_at || Date.now()).toLocaleString('vi-VN')}

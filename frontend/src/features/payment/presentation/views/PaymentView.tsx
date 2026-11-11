@@ -42,8 +42,8 @@ const PaymentView: React.FC = () => {
       // Redirect đến VNPay / MoMo
       window.location.href = paymentUrl;
 
-    } catch (error) {
-      alert("Đã có lỗi xảy ra. Vui lòng thử lại!");
+    } catch (error: any) {
+      alert(error.response?.data?.error || error.message || "Đã có lỗi xảy ra. Vui lòng thử lại!");
       console.error(error);
     } finally {
       setIsProcessing(false);

@@ -52,7 +52,7 @@ export class VNPayGateway implements IPaymentGateway {
 
   getOrderId(data: any): string { return data['vnp_TxnRef']; }
   getResponseStatus(data: any): 'SUCCESS' | 'FAILED' { return data['vnp_ResponseCode'] === '00' && data['vnp_TransactionStatus'] === '00' ? 'SUCCESS' : 'FAILED'; }
-  getAmount(data: any): number { return parseInt(data['vnp_Amount']) / 100; }
+  getAmount(data: any): number { return Number(data['vnp_Amount']) / 100; }
 
   private sortObject(obj: any) {
     let sorted: any = {};

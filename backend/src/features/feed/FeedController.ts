@@ -29,7 +29,7 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
       include: [
         {
           model: User,
-          attributes: ["id", "username", "first_name", "last_name", "avatar"],
+          attributes: ["id", "username", "first_name", "last_name", "avatar", "is_verified", "is_premium", "premium_expires_at"],
         },
       ],
       order: [["created_at", "DESC"]],
@@ -69,6 +69,9 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
           first_name: author.first_name,
           last_name: author.last_name,
           avatar: author.avatar || "",
+          isVerified: author.is_verified,
+          isPremium: author.is_premium,
+          premiumExpiresAt: author.premium_expires_at,
         },
         content: s.content,
         mediaUrls: s.media_urls || [],
@@ -133,6 +136,9 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
         first_name: req.user.first_name,
         last_name: req.user.last_name,
         avatar: req.user.avatar || "",
+        isVerified: req.user.is_verified,
+        isPremium: req.user.is_premium,
+        premiumExpiresAt: req.user.premium_expires_at,
       },
       content: statusData.content,
       mediaUrls: statusData.media_urls || [],
@@ -197,7 +203,7 @@ export const getComments = async (req: Request, res: Response) => {
       include: [
         {
           model: User,
-          attributes: ["id", "username", "first_name", "last_name", "avatar"],
+          attributes: ["id", "username", "first_name", "last_name", "avatar", "is_verified", "is_premium", "premium_expires_at"],
         },
       ],
       order: [["created_at", "ASC"]],

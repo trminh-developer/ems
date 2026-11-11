@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/common';
+import { useAuth } from '../hooks/useAuth';
+import { isPremiumActive } from '../utils/premium';
 
 const PremiumView: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('1_month');
 
   const plans = [
@@ -39,6 +42,8 @@ const PremiumView: React.FC = () => {
   ];
 
   const features = [
+    { icon: 'bi-patch-check-fill text-primary', title: 'Tích xanh Premium', desc: 'Hiển thị tích xanh trong suốt thời hạn gói 1, 6 hoặc 12 tháng.' },
+    { icon: 'bi-image text-success', title: 'Tùy chỉnh logo ứng dụng', desc: 'Chọn logo riêng cho tài khoản, đổi tùy thích khi gói còn hiệu lực.' },
     { icon: 'bi-heart-fill text-danger', title: t('premium.unlimited_likes'), desc: t('premium.unlimited_likes_desc') },
     { icon: 'bi-eye-fill text-primary', title: t('premium.see_who_liked'), desc: t('premium.see_who_liked_desc') },
     { icon: 'bi-star-fill text-warning', title: t('premium.super_likes'), desc: t('premium.super_likes_desc') },
@@ -66,6 +71,7 @@ const PremiumView: React.FC = () => {
               {t('premium.badge')}
             </h2>
             <p className="text-muted">{t('premium.subtitle')}</p>
+            {isPremiumActive(user) && <div className="alert alert-success">Premium đang hoạt động đến {new Date(user!.premiumExpiresAt!).toLocaleString('vi-VN')}. Mua thêm gói sẽ cộng tiếp thời hạn hiện tại.</div>}
           </div>
 
           <div className="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">

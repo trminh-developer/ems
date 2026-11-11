@@ -1,70 +1,83 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Loading } from '../../../../components/common';
+import apiClient from '../../../../services/apiClient';
+import { useAuth } from '../../../../hooks/useAuth';
+
+type PaymentStatus = 'checking' | 'success' | 'failed' | 'pending' | 'error' | 'cancelled';
 
 const PaymentResultView: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'success' | 'failed' | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const { refreshUser } = useAuth();
+  const refreshRef = useRef(refreshUser);
+  refreshRef.current = refreshUser;
+  const [status, setStatus] = useState<PaymentStatus>('checking');
+  const [retry, setRetry] = useState(0);
+  const orderId = searchParams.get('orderId');
+  const cancelled = searchParams.get('status') === 'cancelled';
 
   useEffect(() => {
-    const queryStatus = searchParams.get('status');
-    const queryOrderId = searchParams.get('orderId');
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    setStatus('checking');
+    const check = async () => {
+      if (!orderId) { setStatus('error'); return; }
+      try {
+        const response = await apiClient.get(`/payments/${encodeURIComponent(orderId)}/status`);
+        if (disposed) return;
+        if (response.data.status === 'SUCCESS') {
+          await refreshRef.current();
+          if (disposed) return;
+          localStorage.removeItem('selected_premium_plan');
+          setStatus('success');
+        } else if (response.data.status === 'FAILED') {
+          setStatus('failed');
+        } else if (cancelled) {
+          setStatus('cancelled');
+        } else if (++attempts < 8) {
+          timer = setTimeout(check, 2000);
+        } else {
+          setStatus('pending');
+        }
+      } catch {
+        if (!disposed) setStatus('error');
+      }
+    };
+    void check();
+    return () => { disposed = true; if (timer) clearTimeout(timer); };
+  }, [orderId, cancelled, retry]);
 
-    if (queryStatus === 'success' || queryStatus === 'failed') {
-      setStatus(queryStatus);
-    }
-    if (queryOrderId) {
-      setOrderId(queryOrderId);
-    }
+  if (status === 'checking') return <div className="p-5 text-center"><Loading text="Đang xác nhận thanh toán..." /></div>;
 
-    if (queryStatus === 'success') {
-      // Clear plan
-      localStorage.removeItem('selected_premium_plan');
-    }
-  }, [searchParams]);
-
-  if (!status) {
-    return <div className="p-5 text-center"><Loading /></div>;
-  }
-
+  const messages = {
+    success: ['Thanh toán thành công!', 'Gói Premium đã được kích hoạt. Tích xanh và tùy chọn đổi logo đã sẵn sàng trong Cài đặt.'],
+    failed: ['Thanh toán thất bại', 'Giao dịch chưa thành công. Vui lòng chọn lại phương thức thanh toán.'],
+    cancelled: ['Đã hủy thanh toán', 'Giao dịch chưa được xác nhận thanh toán. Bạn có thể quay lại chọn gói.'],
+    pending: ['Đang chờ xác nhận', 'Chưa nhận được xác nhận từ cổng thanh toán. Bạn có thể kiểm tra lại sau ít phút.'],
+    error: ['Chưa thể xác nhận giao dịch', 'Không thể tải trạng thái thanh toán. Vui lòng kiểm tra lại.'],
+  } as const;
+  const [title, message] = messages[status];
   return (
     <div className="container py-5">
       <div className="row justify-content-center text-center">
         <div className="col-12 col-md-8 col-lg-6">
-          {status === 'success' ? (
-            <div className="card shadow-sm border-0 rounded-4 p-5">
-              <div className="mb-4">
-                <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '5rem' }}></i>
-              </div>
-              <h2 className="fw-bold mb-3">Thanh Toán Thành Công!</h2>
-              <p className="text-muted mb-4">
-                Cảm ơn bạn đã nâng cấp gói Premium. Trải nghiệm ngay những tính năng độc quyền dành riêng cho bạn.
-              </p>
-              {orderId && <p className="text-muted small">Mã đơn hàng: {orderId}</p>}
-              <Button variant="primary" size="lg" className="rounded-pill px-5" onClick={() => navigate('/')}>
-                Về Trang Chủ
-              </Button>
+          <div className="card shadow-sm border-0 rounded-4 p-5">
+            <i className={`bi ${status === 'success' ? 'bi-check-circle-fill text-success' : 'bi-info-circle-fill text-warning'} mb-4`} style={{ fontSize: '5rem' }} />
+            <h2 className="fw-bold mb-3">{title}</h2>
+            <p className="text-muted mb-4">{message}</p>
+            {orderId && <p className="text-muted small">Mã đơn hàng: {orderId}</p>}
+            <div className="d-flex flex-wrap justify-content-center gap-2">
+              {status === 'success' ? (
+                <Button variant="primary" onClick={() => navigate('/settings')}>Tùy chỉnh tài khoản</Button>
+              ) : (
+                <Button variant="primary" onClick={() => setRetry(value => value + 1)}>Kiểm tra lại</Button>
+              )}
+              {status !== 'success' && <Button variant="outline" onClick={() => navigate('/premium')}>Chọn gói Premium</Button>}
+              <Button variant="secondary" onClick={() => navigate('/')}>Trang chủ</Button>
             </div>
-          ) : (
-            <div className="card shadow-sm border-0 rounded-4 p-5">
-              <div className="mb-4">
-                <i className="bi bi-x-circle-fill text-danger" style={{ fontSize: '5rem' }}></i>
-              </div>
-              <h2 className="fw-bold mb-3">Thanh Toán Thất Bại</h2>
-              <p className="text-muted mb-4">
-                Đã có lỗi xảy ra trong quá trình thanh toán hoặc bạn đã hủy giao dịch. Vui lòng thử lại.
-              </p>
-              {orderId && <p className="text-muted small">Mã đơn hàng: {orderId}</p>}
-              <Button variant="outline-primary" size="lg" className="rounded-pill px-5 me-3" onClick={() => navigate('/premium')}>
-                Thử Lại
-              </Button>
-              <Button variant="secondary" size="lg" className="rounded-pill px-5" onClick={() => navigate('/')}>
-                Trang Chủ
-              </Button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

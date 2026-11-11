@@ -51,10 +51,15 @@ export class MoMoGateway implements IPaymentGateway {
       signature,
     };
 
-    const response = await axios.post(endpoint, requestBody, {
-      headers: { "Content-Type": "application/json" },
-      timeout: 20000,
-    });
+    let response;
+    try {
+      response = await axios.post(endpoint, requestBody, {
+        headers: { "Content-Type": "application/json" },
+        timeout: 20000,
+      });
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Không thể kết nối cổng thanh toán MoMo.');
+    }
     if (Number(response.data.resultCode) !== 0 || !response.data.payUrl) throw new Error(response.data.message || 'MoMo không trả về liên kết thanh toán.');
     return response.data.payUrl;
   }
