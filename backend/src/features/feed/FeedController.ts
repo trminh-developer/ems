@@ -17,9 +17,9 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = (page - 1) * limit;
 
-    let whereClause = {};
+    let whereClause: any = { is_hidden: false };
     if (userId && userId !== "all") {
-      whereClause = { user_id: userId };
+      whereClause = { user_id: userId, is_hidden: false };
     }
 
     const statuses = await Status.findAll({

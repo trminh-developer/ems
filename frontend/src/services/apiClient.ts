@@ -41,8 +41,8 @@ const camelizeKeys = (obj: any): any => {
         result.location = {
           city: result.city || "",
           country: result.country || "",
-          latitude: result.latitude || null,
-          longitude: result.longitude || null,
+          latitude: result.latitude ?? null,
+          longitude: result.longitude ?? null,
         };
       } else {
         // If location exists but is missing city/country, fill them in
@@ -50,9 +50,9 @@ const camelizeKeys = (obj: any): any => {
         result.location.country =
           result.location.country || result.country || "";
         result.location.latitude =
-          result.location.latitude || result.latitude || null;
+          result.location.latitude ?? result.latitude ?? null;
         result.location.longitude =
-          result.location.longitude || result.longitude || null;
+          result.location.longitude ?? result.longitude ?? null;
       }
     }
 

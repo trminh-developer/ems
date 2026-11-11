@@ -5,7 +5,7 @@ export interface Match {
   userId: string;
   matchedUserId: string;
   matchedUser: User;
-  matchPercentage: number;
+  matchPercentage: number | null;
   matchedAt: string;
   isNew: boolean;
   lastMessage?: string;

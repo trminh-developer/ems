@@ -1,119 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Loading } from '../../components/common';
-import apiClient from '../../services/apiClient';
+import React, { useState } from 'react';
+import { useAdminList } from '../../hooks/useAdminData';
+import { AdminReport, adminService } from '../../services/adminService';
+import { AdminBadge, AdminDialog, AdminEmpty, AdminError, AdminHeader, AdminLoading, AdminPagination, AdminPersona, AdminSearch, AdminSelect, RefreshButton, date, number, useAdminAction } from '../../components/admin/AdminUI';
 
-const AdminReportsView = () => {
-  const [reports, setReports] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
-    try {
-      const res = await apiClient.get('/admin/reports');
-      setReports(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resolveReport = async (id: string, action: string, penalize: boolean = false, username?: string) => {
-    try {
-      const res = await apiClient.put(`/admin/reports/${id}`, { status: action, penalize });
-      setReports(reports.map(r => r.id === id ? { ...r, status: action } : r));
-
-      if (action === 'RESOLVED' && penalize) {
-        if (res.data?.autoBanned) {
-          alert(`🚨 CẢNH BÁO TỰ ĐỘNG KHÓA:\nNgười dùng @${username || 'được báo cáo'} đã tích lũy ${res.data.currentViolations} lần vi phạm và ĐÃ BỊ TỰ ĐỘNG KHÓA TÀI KHOẢN (BANNED)!`);
-        } else {
-          alert(`✅ Đã duyệt ticket và xử phạt 1 vi phạm cho @${username || 'user'}.\nSố lần vi phạm hiện tại: ${res.data.currentViolations}/5.`);
-        }
-      }
-    } catch (e: any) {
-      alert('Lỗi cập nhật Ticket: ' + (e.response?.data?.error || e.message));
-    }
-  };
-
-  if (isLoading) return <Loading text="Đang tải Tickets..." />;
-
-  return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="mb-1">Quản Lý Reports / Tickets</h2>
-          <p className="text-muted mb-0">Xử lý tố cáo vi phạm, tích lũy số gậy phạt (5 vi phạm tự động khóa tài khoản)</p>
-        </div>
-      </div>
-      <div className="card bg-dark border-secondary">
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-dark table-hover mb-0">
-              <thead>
-                <tr>
-                  <th>Người gửi</th>
-                  <th>Người bị Tố cáo</th>
-                  <th>Lý do</th>
-                  <th>Mô tả</th>
-                  <th>Trạng thái</th>
-                  <th>Ngày tạo</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.length === 0 && (
-                  <tr><td colSpan={7} className="text-center text-muted py-4">Chưa có Ticket nào</td></tr>
-                )}
-                {reports.map(r => (
-                  <tr key={r.id}>
-                    <td className="align-middle">@{r.Reporter?.username}</td>
-                    <td className="align-middle text-danger fw-bold">@{r.ReportedUser?.username || 'N/A'}</td>
-                    <td className="align-middle fw-bold">{r.reason}</td>
-                    <td className="align-middle text-wrap" style={{ maxWidth: '250px' }}>{r.description}</td>
-                    <td className="align-middle">
-                      <span className={`badge ${r.status === 'PENDING' ? 'bg-warning text-dark' : r.status === 'RESOLVED' ? 'bg-success' : 'bg-secondary'}`}>
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="align-middle">{new Date(r.createdAt).toLocaleString()}</td>
-                    <td className="align-middle">
-                      {r.status === 'PENDING' && (
-                        <div className="d-flex flex-wrap gap-2">
-                          <Button 
-                            className="btn-sm btn-danger" 
-                            title="Xử phạt người bị tố cáo (+1 vi phạm, chạm mốc 5 sẽ tự động khóa)"
-                            onClick={() => resolveReport(r.id, 'RESOLVED', true, r.ReportedUser?.username)}
-                          >
-                            <i className="bi bi-shield-slash me-1"></i>Xử phạt (+1)
-                          </Button>
-                          <Button 
-                            className="btn-sm btn-outline-success" 
-                            title="Duyệt đóng ticket nhưng không xử phạt người dùng"
-                            onClick={() => resolveReport(r.id, 'RESOLVED', false)}
-                          >
-                            Duyệt
-                          </Button>
-                          <Button 
-                            className="btn-sm btn-secondary" 
-                            title="Bỏ qua tố cáo"
-                            onClick={() => resolveReport(r.id, 'DISMISSED', false)}
-                          >
-                            Hủy
-                          </Button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-export default AdminReportsView;
+export default function AdminReportsView() {
+  const list = useAdminList<AdminReport>('/admin/reports', { status: 'PENDING' });
+  const [selected, setSelected] = useState<AdminReport | null>(null);
+  const action = useAdminAction(() => { list.refresh(); setSelected(null); });
+  const resolve = (report: AdminReport, status: 'RESOLVED' | 'DISMISSED', penalize = false) => action.ask({
+    title: penalize ? 'Xác nhận vi phạm?' : status === 'DISMISSED' ? 'Bỏ qua báo cáo này?' : 'Đóng báo cáo đã xử lý?',
+    description: penalize ? 'Tài khoản bị báo cáo sẽ nhận thêm 1 vi phạm. Chính sách khóa tài khoản tự động sẽ được áp dụng nếu đạt ngưỡng.' : status === 'DISMISSED' ? 'Báo cáo được đóng mà không xử phạt tài khoản bị báo cáo.' : 'Đánh dấu đã kiểm tra và xử lý, không cộng vi phạm.',
+    label: penalize ? 'Xác nhận & xử phạt' : status === 'DISMISSED' ? 'Bỏ qua báo cáo' : 'Đánh dấu đã xử lý', danger: penalize,
+    action: () => adminService.report(report.id, status, penalize), success: penalize ? 'Đã xử lý báo cáo và áp dụng chính sách vi phạm.' : 'Đã cập nhật báo cáo.',
+  });
+  return <>
+    <AdminHeader title="Báo cáo vi phạm" description="Xem xét phản ánh của thành viên và xử lý nội dung không phù hợp."><RefreshButton onClick={list.refresh} busy={list.loading} /></AdminHeader>
+    {list.error && <AdminError message={list.error} retry={list.refresh} />}
+    <section className="admin-panel"><div className="admin-toolbar"><AdminSearch value={list.query} onChange={list.setQuery} placeholder="Tìm lý do, mô tả hoặc username…" />
+      <AdminSelect label="Trạng thái báo cáo" value={list.filter('status')} onChange={value => list.setFilter('status', value)} options={[['PENDING', 'Đang chờ xử lý'], ['ALL', 'Tất cả báo cáo'], ['RESOLVED', 'Đã xử lý'], ['DISMISSED', 'Đã bỏ qua']]} /><button className="admin-text-button" onClick={list.clear}>Đặt lại bộ lọc</button></div>
+      <div className="admin-result-count"><span>{number(list.data?.total)} báo cáo</span><span>Kiểm tra chi tiết trước khi xác nhận vi phạm.</span></div>
+      {list.loading ? <AdminLoading /> : list.data?.items.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Người gửi</th><th>Đối tượng báo cáo</th><th>Lý do</th><th>Trạng thái</th><th>Ngày gửi</th><th /></tr></thead><tbody>{list.data.items.map(report => <tr key={report.id}><td><AdminPersona user={report.Reporter} /></td><td><AdminPersona user={report.ReportedUser || report.ReportedStatus?.User} /></td><td><strong>{report.reason}</strong><div className="admin-post-excerpt admin-note">{report.description || 'Không có mô tả bổ sung'}</div></td><td><AdminBadge value={report.status} /></td><td className="nowrap">{date(report.createdAt, true)}</td><td><button className="admin-button secondary small" onClick={() => setSelected(report)}>{report.status === 'PENDING' ? 'Xem xét' : 'Chi tiết'}<i className="bi bi-arrow-up-right" /></button></td></tr>)}</tbody></table></div> : <AdminEmpty title="Không có báo cáo cần xem xét" description="Cộng đồng đang được chăm sóc. Bạn có thể xem lại các báo cáo đã xử lý bằng bộ lọc." icon="shield-check" />}
+      <AdminPagination data={list.data} busy={list.loading} onChange={list.setFilter} />
+    </section>
+    {selected && <AdminDialog title="Xem xét báo cáo" onClose={() => setSelected(null)} wide busy={action.busy} footer={selected.status === 'PENDING' ? <>
+      <button className="admin-button secondary" disabled={action.busy} onClick={() => resolve(selected, 'DISMISSED')}>Bỏ qua</button>
+      <button className="admin-button secondary" disabled={action.busy} onClick={() => resolve(selected, 'RESOLVED')}>Đã xử lý, không phạt</button>
+      <button className="admin-button danger" disabled={action.busy || !(selected.ReportedUser || selected.ReportedStatus?.User)} onClick={() => resolve(selected, 'RESOLVED', true)}>Xác nhận vi phạm (+1)</button>
+    </> : <button className="admin-button secondary" onClick={() => setSelected(null)}>Đóng</button>}>
+      <div className="admin-profile-details"><div><span className="admin-note">Người gửi báo cáo</span><AdminPersona user={selected.Reporter} /></div><div><span className="admin-note">Tài khoản bị báo cáo</span><AdminPersona user={selected.ReportedUser || selected.ReportedStatus?.User} /></div></div>
+      <AdminBadge value={selected.status} /><p className="admin-note mt-2">Gửi lúc {date(selected.createdAt, true)}</p><h3 className="fs-6 mt-4">{selected.reason}</h3><p className="admin-post-content">{selected.description || 'Không có mô tả bổ sung.'}</p>
+      {selected.ReportedStatus && <div className="admin-policy-example"><h3>Nội dung được báo cáo</h3><p className="admin-post-content">{selected.ReportedStatus.content || 'Bài viết không có nội dung văn bản.'}</p></div>}
+    </AdminDialog>}
+    {action.dialog}
+  </>;
+}

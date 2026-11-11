@@ -31,6 +31,22 @@ export const getRecommendedUsers = async (currentUserId: string, limit = 10): Pr
   return res.data.map ? res.data.map(mapUser) : mapUser(res.data);
 };
 
+export interface DiscoveryPage {
+  users: User[];
+  sessionId: string;
+  nextCursor: string | null;
+  locationRequired: boolean;
+}
+
+export const getDiscoveryFeed = async (cursor?: string): Promise<DiscoveryPage> => {
+  const res = await apiClient.get('/users/discover', { params: { limit: 20, ...(cursor ? { cursor } : {}) } });
+  return { ...res.data, users: (res.data.users || []).map((user: any) => ({ ...mapUser(user), discoverySessionId: res.data.sessionId })) };
+};
+
+export const recordDiscoveryImpression = async (sessionId: string, targetId: string): Promise<void> => {
+  await apiClient.post(`/users/discover/${sessionId}/impressions`, { targetId });
+};
+
 export const getNearbyUsers = async (currentUserId: string, limit = 10, maxDistance?: number): Promise<User[]> => {
   const res = await apiClient.get('/users/nearby', { params: { limit, maxDistance } });
   return res.data.map ? res.data.map(mapUser) : mapUser(res.data);

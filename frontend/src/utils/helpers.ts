@@ -1,4 +1,5 @@
 import imageCompression from "browser-image-compression";
+import { RelationshipGoal } from '../models';
 
 export const calculateAge = (dateOfBirth?: string): number | string => {
   if (!dateOfBirth) return '?';
@@ -92,24 +93,53 @@ export const uploadOptimizedImage = async (
 
 export const mapUser = (u: any): any => {
   if (!u) return u;
+  const { password: _password, ...profile } = u;
+  const preference = u.UserPreference || u.userPreference || u.datingPreference || {};
+  const goals: Record<string, RelationshipGoal> = {
+    LONG_TERM: RelationshipGoal.LONG_TERM, SHORT_TERM: RelationshipGoal.SHORT_TERM,
+    FRIENDSHIP: RelationshipGoal.FRIENDSHIP, NOT_SURE: RelationshipGoal.NOT_SURE,
+  };
+  const goal = (value: string) => goals[value] || value || RelationshipGoal.NOT_SURE;
+  let genders = preference.preferred_gender ?? preference.preferredGender ?? [];
+  if (typeof genders === 'string') {
+    try { genders = JSON.parse(genders); } catch { genders = []; }
+  }
+  let acceptedGoals = preference.accepted_goals ?? preference.acceptedGoals ?? [];
+  if (typeof acceptedGoals === 'string') {
+    try { acceptedGoals = JSON.parse(acceptedGoals); } catch { acceptedGoals = []; }
+  }
   return {
-    ...u,
+    ...profile,
     firstName: u.first_name || u.firstName || u.username || 'Người dùng',
     lastName: u.last_name || u.lastName || '',
     avatar: u.avatar || u.photos?.[0] || '',
     coverPhoto: u.cover_photo || u.coverPhoto || '',
     dateOfBirth: u.date_of_birth || u.dateOfBirth || '',
+    gender: u.gender?.toUpperCase(),
+    interests: u.interests || [],
+    relationshipGoal: goal(u.relationship_goal || u.relationshipGoal),
+    locationUpdatedAt: u.location_updated_at ?? u.locationUpdatedAt,
+    datingVisible: u.dating_visible ?? u.datingVisible ?? true,
+    matchPercentage: u.match_percentage ?? u.matchPercentage,
     isVerified: u.is_verified !== undefined ? u.is_verified : u.isVerified,
     isOnline: u.is_online !== undefined ? u.is_online : u.isOnline,
     lastActive: u.last_active || u.lastActive,
     location: {
-      city: u.city || u.location?.city || 'Hồ Chí Minh',
-      country: u.country || u.location?.country || 'Việt Nam',
-      latitude: u.latitude || u.location?.latitude,
-      longitude: u.longitude || u.location?.longitude
+      city: u.city || u.location?.city || '',
+      country: u.country || u.location?.country || '',
+      latitude: u.latitude ?? u.location?.latitude,
+      longitude: u.longitude ?? u.location?.longitude
     },
     datingPreference: {
-      relationshipGoal: u.relationship_goal || u.datingPreference?.relationshipGoal
+      preferredGender: Array.isArray(genders) ? genders.map((gender: string) => gender.toUpperCase()) : [],
+      ageRange: { min: preference.age_min ?? preference.ageMin ?? preference.ageRange?.min ?? 18,
+        max: preference.age_max ?? preference.ageMax ?? preference.ageRange?.max ?? 100 },
+      maxDistance: preference.max_distance ?? preference.maxDistance ?? 100,
+      relationshipGoal: goal(preference.relationship_goal || preference.relationshipGoal || u.relationship_goal || u.relationshipGoal),
+      acceptedGoals: Array.isArray(acceptedGoals) ? acceptedGoals.map(goal) : [],
+      goalRequired: preference.goal_required ?? preference.goalRequired ?? false,
+      distanceRequired: preference.distance_required ?? preference.distanceRequired ?? false,
+      distanceHalfLife: preference.distance_half_life ?? preference.distanceHalfLife ?? 10,
     }
   };
 };
@@ -125,7 +155,7 @@ export const mapMatch = (m: any): any => {
     userId: String(m.userId || m.user_id || ''),
     matchedUserId: String(m.matchedUserId || m.matched_user_id || mappedUser?.id || ''),
     matchedUser: mappedUser,
-    matchPercentage: Number(m.matchPercentage || m.match_percentage || 80),
+    matchPercentage: (m.matchPercentage ?? m.match_percentage) == null ? null : Number(m.matchPercentage ?? m.match_percentage),
     matchedAt: m.matchedAt || m.matched_at || new Date().toISOString(),
     isNew: m.isNew !== undefined ? Boolean(m.isNew) : (m.is_new !== undefined ? Boolean(m.is_new) : false),
     lastMessage: m.lastMessage || m.last_message || ''

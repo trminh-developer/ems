@@ -1,11 +1,15 @@
 import { z } from "zod";
+import { normalizeGender, normalizeGoal } from '../features/match/compatibility';
+
+const genderSchema = z.string().transform(normalizeGender).pipe(z.enum(['male', 'female', 'other']));
+const goalSchema = z.string().transform(normalizeGoal).pipe(z.enum(['LONG_TERM', 'SHORT_TERM', 'FRIENDSHIP', 'NOT_SURE', '']));
 
 export const registerSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   firstName: z.string().min(1, "First name is required").max(50),
   lastName: z.string().min(1, "Last name is required").max(50),
-  gender: z.enum(["male", "female", "other"]),
+  gender: genderSchema,
   dateOfBirth: z
     .string()
     .refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
@@ -32,12 +36,11 @@ export const updateProfileSchema = z.object({
   avatar: z.string().nullish(),
   photos: z.array(z.string()).nullish(),
   isOnline: z.boolean().nullish(),
+  datingVisible: z.boolean().optional(),
+  refreshLocation: z.boolean().optional(),
   profession: z.string().max(100).nullish(),
   education: z.string().max(100).nullish(),
-  relationshipGoal: z
-    .enum(["LONG_TERM", "SHORT_TERM", "FRIENDSHIP", "NOT_SURE"] as const)
-    .or(z.literal(""))
-    .nullish(),
+  relationshipGoal: goalSchema.nullish(),
 
   interests: z
     .array(
@@ -56,27 +59,28 @@ export const updateProfileSchema = z.object({
     .object({
       city: z.string().nullish(),
       country: z.string().nullish(),
-      latitude: z.number().nullish(),
-      longitude: z.number().nullish(),
+      latitude: z.number().min(-90).max(90).nullish(),
+      longitude: z.number().min(-180).max(180).nullish(),
     })
     .nullish(),
 
   datingPreference: z
     .object({
       preferredGender: z
-        .array(z.enum(["male", "female", "other"] as const))
+        .array(genderSchema)
         .nullish(),
       ageRange: z
         .object({
-          min: z.number().min(18).nullish(),
-          max: z.number().max(100).nullish(),
+          min: z.number().int().min(18).max(100).nullish(),
+          max: z.number().int().min(18).max(100).nullish(),
         })
         .nullish(),
-      maxDistance: z.number().nullish(),
-      relationshipGoal: z
-        .enum(["LONG_TERM", "SHORT_TERM", "FRIENDSHIP", "NOT_SURE"] as const)
-        .or(z.literal(""))
-        .nullish(),
+      maxDistance: z.number().int().min(1).max(20000).nullish(),
+      relationshipGoal: goalSchema.nullish(),
+      acceptedGoals: z.array(goalSchema).max(4).optional(),
+      goalRequired: z.boolean().optional(),
+      distanceRequired: z.boolean().optional(),
+      distanceHalfLife: z.number().min(0.1).max(1000).optional(),
     })
     .nullish(),
 });

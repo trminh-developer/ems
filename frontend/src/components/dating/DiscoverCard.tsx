@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../models';
 import { calculateAge } from '../../utils/helpers';
@@ -7,6 +7,7 @@ import UserBadge from '../user/UserBadge';
 
 interface DiscoverCardProps {
   user: User;
+  disabled?: boolean;
   onLike: () => void;
   onDislike: () => void;
   onSuperLike?: () => void;
@@ -15,6 +16,7 @@ interface DiscoverCardProps {
 
 export const DiscoverCard: React.FC<DiscoverCardProps> = ({ 
   user, 
+  disabled = false,
   onLike, 
   onDislike, 
   onSuperLike, 
@@ -28,10 +30,14 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const startPos = useRef({ x: 0, y: 0 });
   const isPointerDown = useRef(false);
+  const settling = useRef(false);
+  const swipeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => { if (swipeTimer.current) clearTimeout(swipeTimer.current); }, []);
 
   const SWIPE_THRESHOLD = 90; // Khoảng cách pixel để xác nhận quẹt
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (disabled || settling.current) return;
     isPointerDown.current = true;
     startPos.current = { x: e.clientX, y: e.clientY };
     setIsDragging(true);
@@ -57,6 +63,7 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
     const deltaX = e.clientX - startPos.current.x;
     const deltaY = e.clientY - startPos.current.y;
 
+    if (disabled || e.type === 'pointercancel') { setDragOffset({ x: 0, y: 0 }); return; }
     // Nếu chỉ nhấp chuột nhẹ (không kéo) -> mở xem hồ sơ
     if (Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
       setDragOffset({ x: 0, y: 0 });
@@ -67,7 +74,9 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
     // Quẹt sang phải -> LIKE
     if (deltaX > SWIPE_THRESHOLD) {
       setDragOffset({ x: 500, y: deltaY });
-      setTimeout(() => {
+      settling.current = true;
+      swipeTimer.current = setTimeout(() => {
+        settling.current = false;
         setDragOffset({ x: 0, y: 0 });
         onLike();
       }, 200);
@@ -77,7 +86,9 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
     // Quẹt sang trái -> BỎ QUA (PASS)
     if (deltaX < -SWIPE_THRESHOLD) {
       setDragOffset({ x: -500, y: deltaY });
-      setTimeout(() => {
+      settling.current = true;
+      swipeTimer.current = setTimeout(() => {
+        settling.current = false;
         setDragOffset({ x: 0, y: 0 });
         onDislike();
       }, 200);
@@ -147,14 +158,17 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
         <i className="bi bi-x-circle me-2"></i> {t('common.pass').toUpperCase()}
       </div>
 
-      {user.matchPercentage && (
+      {user.matchPercentage != null && (
         <div 
           className="position-absolute top-0 start-0 m-3 px-3 py-1 bg-primary text-white rounded-pill fw-bold shadow-sm" 
           style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(233, 64, 87, 0.9) !important', opacity: isDragging ? 0 : 1 }}
         >
-          🔥 {user.matchPercentage}% Match
+          {t('discover.compatibility', { score: user.matchPercentage.toFixed(2) })}
         </div>
       )}
+      {user.compatibility?.coldStart && <div className="position-absolute top-0 start-0 m-3 badge bg-secondary rounded-pill">
+        {t('discover.cold_start')}
+      </div>}
 
       {/* Overlay thông tin người dùng */}
       <div className="discover-card-overlay position-absolute bottom-0 start-0 w-100 p-4 text-white pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)' }}>
@@ -164,7 +178,8 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
         </h2>
         
         <p className="mb-2 fs-6 opacity-75">
-          <i className="bi bi-geo-alt me-1"></i> {user.location?.city || 'Hồ Chí Minh'}, {user.location?.country || 'Việt Nam'}
+          <i className="bi bi-geo-alt me-1"></i> {[user.location?.city, user.location?.country].filter(Boolean).join(', ') || t('discover.location_unknown')}
+          {user.compatibility?.distanceKm != null && <> · {user.compatibility.distanceKm} km</>}
         </p>
 
         {user.profession && (
@@ -178,6 +193,17 @@ export const DiscoverCard: React.FC<DiscoverCardProps> = ({
             {user.interests.slice(0, 3).map(interest => (
               <InterestBadge key={interest.id} interest={interest} variant="light" />
             ))}
+          </div>
+        )}
+
+        {user.compatibility && (
+          <div className="small mb-2" aria-label={t('discover.why_recommended')}>
+            {user.compatibility.sharedInterests.length > 0 && <div>
+              <i className="bi bi-heart me-1" />{t('discover.shared_interests', { interests: user.compatibility.sharedInterests.slice(0, 3).join(', ') })}
+            </div>}
+            {user.compatibility.reasons.includes('same_relationship_goal') && <div>
+              <i className="bi bi-bullseye me-1" />{t('discover.same_goal')}
+            </div>}
           </div>
         )}
 

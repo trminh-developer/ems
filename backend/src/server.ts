@@ -135,8 +135,8 @@ app.listen(PORT, () => {
 });
 
 // Sync database and seed mock data asynchronously in the background
-sequelize
-  .sync()
+ensureUserColumns()
+  .then(() => sequelize.sync())
   .then(async () => {
     await ensureUserColumns();
     console.log("Database synced successfully");

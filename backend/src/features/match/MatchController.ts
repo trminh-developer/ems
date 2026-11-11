@@ -1,290 +1,113 @@
-import { Request, Response } from "express";
-import { Match, User, UserInterest } from "../../models";
-import { AuthRequest } from "../../middlewares/authMiddleware";
-import { Op } from "sequelize";
+import { Response } from 'express';
+import { Op } from 'sequelize';
+import { Conversation, DatingEvent, Match, Message, User, UserBlock, UserSwipe } from '../../models';
+import { AuthRequest } from '../../middlewares/authMiddleware';
+import { ALGORITHM_VERSION, compatibility, DatingProfile } from './compatibility';
+import { datingTransaction, lockPair } from './transactions';
+import { profileIncludes, publicProfile } from './profiles';
+import { datingError, formatMatch, recordSwipe } from './swipes';
+
+const allowed = (req: AuthRequest, userId: unknown) => req.user?.id === userId || req.user?.role === 'ADMIN';
+const handleError = (res: Response, error: any) => {
+  if (error.statusCode) return res.status(error.statusCode).json({ error: error.message });
+  console.error('Dating request failed:', error);
+  return res.status(500).json({ error: 'Internal server error' });
+};
+
+async function blockedIds(userId: string) {
+  const blocks = await UserBlock.findAll({ where: { [Op.or]: [{ user_id: userId }, { target_id: userId }] } });
+  return new Set(blocks.map(block => block.get('user_id') === userId ? block.get('target_id') : block.get('user_id')));
+}
 
 export const getMatches = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId;
-
-    // IDOR Check
-    if (req.user?.id !== userId && req.user?.role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const matches = await Match.findAll({
-      where: {
-        [Op.or]: [{ user1_id: userId }, { user2_id: userId }],
-      },
-      include: [
-        { model: User, as: "User1" },
-        { model: User, as: "User2" },
-      ],
-    });
-
-    // Map matches to frontend format
-    const formattedMatches = matches.map((m: any) => {
-      const match = m.toJSON();
-      const isUser1 = match.user1_id === userId;
-      const matchedUser = isUser1 ? match.User2 : match.User1;
-      return {
-        id: match.id,
-        user_id: userId,
-        matched_user_id:
-          matchedUser?.id || (isUser1 ? match.user2_id : match.user1_id),
-        matched_user: matchedUser || null,
-        match_percentage: match.match_percentage,
-        matched_at: match.matched_at,
-        is_new: false,
-      };
-    });
-    return res.json(formattedMatches);
-  } catch (e: any) {
-    console.error("Error in getMatches:", e);
-    return res.status(500).json({ error: "Internal server error" });
-  }
+    const userId = req.params.userId as string;
+    if (!allowed(req, userId)) return res.status(403).json({ error: 'Forbidden' });
+    const [viewer, matches, blocked] = await Promise.all([
+      User.findByPk(userId, { include: profileIncludes() }),
+      Match.findAll({ where: { [Op.or]: [{ user1_id: userId }, { user2_id: userId }] } }),
+      blockedIds(userId),
+    ]);
+    if (!viewer) return res.status(404).json({ error: 'User not found' });
+    const profile = viewer.toJSON() as DatingProfile;
+    const ids = matches.map(record => record.get('user1_id') === userId ? record.get('user2_id') : record.get('user1_id')).filter(id => !blocked.has(id));
+    const partners = ids.length ? await User.findAll({
+      where: { id: { [Op.in]: ids }, status: 'ACTIVE' },
+      attributes: { exclude: ['password', 'email', 'app_logo'] }, include: profileIncludes(),
+    }) : [];
+    const byId = new Map(partners.map(partner => [partner.get('id'), partner.toJSON() as DatingProfile]));
+    const formatted = matches.flatMap(record => {
+      const match = record.toJSON();
+      const targetId = match.user1_id === userId ? match.user2_id : match.user1_id;
+      const target = byId.get(targetId);
+      if (!target) return [];
+      return [formatMatch(match, userId, target, compatibility(profile, target).score)];
+    }).sort((a, b) => (b.match_percentage ?? -1) - (a.match_percentage ?? -1) || new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime());
+    return res.json(formatted);
+  } catch (error) { return handleError(res, error); }
 };
 
-export const likeUser = async (req: AuthRequest, res: Response) => {
+const swipeHandler = (action: 'like' | 'superlike' | 'pass') => async (req: AuthRequest, res: Response) => {
   try {
-    const { targetId } = req.body;
-    // IDOR Fix: Force userId to be the authenticated user
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
-    const { Match, User, Conversation, Notification } = require("../../models");
-
-    // Check if match already exists
-    const existingMatch = await Match.findOne({
-      where: {
-        [Op.or]: [
-          { user1_id: userId, user2_id: targetId },
-          { user1_id: targetId, user2_id: userId },
-        ],
-      },
-    });
-
-    if (existingMatch) {
-      // If match already exists, it means they clicked again or it's a mutual like.
-      const sender = await User.findByPk(userId);
-      const targetUser = await User.findByPk(targetId);
-      await Notification.create({
-        user_id: targetId,
-        type: "like",
-        message: `${sender?.first_name || "Ai đó"} cũng đã thả tim lại bạn! Hai bạn đã tương hợp.`,
-        is_read: false,
-        from_user_id: userId,
-      });
-      const formattedMatch = {
-        id: existingMatch.id,
-        user_id: userId,
-        matched_user_id: targetId,
-        matched_user: targetUser,
-        match_percentage: existingMatch.match_percentage,
-        matched_at: existingMatch.matched_at,
-        is_new: false,
-      };
-      return res.json({ matched: true, match: formattedMatch });
-    }
-
-    const match = await Match.create({
-      user1_id: userId,
-      user2_id: targetId,
-      match_percentage: Math.floor(Math.random() * 40) + 60, // 60-99%
-    });
-
-    await Conversation.create({ match_id: match.id });
-
-    // Create Notification for the target user (HEART)
-    const sender = await User.findByPk(userId);
-    const targetUser = await User.findByPk(targetId);
-
-    if (targetUser) {
-      await Notification.create({
-        user_id: targetId,
-        type: "like",
-        message: `${sender?.first_name || "Ai đó"} đã thả tim (Heart) cho bạn! Hai bạn đã tương hợp.`,
-        is_read: false,
-        from_user_id: userId,
-      });
-    }
-
-    // Create Notification for the liker (userId)
-    await Notification.create({
-      user_id: userId,
-      type: "match",
-      message: `Bạn đã thả tim và tương hợp với ${targetUser?.first_name || "đối phương"}!`,
-      is_read: false,
-      from_user_id: targetId,
-    });
-
-    const formattedMatch = {
-      id: match.id,
-      user_id: userId,
-      matched_user_id: targetId,
-      matched_user: targetUser,
-      match_percentage: match.match_percentage,
-      matched_at: match.matched_at,
-      is_new: true,
-    };
-
-    return res.json({ matched: true, match: formattedMatch });
-  } catch (e: any) {
-    console.error("Error in likeUser:", e);
-    return res.status(500).json({ error: "Internal server error" });
-  }
+    if (!req.user?.id) return res.status(401).json({ error: 'Unauthorized' });
+    const result = await recordSwipe(req.user.id, req.body?.targetId, action, req.body?.requestId);
+    return res.json(action === 'pass' ? { success: true } : result);
+  } catch (error) { return handleError(res, error); }
 };
 
-export const passUser = async (req: Request, res: Response) => {
-  return res.json({ success: true });
-};
-
-export const superlikeUser = async (req: AuthRequest, res: Response) => {
-  try {
-    const { targetId } = req.body;
-    // IDOR Fix: Force userId to be the authenticated user
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: "Unauthorized" });
-
-    const { Match, User, Conversation, Notification } = require("../../models");
-
-    // Check if match already exists
-    const existingMatch = await Match.findOne({
-      where: {
-        [Op.or]: [
-          { user1_id: userId, user2_id: targetId },
-          { user1_id: targetId, user2_id: userId },
-        ],
-      },
-    });
-
-    if (existingMatch) {
-      const sender = await User.findByPk(userId);
-      const targetUser = await User.findByPk(targetId);
-      await Notification.create({
-        user_id: targetId,
-        type: "super_like",
-        message: `${sender?.first_name || "Ai đó"} cũng đã thả Sao Tâm Giao (Super Like) cho bạn! Hai bạn đã tương hợp.`,
-        is_read: false,
-        from_user_id: userId,
-      });
-      const formattedMatch = {
-        id: existingMatch.id,
-        user_id: userId,
-        matched_user_id: targetId,
-        matched_user: targetUser,
-        match_percentage: existingMatch.match_percentage,
-        matched_at: existingMatch.matched_at,
-        is_new: false,
-      };
-      return res.json({ matched: true, match: formattedMatch });
-    }
-
-    const match = await Match.create({
-      user1_id: userId,
-      user2_id: targetId,
-      match_percentage: Math.floor(Math.random() * 20) + 80, // Super likes give higher match %
-    });
-
-    await Conversation.create({ match_id: match.id });
-
-    // Create Notification for the target user (STAR)
-    const sender = await User.findByPk(userId);
-    const targetUser = await User.findByPk(targetId);
-
-    if (targetUser) {
-      await Notification.create({
-        user_id: targetId,
-        type: "super_like", // Use super_like for star
-        message: `${sender?.first_name || "Ai đó"} đã gửi tặng bạn 1 Super Like (Ngôi sao)! Hai bạn đã tương hợp.`,
-        is_read: false,
-        from_user_id: userId,
-      });
-    }
-
-    // Create Notification for the liker (userId)
-    await Notification.create({
-      user_id: userId,
-      type: "match",
-      message: `Super Like thành công! Bạn đã tương hợp với ${targetUser?.first_name || "đối phương"}.`,
-      is_read: false,
-    });
-
-    const formattedMatch = {
-      id: match.id,
-      user_id: userId,
-      matched_user_id: targetId,
-      matched_user: targetUser,
-      match_percentage: match.match_percentage,
-      matched_at: match.matched_at,
-      is_new: true,
-    };
-
-    return res.json({ matched: true, match: formattedMatch });
-  } catch (e: any) {
-    console.error("Error in superlikeUser:", e);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
+export const likeUser = swipeHandler('like');
+export const superlikeUser = swipeHandler('superlike');
+export const passUser = swipeHandler('pass');
 
 export const unmatch = async (req: AuthRequest, res: Response) => {
   try {
-    const { Match } = require("../../models");
-    const matchId = req.params.id;
-    const match = await Match.findByPk(matchId);
-
-    if (!match) return res.status(404).json({ error: "Match not found" });
-
-    // IDOR Check
-    if (
-      req.user?.role !== "ADMIN" &&
-      match.user1_id !== req.user?.id &&
-      match.user2_id !== req.user?.id
-    ) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    await match.destroy();
+    const found: any = await Match.findByPk(req.params.id as string);
+    if (!found) return res.status(404).json({ error: 'Match not found' });
+    if (!allowed(req, found.user1_id) && !allowed(req, found.user2_id)) return res.status(403).json({ error: 'Forbidden' });
+    await datingTransaction(async transaction => {
+      const pair = await lockPair(found.user1_id, found.user2_id, transaction);
+      const match: any = await Match.findByPk(req.params.id as string, { transaction });
+      if (!match) throw datingError('Match not found', 404);
+      if (!allowed(req, match.user1_id) && !allowed(req, match.user2_id)) throw datingError('Forbidden', 403);
+      await pair.update({ state: 'unmatched' }, { transaction });
+      await DatingEvent.create({ user_id: req.user.id, target_id: match.user1_id === req.user.id ? match.user2_id : match.user1_id,
+        type: 'unmatch', algorithm_version: ALGORITHM_VERSION }, { transaction });
+      // Preserve the decision even for historical matches which have no swipe records.
+      for (const [user_id, target_id] of [[match.user1_id, match.user2_id], [match.user2_id, match.user1_id]]) {
+        await UserSwipe.upsert({ user_id, target_id, action: 'pass', updated_at: new Date() }, { transaction });
+      }
+      const conversations = await Conversation.findAll({ where: { match_id: match.id }, transaction });
+      const ids = conversations.map(conversation => conversation.get('id'));
+      if (ids.length) await Message.destroy({ where: { conversation_id: { [Op.in]: ids } }, transaction });
+      await Conversation.destroy({ where: { match_id: match.id }, transaction });
+      await match.destroy({ transaction });
+    });
     return res.json({ success: true });
-  } catch (e: any) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
+  } catch (error) { return handleError(res, error); }
 };
 
-export const getWhoLikedMe = async (req: AuthRequest, res: Response) => {
+const likedUsers = (incoming: boolean) => async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.params.userId;
-    // IDOR Check
-    if (req.user?.id !== userId && req.user?.role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const { Match, User } = require("../../models");
-    const matches = await Match.findAll({
-      where: { user2_id: userId },
-      include: [{ model: User, as: "User1" }],
-    });
-    return res.json(matches.map((m: any) => m.User1).filter(Boolean));
-  } catch (e: any) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
+    const userId = req.params.userId as string;
+    if (!allowed(req, userId)) return res.status(403).json({ error: 'Forbidden' });
+    const [viewer, swipes, blocked] = await Promise.all([
+      User.findByPk(userId, { include: profileIncludes() }),
+      UserSwipe.findAll({
+        where: { [incoming ? 'target_id' : 'user_id']: userId, action: { [Op.in]: ['like', 'superlike'] } },
+        order: [['updated_at', 'DESC']],
+      }),
+      blockedIds(userId),
+    ]);
+    const ids = swipes.map(swipe => swipe.get(incoming ? 'user_id' : 'target_id') as string).filter(id => !blocked.has(id));
+    if (!viewer || !ids.length) return res.json([]);
+    const users = await User.findAll({ where: { id: { [Op.in]: ids }, status: 'ACTIVE', role: 'USER' }, include: profileIncludes() });
+    const byId = new Map(users.map(user => [user.get('id'), user.toJSON() as DatingProfile]));
+    return res.json(ids.filter(id => byId.has(id)).map(id => {
+      const profile = byId.get(id)!;
+      return { ...publicProfile(profile), match_percentage: compatibility(viewer.toJSON() as DatingProfile, profile).score };
+    }));
+  } catch (error) { return handleError(res, error); }
 };
 
-export const getWhoILiked = async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.params.userId;
-    // IDOR Check
-    if (req.user?.id !== userId && req.user?.role !== "ADMIN") {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const { Match, User } = require("../../models");
-    const matches = await Match.findAll({
-      where: { user1_id: userId },
-      include: [{ model: User, as: "User2" }],
-    });
-    return res.json(matches.map((m: any) => m.User2).filter(Boolean));
-  } catch (e: any) {
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
+export const getWhoLikedMe = likedUsers(true);
+export const getWhoILiked = likedUsers(false);

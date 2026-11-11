@@ -1,22 +1,24 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { User, sequelize } from "../../models";
+import { User, UserPreference, UserBlock, DatingEvent, sequelize } from "../../models";
 import { UniqueConstraintError } from 'sequelize';
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { z } from "zod";
 import { updateProfileSchema } from "../../validators/userValidator";
+import { clearInterestCatalogueCache, discoveryFeed, recordImpression, recommendUsers } from '../match/recommendations';
+import { ownProfile, profileIncludes, publicProfile } from '../match/profiles';
+import { datingError } from '../match/swipes';
+import { ALGORITHM_VERSION, interestKey } from '../match/compatibility';
+import { datingTransaction, lockPair } from '../match/transactions';
 
-export const getUserByUsername = async (req: Request, res: Response) => {
+export const getUserByUsername = async (req: AuthRequest, res: Response) => {
   try {
-    const { Interest } = require("../../models");
     const user = await User.findOne({
       where: { username: req.params.username },
-      include: [
-        { model: Interest, as: "interests", through: { attributes: [] } },
-      ],
+      include: profileIncludes(),
     });
     if (!user) return res.status(404).json({ error: "User not found" });
-    return res.json(user);
+    return res.json(req.user?.id === user.get('id') ? ownProfile(user) : publicProfile(user));
   } catch (error: any) {
     console.error(error);
     return res
@@ -25,16 +27,13 @@ export const getUserByUsername = async (req: Request, res: Response) => {
   }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: AuthRequest, res: Response) => {
   try {
-    const { Interest } = require("../../models");
     const user = await User.findByPk(req.params.id as string, {
-      include: [
-        { model: Interest, as: "interests", through: { attributes: [] } },
-      ],
+      include: profileIncludes(),
     });
     if (!user) return res.status(404).json({ error: "User not found" });
-    return res.json(user);
+    return res.json(req.user?.id === user.get('id') ? ownProfile(user) : publicProfile(user));
   } catch (error: any) {
     console.error(error);
     return res
@@ -43,9 +42,13 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-export const getRecommendedUsers = async (req: Request, res: Response) => {
+export const getRecommendedUsers = async (req: AuthRequest, res: Response) => {
   try {
-    const users = await User.findAll({ limit: 20 });
+    const requested = Number(req.query.limit ?? 20);
+    if (!Number.isInteger(requested) || requested < 1 || requested > 50) {
+      return res.status(400).json({ error: 'Limit must be an integer between 1 and 50' });
+    }
+    const users = await recommendUsers(req.user?.id, requested);
     return res.json(users);
   } catch (error: any) {
     console.error(error);
@@ -138,6 +141,8 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
           body.dateOfBirth === "" ? null : body.dateOfBirth;
       }
       if (body.isOnline !== undefined) updateData.is_online = body.isOnline;
+      if (body.isOnline === true) updateData.last_active = now;
+      if (body.datingVisible !== undefined) updateData.dating_visible = body.datingVisible;
 
       // Hash password if updated
       if (body.password && body.password.trim() !== "") {
@@ -151,6 +156,13 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
         updateData.latitude = body.location.latitude;
       if (body.location?.longitude !== undefined)
         updateData.longitude = body.location.longitude;
+      const coordinatesChanged = (body.location?.latitude !== undefined && body.location.latitude !== user.latitude) ||
+        (body.location?.longitude !== undefined && body.location.longitude !== user.longitude);
+      if (body.refreshLocation || coordinatesChanged) {
+        // Only a complete GPS pair refreshes its timestamp.
+        if (body.location?.latitude == null || body.location?.longitude == null) updateData.location_updated_at = null;
+        else updateData.location_updated_at = now;
+      }
 
       if (body.bio !== undefined) updateData.bio = body.bio;
       if (body.profession !== undefined) updateData.profession = body.profession;
@@ -164,37 +176,54 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
       if (body.interests && Array.isArray(body.interests)) {
         const { Interest } = require("../../models");
         const interestRecords = [];
+        const existingInterests = await Interest.findAll({ transaction });
+        const canonical = new Map(existingInterests.map((item: any) => [interestKey(item.name), item]));
         for (const i of body.interests) {
           if (i.name) {
-            const [record] = await Interest.findOrCreate({
-              where: { name: i.name },
+            const key = interestKey(i.name);
+            const [record] = canonical.has(key) ? [canonical.get(key)] : await Interest.findOrCreate({
+              where: { name: i.name.trim() },
               defaults: {
                 icon: i.icon || "bi-star",
                 category: i.category || "other",
               },
               transaction,
             });
+            canonical.set(key, record);
             interestRecords.push(record);
           }
         }
         await user.setInterests(interestRecords, { transaction });
+        clearInterestCatalogueCache();
       }
 
       // Update preferences if any
       if (body.datingPreference) {
+        const preferenceData: Record<string, unknown> = {};
         if (body.datingPreference.preferredGender !== undefined)
-          updateData.preferred_gender = body.datingPreference.preferredGender;
+          preferenceData.preferred_gender = body.datingPreference.preferredGender;
         if (body.datingPreference.ageRange) {
           if (body.datingPreference.ageRange.min !== undefined)
-            updateData.age_min = body.datingPreference.ageRange.min;
+            preferenceData.age_min = body.datingPreference.ageRange.min;
           if (body.datingPreference.ageRange.max !== undefined)
-            updateData.age_max = body.datingPreference.ageRange.max;
+            preferenceData.age_max = body.datingPreference.ageRange.max;
         }
         if (body.datingPreference.maxDistance !== undefined)
-          updateData.max_distance = body.datingPreference.maxDistance;
+          preferenceData.max_distance = body.datingPreference.maxDistance;
         if (body.datingPreference.relationshipGoal !== undefined)
-          updateData.pref_relationship_goal =
+          preferenceData.relationship_goal =
             body.datingPreference.relationshipGoal;
+        for (const [api, column] of Object.entries({ acceptedGoals: 'accepted_goals', goalRequired: 'goal_required',
+          distanceRequired: 'distance_required', distanceHalfLife: 'distance_half_life' })) {
+          const value = body.datingPreference[api as keyof typeof body.datingPreference];
+          if (value !== undefined) preferenceData[column] = value;
+        }
+        const preference = await UserPreference.findOne({ where: { user_id: userIdToUpdate }, transaction });
+        const min = preferenceData.age_min ?? preference?.get('age_min') ?? 18;
+        const max = preferenceData.age_max ?? preference?.get('age_max') ?? 100;
+        if (Number(min) > Number(max)) throw datingError('Tuổi tối thiểu không được lớn hơn tuổi tối đa.');
+        if (preference) await preference.update(preferenceData, { transaction });
+        else await UserPreference.create({ user_id: userIdToUpdate, ...preferenceData }, { transaction });
       }
 
       await user.update(updateData, { transaction });
@@ -202,14 +231,12 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
       const { Interest } = require("../../models");
       await user.reload({
         transaction,
-        include: [
-          { model: Interest, as: "interests", through: { attributes: [] } },
-        ],
+        include: profileIncludes(),
       });
       return user;
     });
 
-    return res.json({ message: "Profile updated successfully", user });
+    return res.json({ message: "Profile updated successfully", user: ownProfile(user) });
   } catch (error: any) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ error: error.message, field: error.field, nextAllowedAt: error.nextAllowedAt });
@@ -230,9 +257,48 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const blockUser = async (req: Request, res: Response) => {
-  res.json({ success: true });
+export const blockUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const targetId = req.body?.blockedId;
+    if (typeof targetId !== 'string' || !targetId || targetId === req.user?.id) return res.status(400).json({ error: 'Invalid target' });
+    await datingTransaction(async transaction => {
+      const pair = await lockPair(req.user.id, targetId, transaction);
+      const { Op } = await import('sequelize');
+      const users = await User.findAll({
+        where: { id: { [Op.in]: [req.user.id, targetId] } }, order: [['id', 'ASC']],
+        transaction, lock: transaction.LOCK.UPDATE,
+      });
+      if (users.length !== 2) throw datingError('User not found', 404);
+      const [, created] = await UserBlock.findOrCreate({ where: { user_id: req.user.id, target_id: targetId }, transaction });
+      await pair.update({ state: 'blocked' }, { transaction });
+      if (created) await DatingEvent.create({ user_id: req.user.id, target_id: targetId, type: 'block', algorithm_version: ALGORITHM_VERSION }, { transaction });
+    });
+    return res.json({ success: true });
+  } catch (error: any) {
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
+  }
 };
 export const reportUser = async (req: Request, res: Response) => {
   res.json({ success: true });
+};
+
+export const getDiscoveryFeed = async (req: AuthRequest, res: Response) => {
+  try {
+    const limit = Number(req.query.limit ?? 20);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw datingError('Limit must be between 1 and 50');
+    if (req.query.cursor !== undefined && typeof req.query.cursor !== 'string') throw datingError('Invalid cursor');
+    return res.json(await discoveryFeed(req.user.id, limit, req.query.cursor as string | undefined));
+  } catch (error: any) {
+    if (!error.statusCode) console.error('Discovery failed:', error);
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error', code: error.code });
+  }
+};
+
+export const postDiscoveryImpression = async (req: AuthRequest, res: Response) => {
+  try {
+    await recordImpression(req.user.id, req.params.sessionId as string, req.body?.targetId);
+    return res.json({ success: true });
+  } catch (error: any) {
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
+  }
 };

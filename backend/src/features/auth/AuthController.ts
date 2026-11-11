@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { User } from "../../models";
 import { z } from "zod";
 import { registerSchema } from "../../validators/userValidator";
+import { profileIncludes } from '../match/profiles';
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "super-refresh-key";
@@ -29,7 +30,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
 
-      const user = await User.findOne({ where: { email } });
+      const user = await User.findOne({ where: { email }, include: profileIncludes() });
 
       if (!user) {
         return res.status(401).json({ error: "Invalid credentials" });
@@ -41,7 +42,9 @@ export class AuthController {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
+      await user.update({ last_active: new Date(), is_online: true });
       const data = user.toJSON();
+      delete data.password;
       const userId = data.id;
 
       // Issue tokens
@@ -99,6 +102,7 @@ export class AuthController {
       });
 
       const data = newUser.toJSON();
+      delete data.password;
       const userId = data.id;
 
       const accessToken = jwt.sign({ id: userId }, JWT_SECRET, {
@@ -196,11 +200,13 @@ export class AuthController {
       if (!token) return res.status(401).json({ error: "No token" });
 
       const decoded: any = jwt.verify(token, JWT_SECRET);
-      const user = await User.findByPk(decoded.id);
+      const user = await User.findByPk(decoded.id, { include: profileIncludes() });
 
       if (!user) return res.status(404).json({ error: "User not found" });
 
-      return res.json(user.toJSON());
+      const data = user.toJSON();
+      delete data.password;
+      return res.json(data);
     } catch (e) {
       return res.status(401).json({ error: "Invalid token" });
     }

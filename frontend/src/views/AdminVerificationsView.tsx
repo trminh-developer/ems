@@ -1,136 +1,36 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button, Loading, Modal, ImageViewerModal } from '../components/common';
-import apiClient from '../services/apiClient';
+import React, { useState } from 'react';
+import { useAdminData, useAdminList } from '../hooks/useAdminData';
+import { AdminVerification, adminService } from '../services/adminService';
+import { AdminBadge, AdminDialog, AdminEmpty, AdminError, AdminHeader, AdminLoading, AdminPagination, AdminPersona, AdminSearch, AdminSelect, RefreshButton, date, number, useAdminAction } from '../components/admin/AdminUI';
 
-interface RequestModel {
-  id: string;
-  userId: string;
-  idCardImage: string;
-  selfieImage: string;
-  status: string;
-  user: {
-    id: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    email: string;
+export default function AdminVerificationsView() {
+  const list = useAdminList<AdminVerification>('/admin/verifications', { status: 'PENDING' });
+  const [selected, setSelected] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<{ source: string; label: string } | null>(null);
+  const detail = useAdminData<AdminVerification>(selected ? '/admin/verifications/' + selected : null);
+  const action = useAdminAction(() => { list.refresh(); setSelected(null); });
+  const request = detail.data;
+  const review = (approve: boolean) => {
+    if (!request) return;
+    action.ask({ title: approve ? 'Phê duyệt xác thực danh tính?' : 'Từ chối yêu cầu xác thực?', description: approve ? 'Xác nhận bạn đã kiểm tra giấy tờ và hình ảnh đối chiếu. Thành viên sẽ nhận trạng thái đã xác thực danh tính.' : 'Thành viên sẽ được thông báo để kiểm tra và gửi lại hình ảnh xác thực.',
+      label: approve ? 'Phê duyệt xác thực' : 'Từ chối yêu cầu', danger: !approve, action: () => adminService.review(request.id, approve), success: approve ? 'Đã phê duyệt xác thực danh tính.' : 'Đã từ chối yêu cầu xác thực.' });
   };
+  return <>
+    <AdminHeader title="Xác thực danh tính" description="Đối chiếu giấy tờ và hình ảnh để xây dựng một cộng đồng đáng tin cậy."><RefreshButton onClick={list.refresh} busy={list.loading} /></AdminHeader>
+    {list.error && <AdminError message={list.error} retry={list.refresh} />}
+    <section className="admin-panel"><div className="admin-toolbar"><AdminSearch value={list.query} onChange={list.setQuery} placeholder="Tìm tên, username hoặc email…" /><AdminSelect label="Trạng thái xác thực" value={list.filter('status')} onChange={value => list.setFilter('status', value)} options={[['PENDING', 'Đang chờ duyệt'], ['ALL', 'Tất cả yêu cầu'], ['APPROVED', 'Đã phê duyệt'], ['REJECTED', 'Đã từ chối']]} /><button className="admin-text-button" onClick={list.clear}>Đặt lại bộ lọc</button></div>
+      <div className="admin-result-count"><span>{number(list.data?.total)} yêu cầu xác thực</span><span>Ảnh đối chiếu được mở trong từng hồ sơ.</span></div>
+      {list.loading ? <AdminLoading /> : list.data?.items.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Thành viên</th><th>Username</th><th>Ngày gửi</th><th>Trạng thái</th><th /></tr></thead><tbody>{list.data.items.map(item => <tr key={item.id}><td><AdminPersona user={item.user} email /></td><td>@{item.user?.username || '—'}</td><td>{date(item.createdAt, true)}</td><td><AdminBadge value={item.status} /></td><td><button className="admin-button secondary small" onClick={() => setSelected(item.id)}>Xem hồ sơ<i className="bi bi-arrow-up-right" /></button></td></tr>)}</tbody></table></div> : <AdminEmpty title="Không có yêu cầu cần duyệt" description="Bạn đã xem hết các yêu cầu trong bộ lọc này. Những hồ sơ mới sẽ xuất hiện tại đây." icon="patch-check" />}
+      <AdminPagination data={list.data} busy={list.loading} onChange={list.setFilter} />
+    </section>
+    {selected && <AdminDialog title="Hồ sơ xác thực danh tính" wide onClose={() => setSelected(null)} busy={action.busy} footer={request?.status === 'PENDING' && !detail.loading ? <><button className="admin-button secondary" disabled={action.busy} onClick={() => review(false)}>Từ chối</button><button className="admin-button primary" disabled={action.busy || !request.idCardImage || !request.selfieImage} onClick={() => review(true)}><i className="bi bi-patch-check" />Phê duyệt xác thực</button></> : <button className="admin-button secondary" onClick={() => setSelected(null)}>Đóng</button>}>
+      {detail.loading ? <AdminLoading /> : detail.error ? <AdminError message={detail.error} retry={detail.refresh} /> : request && <>
+        <AdminPersona user={request.user} email /><p className="admin-note mt-2">Gửi lúc {date(request.createdAt, true)}</p><AdminBadge value={request.status} />
+        <div className="admin-media-grid">{[['Giấy tờ tùy thân', request.idCardImage], ['Hình ảnh / video đối chiếu', request.selfieImage]].map(([label, source]) => <figure key={label}><figcaption>{label}</figcaption>{source ? source.startsWith('data:video') ? <video src={source} controls playsInline preload="metadata" /> : <button type="button" className="admin-image-button" onClick={() => setZoom({ source, label: label || 'Ảnh đối chiếu' })} aria-label={'Phóng to ' + label}><img src={source} alt={label} /></button> : <AdminEmpty title="Chưa có hình ảnh" description="Hãy yêu cầu thành viên gửi lại hồ sơ." icon="image" />}</figure>)}</div>
+        <p className="admin-note"><i className="bi bi-info-circle me-1" />Kiểm tra hình ảnh rõ nét, thông tin trên giấy tờ và khuôn mặt đối chiếu trước khi phê duyệt.</p>
+      </>}
+    </AdminDialog>}
+    {zoom && <AdminDialog title={zoom.label} onClose={() => setZoom(null)} wide><img className="admin-proof-image" src={zoom.source} alt={zoom.label} /></AdminDialog>}
+    {action.dialog}
+  </>;
 }
-
-const AdminVerificationsView = () => {
-  const navigate = useNavigate();
-  const [requests, setRequests] = useState<RequestModel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedReq, setSelectedReq] = useState<RequestModel | null>(null);
-  const [viewImageSrc, setViewImageSrc] = useState<string | null>(null);
-  
-  useEffect(() => {
-    fetchRequests();
-  }, []);
-  
-  const fetchRequests = async () => {
-    try {
-      const res = await apiClient.get('/admin/verifications');
-      setRequests(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleApprove = async (id: string) => {
-    try {
-      await apiClient.post(`/admin/verifications/${id}/approve`);
-      setRequests(requests.filter(r => r.id !== id));
-      setSelectedReq(null);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-  
-  const handleReject = async (id: string) => {
-    try {
-      await apiClient.post(`/admin/verifications/${id}/reject`);
-      setRequests(requests.filter(r => r.id !== id));
-      setSelectedReq(null);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  if (isLoading) return <Loading text="Đang tải danh sách chờ duyệt..." />;
-
-  return (
-    <div className="container py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Admin: Duyệt Xác Thực Danh Tính</h2>
-        <Button className="btn-outline-secondary" onClick={() => navigate("/")}>Về App (User)</Button>
-      </div>
-      {requests.length === 0 ? (
-        <p>Không có yêu cầu nào đang chờ duyệt.</p>
-      ) : (
-        <div className="row">
-          {requests.map(req => (
-            <div key={req.id} className="col-md-4 mb-3">
-              <div className="card bg-dark border-secondary">
-                <div className="card-body">
-                  <h5 className="card-title text-white">{req.user?.firstName} {req.user?.lastName}</h5>
-                  <p className="card-text text-muted">@{req.user?.username}</p>
-                  <Button className="btn-primary w-100" onClick={() => setSelectedReq(req)}>
-                    Xem chi tiết
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      
-      <Modal isOpen={!!selectedReq} onClose={() => setSelectedReq(null)} title="Chi tiết xác thực">
-        {selectedReq && (
-          <div className="p-3">
-            <h6 className="mb-3">Thông tin User: {selectedReq.user?.firstName} {selectedReq.user?.lastName} ({selectedReq.user?.email})</h6>
-            <div className="row mb-4">
-                <div className="col-6">
-                  <p className="text-muted small mb-1">Giấy tờ tùy thân</p>
-                  {selectedReq.idCardImage ? (
-                    <img src={selectedReq.idCardImage} alt="ID Card" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', cursor: 'zoom-in' }} onClick={() => setViewImageSrc(selectedReq.idCardImage)} />
-                  ) : (
-                    <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
-                      <i className="bi bi-card-heading text-white fs-1"></i>
-                    </div>
-                  )}
-                </div>
-                <div className="col-6">
-                  <p className="text-muted small mb-1">Ảnh chân dung xác thực</p>
-                  {selectedReq.selfieImage ? (
-                    selectedReq.selfieImage.startsWith('data:video') ? (
-                      <video src={selectedReq.selfieImage} controls autoPlay loop className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)" }}></video>
-                    ) : (
-                      <img src={selectedReq.selfieImage} alt="Selfie" className="img-fluid rounded" style={{ height: '150px', objectFit: 'cover', width: '100%', transform: "scaleX(-1)", cursor: 'zoom-in' }} onClick={() => setViewImageSrc(selectedReq.selfieImage)} />
-                    )
-                  ) : (
-                     <div className="bg-secondary rounded d-flex align-items-center justify-content-center" style={{ height: '150px' }}>
-                       No image
-                     </div>
-                  )}
-                </div>
-            </div>
-            
-            <div className="d-flex justify-content-end gap-2 mt-4">
-              <Button className="btn-danger" onClick={() => handleReject(selectedReq.id)}>Từ chối</Button>
-              <Button className="btn-success" onClick={() => handleApprove(selectedReq.id)}>Phê duyệt (Cấp tick xanh)</Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-    </div>
-  );
-};
-
-export default AdminVerificationsView;
-
-
-

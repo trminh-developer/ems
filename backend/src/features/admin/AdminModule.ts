@@ -15,10 +15,17 @@ import {
   getSystemSettings,
   updateSystemSettings,
   resetUserViolations,
+  getVerificationDetail,
+  setPostVisibility,
 } from "./AdminController";
+import { getAdminAnalytics, getAdminOverview } from './AdminStatistics';
 import { requireAuth, requireAdmin } from "../../middlewares/authMiddleware";
 
 const router = Router();
+router.get('/api/admin/overview', requireAuth, requireAdmin, getAdminOverview);
+router.get('/api/admin/analytics', requireAuth, requireAdmin, getAdminAnalytics);
+router.get('/api/admin/verifications/:id', requireAuth, requireAdmin, getVerificationDetail);
+router.put('/api/admin/feed/:id/visibility', requireAuth, requireAdmin, setPostVisibility);
 
 // Protected admin routes
 router.get(

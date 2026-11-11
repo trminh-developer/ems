@@ -1,6 +1,7 @@
-import React, { createContext, useReducer, useCallback, ReactNode } from 'react';
+import React, { createContext, useReducer, useCallback, useEffect, ReactNode } from 'react';
 import { Match } from '../models';
 import { matchService } from '../services';
+import { useAuth } from '../hooks/useAuth';
 
 interface MatchState {
   matches: Match[];
@@ -10,6 +11,7 @@ interface MatchState {
 }
 
 type MatchAction =
+  | { type: 'RESET' }
   | { type: 'LOAD_MATCHES_START' }
   | { type: 'LOAD_MATCHES_SUCCESS'; payload: Match[] }
   | { type: 'NEW_MATCH'; payload: Match }
@@ -23,12 +25,14 @@ const initialState: MatchState = {
 
 const matchReducer = (state: MatchState, action: MatchAction): MatchState => {
   switch (action.type) {
+    case 'RESET':
+      return initialState;
     case 'LOAD_MATCHES_START':
       return { ...state, isLoading: true };
     case 'LOAD_MATCHES_SUCCESS':
       return { ...state, matches: action.payload, isLoading: false };
     case 'NEW_MATCH':
-      return { ...state, matches: [action.payload, ...state.matches], showMatchModal: true, newMatch: action.payload };
+      return { ...state, matches: [action.payload, ...state.matches.filter(match => match.id !== action.payload.id)], showMatchModal: true, newMatch: action.payload };
     case 'CLOSE_MODAL':
       return { ...state, showMatchModal: false, newMatch: undefined };
     default:
@@ -38,9 +42,9 @@ const matchReducer = (state: MatchState, action: MatchAction): MatchState => {
 
 export interface MatchContextType extends MatchState {
   loadMatches: () => Promise<void>;
-  likeUser: (userId: string) => Promise<void>;
+  likeUser: (userId: string) => Promise<boolean>;
   dislikeUser: (userId: string) => Promise<void>;
-  superLikeUser: (userId: string) => Promise<void>;
+  superLikeUser: (userId: string) => Promise<boolean>;
   closeMatchModal: () => void;
 }
 
@@ -48,6 +52,8 @@ export const MatchContext = createContext<MatchContextType | undefined>(undefine
 
 export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(matchReducer, initialState);
+  const { user } = useAuth();
+  useEffect(() => { dispatch({ type: 'RESET' }); }, [user?.id]);
 
   const getCurrentUserId = () => {
     try {
@@ -63,23 +69,25 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     dispatch({ type: 'LOAD_MATCHES_START' });
     try {
       const matches = await matchService.getMatches(currentUserId);
-      dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
+      if (getCurrentUserId() === currentUserId) dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: matches });
     } catch (error) {
       console.error('Error loading matches:', error);
-      dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: [] });
+      if (getCurrentUserId() === currentUserId) dispatch({ type: 'LOAD_MATCHES_SUCCESS', payload: [] });
     }
-  }, []);
+  }, [user?.id]);
 
   const likeUser = async (targetId: string) => {
     const currentUserId = getCurrentUserId();
-    if (!currentUserId) return;
+    if (!currentUserId) return false;
     try {
       const result = await matchService.likeUser(currentUserId, targetId);
-      if (result.matched && result.match) {
+      if (getCurrentUserId() === currentUserId && result.matched && result.match?.isNew) {
         dispatch({ type: 'NEW_MATCH', payload: result.match });
       }
+      return result.matched;
     } catch (error) {
       console.error('Error liking user:', error);
+      throw error;
     }
   };
 
@@ -90,19 +98,22 @@ export const MatchProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       await matchService.dislikeUser(currentUserId, targetId);
     } catch (error) {
       console.error('Error disliking user:', error);
+      throw error;
     }
   };
 
   const superLikeUser = async (targetId: string) => {
     const currentUserId = getCurrentUserId();
-    if (!currentUserId) return;
+    if (!currentUserId) return false;
     try {
       const result = await matchService.superLikeUser(currentUserId, targetId);
-      if (result.matched && result.match) {
+      if (getCurrentUserId() === currentUserId && result.matched && result.match?.isNew) {
         dispatch({ type: 'NEW_MATCH', payload: result.match });
       }
+      return result.matched;
     } catch (error) {
       console.error('Error superliking user:', error);
+      throw error;
     }
   };
 

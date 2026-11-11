@@ -1,475 +1,211 @@
-import { Request, Response } from "express";
-const {
-  User,
-  VerificationRequest,
-  Notification,
-  Status,
-  Report,
-  SystemSetting,
-} = require("../../models");
+import { Response } from 'express';
+import { Op } from 'sequelize';
+import { z } from 'zod';
+import { Notification, Report, Status, SystemSetting, User, VerificationRequest } from '../../models';
+import { AuthRequest } from '../../middlewares/authMiddleware';
+import { datingTransaction as adminTransaction } from '../match/transactions';
+import { adminError, filter, pagination, pageResult, search, searchWhere } from './adminQuery';
 
-// Client submits a request
-export const submitVerification = async (req: Request, res: Response) => {
-  try {
-    const { id_card_image, selfie_image } = req.body;
-    const user_id = req.params.id;
+const identity = ['id', 'username', 'first_name', 'last_name', 'avatar'];
+const userAttributes = [...identity, 'email', 'role', 'status', 'is_verified', 'violation_count', 'createdAt', 'last_active', 'is_premium', 'premium_expires_at'];
+const handler = (work: (req: AuthRequest, res: Response) => Promise<unknown>) => async (req: AuthRequest, res: Response) => {
+  try { return await work(req, res); }
+  catch (error: any) {
+    if (error instanceof z.ZodError) return res.status(400).json({ error: error.issues.map(issue => issue.message).join(' ') });
+    if (!error.statusCode) console.error('Admin request failed:', error);
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Không thể xử lý yêu cầu. Vui lòng thử lại.' });
+  }
+};
+function administrator(req: AuthRequest) {
+  if (req.user?.role !== 'ADMIN') throw adminError('Chỉ quản trị viên được thực hiện thao tác này.', 403);
+}
+function mayManage(req: AuthRequest, user: any) {
+  if (user.get('id') === req.user.id || user.get('role') === 'ADMIN' || (req.user.role !== 'ADMIN' && user.get('role') !== 'USER')) {
+    throw adminError('Bạn không có quyền thay đổi tài khoản này.', 403);
+  }
+}
+const reportIncludes = () => [
+  { model: User, as: 'Reporter', attributes: identity },
+  { model: User, as: 'ReportedUser', attributes: identity },
+  { model: Status, as: 'ReportedStatus', attributes: ['id', 'user_id', 'content', 'is_hidden'], include: [{ model: User, attributes: identity }] },
+];
+const verificationUser = () => [{ model: User, as: 'user', attributes: [...identity, 'email'] }];
 
-    // IDOR Check
-    if ((req as any).user?.id !== user_id) {
-      return res.status(403).json({ error: "Forbidden" });
+export const submitVerification = handler(async (req, res) => {
+  if (req.user?.id !== req.params.id) throw adminError('Forbidden', 403);
+  const body = z.object({ id_card_image: z.string().min(1).max(10000000), selfie_image: z.string().min(1).max(40000000) }).parse(req.body);
+  await adminTransaction(async transaction => {
+    await User.findByPk(req.user.id, { transaction, lock: transaction.LOCK.UPDATE });
+    if (await VerificationRequest.findOne({ where: { user_id: req.user.id, status: 'PENDING' }, transaction })) {
+      throw adminError('Bạn đã có yêu cầu xác thực đang chờ duyệt.', 409);
     }
+    await VerificationRequest.create({ ...body, user_id: req.user.id, status: 'PENDING' }, { transaction });
+  });
+  return res.status(201).json({ message: 'Đã gửi yêu cầu xác thực.' });
+});
 
-    await VerificationRequest.create({
-      user_id,
-      id_card_image,
-      selfie_image,
-      status: "PENDING",
-    });
-
-    return res.status(201).json({ message: "Submitted successfully" });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// Admin gets pending requests
-export const getPendingVerifications = async (req: Request, res: Response) => {
-  try {
-    const requests = await VerificationRequest.findAll({
-      where: { status: "PENDING" },
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "username", "first_name", "last_name", "email"],
-        },
-      ],
-    });
-    return res.json(requests);
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// Admin approves
-export const approveVerification = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const request = await VerificationRequest.findByPk(id);
-    if (!request) return res.status(404).json({ error: "Request not found" });
-
-    request.status = "APPROVED";
-    await request.save();
-
-    await User.update(
-      { is_verified: true },
-      { where: { id: request.user_id } },
-    );
-
+export const getPendingVerifications = handler(async (req, res) => {
+  const paging = pagination(req), status = filter(req, 'status', ['PENDING', 'APPROVED', 'REJECTED']);
+  const { rows, count } = await VerificationRequest.findAndCountAll({
+    ...paging, attributes: ['id', 'user_id', 'status', 'createdAt', 'updatedAt'],
+    where: { ...(status ? { status } : {}), ...searchWhere(search(req), ['$user.username$', '$user.first_name$', '$user.email$']) },
+    include: verificationUser(), order: [['createdAt', 'DESC'], ['id', 'ASC']], distinct: true, subQuery: false,
+  });
+  return res.json(pageResult(rows, count, paging));
+});
+export const getVerificationDetail = handler(async (req, res) => {
+  const request = await VerificationRequest.findByPk(req.params.id as string, { include: verificationUser() });
+  if (!request) throw adminError('Yêu cầu không tồn tại.', 404);
+  return res.json(request);
+});
+const reviewVerification = (status: 'APPROVED' | 'REJECTED') => handler(async (req, res) => {
+  await adminTransaction(async transaction => {
+    const request: any = await VerificationRequest.findByPk(req.params.id as string, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!request) throw adminError('Yêu cầu không tồn tại.', 404);
+    if (request.status !== 'PENDING') throw adminError('Yêu cầu này đã được xử lý. Hãy tải lại danh sách.', 409);
+    const user: any = await User.findByPk(request.user_id, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!user || user.status !== 'ACTIVE') throw adminError('Tài khoản không còn hoạt động.', 409);
+    await request.update({ status }, { transaction });
+    if (status === 'APPROVED') await user.update({ is_verified: true }, { transaction });
     await Notification.create({
-      type: "SYSTEM",
-      user_id: request.user_id,
-      message:
-        "Chúc mừng! Yêu cầu xác thực danh tính của bạn đã được phê duyệt.",
-      is_read: false,
-    });
+      type: 'SYSTEM', user_id: request.user_id, is_read: false,
+      message: status === 'APPROVED' ? 'Yêu cầu xác thực danh tính của bạn đã được phê duyệt.' : 'Yêu cầu xác thực chưa được chấp nhận. Vui lòng kiểm tra và gửi lại hình ảnh rõ nét.',
+    }, { transaction });
+  });
+  return res.json({ message: status === 'APPROVED' ? 'Đã phê duyệt xác thực.' : 'Đã từ chối yêu cầu.' });
+});
+export const approveVerification = reviewVerification('APPROVED');
+export const rejectVerification = reviewVerification('REJECTED');
 
-    return res.json({ message: "Approved" });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
+export const getAllUsers = handler(async (req, res) => {
+  const paging = pagination(req), role = filter(req, 'role', ['ADMIN', 'CENSOR', 'USER']);
+  const status = filter(req, 'status', ['ACTIVE', 'BANNED', 'DELETED']);
+  const verified = filter(req, 'verified', ['true', 'false']);
+  const { rows, count } = await User.findAndCountAll({
+    ...paging, attributes: userAttributes,
+    where: { ...searchWhere(search(req), ['username', 'email', 'first_name', 'last_name']),
+      ...(role ? { role } : {}), ...(status ? { status } : {}), ...(verified ? { is_verified: verified === 'true' } : {}) },
+    order: [['createdAt', 'DESC'], ['id', 'ASC']],
+  });
+  return res.json(pageResult(rows, count, paging));
+});
+const changeUser = (work: (req: AuthRequest, user: any, transaction: any) => Promise<void>) => handler(async (req, res) => {
+  const id = req.params.id as string;
+  await adminTransaction(async transaction => {
+    const user = await User.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!user) throw adminError('Người dùng không tồn tại.', 404);
+    await work(req, user, transaction);
+  });
+  return res.json({ message: 'Đã cập nhật người dùng.' });
+});
+export const toggleUserStatus = changeUser(async (req, user, transaction) => {
+  mayManage(req, user);
+  const { status } = z.object({ status: z.enum(['ACTIVE', 'BANNED']) }).parse(req.body);
+  if (user.status === 'DELETED') throw adminError('Tài khoản đã xóa không thể thay đổi tại đây.', 409);
+  await user.update({ status }, { transaction });
+});
+export const updateUserRole = changeUser(async (req, user, transaction) => {
+  administrator(req);
+  const { role } = z.object({ role: z.enum(['ADMIN', 'CENSOR', 'USER']) }).parse(req.body);
+  if (user.id === req.user.id || user.email === 'admin@heartconnect.com') throw adminError('Không thể thay đổi quyền của tài khoản quản trị này.', 403);
+  if (user.status === 'DELETED') throw adminError('Tài khoản đã xóa không thể phân quyền.', 409);
+  await user.update({ role }, { transaction });
+});
+export const revokeUserVerification = changeUser(async (req, user, transaction) => {
+  mayManage(req, user);
+  if (!user.is_verified) return;
+  await user.update({ is_verified: false }, { transaction });
+  await Notification.create({ type: 'SYSTEM', user_id: user.id, message: 'Xác thực danh tính của bạn đã được thu hồi. Vui lòng cập nhật thông tin để xác thực lại.', is_read: false }, { transaction });
+});
+export const resetUserViolations = changeUser(async (req, user, transaction) => {
+  mayManage(req, user);
+  if (!user.violation_count) return;
+  await user.update({ violation_count: 0 }, { transaction });
+  await Notification.create({ type: 'SYSTEM', user_id: user.id, message: 'Số lần vi phạm của bạn đã được đặt lại về 0.', is_read: false }, { transaction });
+});
 
-// Admin rejects
-export const rejectVerification = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const request = await VerificationRequest.findByPk(id);
-    if (!request) return res.status(404).json({ error: "Request not found" });
+export const getAllStatuses = handler(async (req, res) => {
+  const paging = pagination(req), visibility = filter(req, 'visibility', ['visible', 'hidden']);
+  const { rows, count } = await Status.findAndCountAll({
+    ...paging, where: { ...searchWhere(search(req), ['content', '$User.username$']), ...(visibility ? { is_hidden: visibility === 'hidden' } : {}) },
+    include: [{ model: User, attributes: identity }], order: [['created_at', 'DESC'], ['id', 'ASC']], distinct: true, subQuery: false,
+  });
+  return res.json(pageResult(rows, count, paging));
+});
+export const setPostVisibility = handler(async (req, res) => {
+  const body = z.object({ hidden: z.boolean() }).parse(req.body);
+  const post = await Status.findByPk(req.params.id as string);
+  if (!post) throw adminError('Bài viết không tồn tại.', 404);
+  await post.update({ is_hidden: body.hidden, hidden_at: body.hidden ? new Date() : null });
+  return res.json({ message: body.hidden ? 'Đã ẩn bài viết khỏi bảng tin.' : 'Đã khôi phục bài viết.' });
+});
+// Keep the old URL compatible while preserving posts and their moderation evidence.
+export const deleteStatus = handler(async (req, res) => {
+  const post = await Status.findByPk(req.params.id as string);
+  if (!post) throw adminError('Bài viết không tồn tại.', 404);
+  await post.update({ is_hidden: true, hidden_at: new Date() });
+  return res.json({ message: 'Đã ẩn bài viết.' });
+});
 
-    request.status = "REJECTED";
-    await request.save();
-
-    await Notification.create({
-      type: "SYSTEM",
-      user_id: request.user_id,
-      message:
-        "Rất tiếc! Yêu cầu xác thực danh tính của bạn bị từ chối do hình ảnh không rõ nét.",
-      is_read: false,
-    });
-
-    return res.json({ message: "Rejected" });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// USER MANAGEMENT (Phase 1)
-// Admin gets all users
-export const getAllUsers = async (req: Request, res: Response) => {
-  try {
-    const users = await User.findAll({
-      attributes: [
-        "id",
-        "username",
-        "email",
-        "first_name",
-        "last_name",
-        "role",
-        "status",
-        "is_verified",
-        "violation_count",
-        "createdAt",
-      ],
-    });
-    return res.json(users);
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// Admin toggles user status (Ban/Unban) - Soft delete principle
-export const toggleUserStatus = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body; // 'ACTIVE', 'BANNED', 'DELETED'
-
-    const user = await User.findByPk(id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    // We only update status, NEVER delete the record (No Hard Delete)
-    user.status = status;
-    await user.save();
-
-    return res.json({ message: "User status updated successfully", user });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// ==============================
-// PHASE 2: CONTENT & TICKETS
-// ==============================
-
-// GET ALL STATUSES (Feed)
-export const getAllStatuses = async (req: Request, res: Response) => {
-  try {
-    const statuses = await Status.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["username", "first_name", "last_name", "avatar"],
-        },
-      ],
-      order: [["created_at", "DESC"]],
-    });
-    return res.json(statuses);
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// DELETE STATUS
-export const deleteStatus = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const status = await Status.findByPk(id);
-    if (!status) return res.status(404).json({ error: "Status not found" });
-
-    // In a real system we might soft delete, but for feed posts we can hard delete or add 'is_deleted'
-    // Following "no hard delete" rule: wait, Status model doesn't have is_deleted. Let's hard delete for posts to save space, or just keep it simple.
-    // The user said "chỉ có thêm không có xóa". So let's NOT delete!
-    // Let's add an is_hidden flag? The Status model doesn't have it.
-    // Let's just destroy for now, or throw error "Tính năng xóa bị tắt theo yêu cầu".
-    await status.destroy();
-    return res.json({ message: "Status deleted successfully" });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// GET ALL REPORTS
-export const getAllReports = async (req: Request, res: Response) => {
-  try {
-    const reports = await Report.findAll({
-      include: [
-        {
-          model: User,
-          as: "Reporter",
-          attributes: ["username", "first_name", "last_name"],
-        },
-        {
-          model: User,
-          as: "ReportedUser",
-          attributes: ["username", "first_name", "last_name"],
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-    return res.json(reports);
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// RESOLVE REPORT
-export const resolveReport = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status, penalize } = req.body; // 'RESOLVED', 'DISMISSED', penalize: boolean
-
-    const report = await Report.findByPk(id);
-    if (!report) return res.status(404).json({ error: "Report not found" });
-
-    report.status = status;
-    await report.save();
-
-    let autoBanned = false;
-    let currentViolations = 0;
-
-    // If report is resolved and admin chose to penalize the reported user
-    if (status === "RESOLVED" && penalize && report.reported_user_id) {
-      const reportedUser = await User.findByPk(report.reported_user_id);
-      if (reportedUser) {
-        currentViolations = (reportedUser.violation_count || 0) + 1;
-        reportedUser.violation_count = currentViolations;
-
-        const maxViolationsStr = await getSettingValue("MAX_VIOLATIONS", "5");
-        const maxViolations = parseInt(maxViolationsStr, 10) || 5;
-        const autoBanEnabledStr = await getSettingValue(
-          "AUTO_BAN_ENABLED",
-          "true",
-        );
-        const autoBanEnabled = autoBanEnabledStr === "true";
-
-        if (currentViolations >= maxViolations && autoBanEnabled) {
-          reportedUser.status = "BANNED";
-          autoBanned = true;
-          await Notification.create({
-            type: "SYSTEM",
-            user_id: reportedUser.id,
-            message: `Tài khoản của bạn đã bị KHÓA TỰ ĐỘNG do tích lũy đủ ${currentViolations}/${maxViolations} lần vi phạm tiêu chuẩn cộng đồng.`,
-            is_read: false,
-          });
-        } else {
-          await Notification.create({
-            type: "SYSTEM",
-            user_id: reportedUser.id,
-            message: `Cảnh báo vi phạm: Bạn vừa nhận 1 gậy vi phạm vì lý do: "${report.reason}". Số lần vi phạm hiện tại: ${currentViolations}/${maxViolations}. Chạm mốc ${maxViolations} sẽ bị khóa tài khoản tự động.`,
-            is_read: false,
-          });
-        }
-        await reportedUser.save();
-      }
+export const getAllReports = handler(async (req, res) => {
+  const paging = pagination(req), status = filter(req, 'status', ['PENDING', 'RESOLVED', 'DISMISSED']);
+  const { rows, count } = await Report.findAndCountAll({
+    ...paging, where: { ...(status ? { status } : {}), ...searchWhere(search(req), ['reason', 'description', '$Reporter.username$', '$ReportedUser.username$']) },
+    include: reportIncludes(), order: [['createdAt', 'DESC'], ['id', 'ASC']], distinct: true, subQuery: false,
+  });
+  return res.json(pageResult(rows, count, paging));
+});
+export const resolveReport = handler(async (req, res) => {
+  const { status, penalize } = z.object({ status: z.enum(['RESOLVED', 'DISMISSED']), penalize: z.boolean().default(false) }).parse(req.body);
+  if (penalize && status !== 'RESOLVED') throw adminError('Chỉ xử phạt khi xác nhận báo cáo vi phạm.');
+  const result = await adminTransaction(async transaction => {
+    const report: any = await Report.findByPk(req.params.id as string, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!report) throw adminError('Báo cáo không tồn tại.', 404);
+    if (report.status !== 'PENDING') throw adminError('Báo cáo đã được xử lý. Hãy tải lại danh sách.', 409);
+    let autoBanned = false, currentViolations = 0;
+    if (penalize) {
+      const post: any = report.reported_status_id ? await Status.findByPk(report.reported_status_id, { transaction }) : null;
+      const targetId = report.reported_user_id || post?.user_id;
+      const user: any = targetId ? await User.findByPk(targetId, { transaction, lock: transaction.LOCK.UPDATE }) : null;
+      if (!user) throw adminError('Không xác định được tài khoản bị báo cáo.', 409);
+      mayManage(req, user);
+      const settings = await readSettings(transaction);
+      const threshold = Number(settings.MAX_VIOLATIONS);
+      currentViolations = (user.violation_count || 0) + 1;
+      autoBanned = settings.AUTO_BAN_ENABLED === 'true' && currentViolations >= threshold;
+      await user.update({ violation_count: currentViolations, ...(autoBanned ? { status: 'BANNED' } : {}) }, { transaction });
+      if (autoBanned || settings.WARNING_NOTIFICATION_ENABLED === 'true') await Notification.create({
+        type: 'SYSTEM', user_id: user.id, is_read: false,
+        message: autoBanned ? 'Tài khoản đã bị khóa do đạt ngưỡng vi phạm cộng đồng.' :
+          'Bạn nhận thêm một vi phạm cộng đồng. Số lần vi phạm hiện tại: ' + currentViolations + '/' + threshold + '.',
+      }, { transaction });
     }
+    await report.update({ status }, { transaction });
+    return { autoBanned, currentViolations };
+  });
+  return res.json({ message: 'Đã xử lý báo cáo.', ...result });
+});
 
-    return res.json({
-      message: "Report updated",
-      report,
-      autoBanned,
-      currentViolations,
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const updateUserRole = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { role } = req.body;
-
-    const validRoles = ["ADMIN", "CENSOR", "USER"];
-    if (!validRoles.includes(role))
-      return res.status(400).json({ error: "Invalid role" });
-
-    const user = await User.findByPk(id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    user.role = role;
-    await user.save();
-
-    return res.json({ message: "User role updated successfully", user });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-export const revokeUserVerification = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findByPk(id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    user.is_verified = false;
-    await user.save();
-
-    await Notification.create({
-      type: "SYSTEM",
-      user_id: user.id,
-      message:
-        "Tích xanh của bạn đã bị thu hồi do phát hiện vi phạm hoặc thông tin không hợp lệ.",
-      is_read: false,
-    });
-
-    return res.json({
-      message: "User verification revoked successfully",
-      user,
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// ==============================
-// PHASE 4: SYSTEM SETTINGS & PARAMETERS
-// ==============================
-
-// System Setting Helper
-export const getSettingValue = async (
-  key: string,
-  defaultValue: string = "",
-): Promise<string> => {
-  try {
-    const setting = await SystemSetting.findByPk(key);
-    return setting ? setting.value : defaultValue;
-  } catch (e) {
-    return defaultValue;
-  }
-};
-
-// GET SYSTEM SETTINGS (Phase 4)
-export const getSystemSettings = async (req: Request, res: Response) => {
-  try {
-    const defaultSettings = [
-      {
-        key: "MAX_VIOLATIONS",
-        value: "5",
-        description:
-          "Số lần vi phạm tối đa trước khi tự động khóa tài khoản (Auto-Ban)",
-      },
-      {
-        key: "AUTO_BAN_ENABLED",
-        value: "true",
-        description: "Tự động khóa tài khoản khi số lần vi phạm đạt ngưỡng",
-      },
-      {
-        key: "WARNING_NOTIFICATION_ENABLED",
-        value: "true",
-        description:
-          "Tự động gửi thông báo cảnh cáo mỗi khi người dùng bị phạt",
-      },
-      {
-        key: "MAINTENANCE_MODE",
-        value: "false",
-        description: "Chế độ bảo trì toàn bộ hệ thống",
-      },
-      {
-        key: "DEFAULT_MAX_DISTANCE",
-        value: "100",
-        description: "Khoảng cách tìm kiếm ghép đôi mặc định (km)",
-      },
-      {
-        key: "MIN_AGE",
-        value: "18",
-        description: "Độ tuổi tối thiểu đăng ký tham gia ứng dụng",
-      },
-    ];
-
-    // Seed defaults if not exist
-    for (const item of defaultSettings) {
-      await SystemSetting.findOrCreate({
-        where: { key: item.key },
-        defaults: item,
-      });
-    }
-
-    const settings = await SystemSetting.findAll();
-    const settingsMap: Record<string, string> = {};
-    settings.forEach((s: any) => {
-      settingsMap[s.key] = s.value;
-    });
-
-    return res.json({
-      settings: settingsMap,
-      list: settings,
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// UPDATE SYSTEM SETTINGS (Phase 4)
-export const updateSystemSettings = async (req: Request, res: Response) => {
-  try {
-    const { settings } = req.body;
-    if (!settings || typeof settings !== "object") {
-      return res.status(400).json({ error: "Settings object is required" });
-    }
-
-    for (const [key, value] of Object.entries(settings)) {
-      const existing = await SystemSetting.findByPk(key);
-      if (existing) {
-        existing.value = String(value);
-        await existing.save();
-      } else {
-        await SystemSetting.create({ key, value: String(value) });
-      }
-    }
-
-    const updated = await SystemSetting.findAll();
-    const settingsMap: Record<string, string> = {};
-    updated.forEach((s: any) => {
-      settingsMap[s.key] = s.value;
-    });
-
-    return res.json({
-      message: "Cài đặt tham số hệ thống đã được lưu thành công",
-      settings: settingsMap,
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-// RESET USER VIOLATIONS
-export const resetUserViolations = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const user = await User.findByPk(id);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    user.violation_count = 0;
-    await user.save();
-
-    await Notification.create({
-      type: "SYSTEM",
-      user_id: user.id,
-      message: "Số lần vi phạm của bạn đã được quản trị viên đặt lại về 0.",
-      is_read: false,
-    });
-
-    return res.json({
-      message: "Số lần vi phạm đã được đặt lại về 0 thành công",
-      user,
-    });
-  } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
-};
+export const DEFAULT_SETTINGS: Record<string, string> = { MAX_VIOLATIONS: '5', AUTO_BAN_ENABLED: 'true', WARNING_NOTIFICATION_ENABLED: 'true' };
+async function readSettings(transaction?: any): Promise<Record<string, string>> {
+  const rows = await SystemSetting.findAll({ transaction });
+  return { ...DEFAULT_SETTINGS, ...Object.fromEntries(rows.map(row => [row.get('key'), row.get('value')])) };
+}
+export const getSettingValue = async (key: string, fallback = '') => (await readSettings())[key] ?? fallback;
+export const getSystemSettings = handler(async (req, res) => {
+  administrator(req);
+  return res.json({ settings: await readSettings() });
+});
+export const updateSystemSettings = handler(async (req, res) => {
+  administrator(req);
+  const schema = z.object({
+    MAX_VIOLATIONS: z.string().regex(/^(?:[1-9]|1[0-9]|20)$/),
+    AUTO_BAN_ENABLED: z.enum(['true', 'false']), WARNING_NOTIFICATION_ENABLED: z.enum(['true', 'false']),
+  }).partial().strict();
+  const { settings } = z.object({ settings: schema }).parse(req.body);
+  if (!Object.keys(settings).length) throw adminError('Chưa có cài đặt cần lưu.');
+  await adminTransaction(async transaction => {
+    await SystemSetting.bulkCreate(Object.entries(settings).map(([key, value]) => ({ key, value })), { updateOnDuplicate: ['value', 'updatedAt'], transaction });
+  });
+  return res.json({ message: 'Đã lưu chính sách kiểm duyệt.', settings: await readSettings() });
+});

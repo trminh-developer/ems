@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { Message, Conversation } from "../../models";
+import { Message, Conversation, Match, Notification, UserBlock } from "../../models";
+import { datingTransaction, lockPair } from "../match/transactions";
+import { datingError } from "../match/swipes";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { Op } from "sequelize";
 
@@ -129,66 +131,35 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
 export const sendMessage = async (req: AuthRequest, res: Response) => {
   try {
     const { conversationId, content, type } = req.body;
-    // We enforce the senderId to be the authenticated user's ID
     const senderId = req.user?.id;
-
-    if (!senderId) return res.status(401).json({ error: "Unauthorized" });
-
-    const {
-      Message,
-      Conversation,
-      Notification,
-      Match,
-      User,
-    } = require("../../models");
-
-    // IDOR Check: Ensure user is part of the conversation
-    const conv = await Conversation.findByPk(conversationId, {
-      include: [{ model: Match }],
-    });
-
-    if (!conv) {
-      return res.status(404).json({ error: "Conversation not found" });
-    }
-
-    if (
-      conv.Match?.user1_id !== senderId &&
-      conv.Match?.user2_id !== senderId
-    ) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
-    const msg = await Message.create({
-      conversation_id: conversationId,
-      sender_id: senderId,
-      content,
-      type: type || "text",
-    });
-
-    await Conversation.update(
-      { updated_at: new Date() },
-      { where: { id: conversationId } },
-    );
-
-    if (conv && conv.Match) {
-      const receiverId =
-        conv.Match.user1_id === senderId
-          ? conv.Match.user2_id
-          : conv.Match.user1_id;
-      const sender = await User.findByPk(senderId);
-
-      await Notification.create({
-        user_id: receiverId,
-        from_user_id: senderId,
-        type: "message",
-        message: `${sender?.first_name || "Người dùng"} đã gửi cho bạn một tin nhắn mới.`,
-        is_read: false,
+    if (!senderId) return res.status(401).json({ error: 'Unauthorized' });
+    const initial: any = await Conversation.findByPk(conversationId, { include: [{ model: Match }] });
+    if (!initial) throw datingError('Conversation not found', 404);
+    const pairUsers = [initial.Match?.user1_id, initial.Match?.user2_id];
+    if (!pairUsers.includes(senderId)) throw datingError('Forbidden', 403);
+    const receiverId = pairUsers.find(id => id !== senderId)!;
+    const msg = await datingTransaction(async transaction => {
+      const pair = await lockPair(senderId, receiverId, transaction);
+      const current = await Conversation.findByPk(conversationId, { transaction });
+      if (!current || pair.get('state') === 'unmatched') throw datingError('Conversation not found', 404);
+      const blocked = await UserBlock.findOne({
+        where: { [Op.or]: [{ user_id: senderId, target_id: receiverId }, { user_id: receiverId, target_id: senderId }] }, transaction,
       });
-    }
-
+      if (blocked || pair.get('state') === 'blocked') throw datingError('Không thể nhắn tin sau khi chặn người dùng.', 403);
+      const message = await Message.create({
+        conversation_id: conversationId, sender_id: senderId, content, type: type || 'text',
+      }, { transaction });
+      await current.update({ updated_at: new Date() }, { transaction });
+      await Notification.create({
+        user_id: receiverId, from_user_id: senderId, type: 'message',
+        message: 'Bạn có một tin nhắn mới.', is_read: false,
+      }, { transaction });
+      return message;
+    });
     return res.json(msg);
-  } catch (e: any) {
-    return res.status(500).json({ error: "Internal server error" });
+  } catch (error: any) {
+    if (!error.statusCode) console.error('Send message failed:', error);
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
   }
 };
 

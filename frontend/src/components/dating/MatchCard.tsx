@@ -24,9 +24,9 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({ match, onMessag
     <div className="match-card card border-0 shadow-sm rounded-4 overflow-hidden h-100 cursor-pointer" onClick={onClick}>
       <div className="position-relative">
         <img src={partnerAvatar} alt={partnerName} className="w-100 object-fit-cover" style={{ height: '200px' }} />
-        {match?.matchPercentage && (
+        {match?.matchPercentage != null && (
           <div className="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill px-2 py-1">
-            {match.matchPercentage}% Match
+            {t('discover.compatibility', { score: match.matchPercentage.toFixed(2) })}
           </div>
         )}
       </div>

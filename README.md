@@ -37,6 +37,12 @@ Dự án cung cấp một trải nghiệm liền mạch với các tính năng c
 
 Tài liệu cổng thanh toán: [VNPay](https://sandbox.vnpayment.vn/apis/docs/thanh-toan-pay/pay.html), [MoMo](https://developers.momo.vn/v3/docs/payment/api/wallet/onetime/), [Stripe](https://docs.stripe.com/checkout/fulfillment), [PayPal](https://developer.paypal.com/api/rest/integration/orders-api).
 
+## Thuật toán Match và Discover
+
+Triển khai theo `Data Analysis/THUẬT TOÁN HEARTCONNECT.docx`: Jaccard, điểm hai chiều với trọng số 40/30/20/10 và trung bình điều hòa; match chỉ tạo khi hai người cùng thích. Discover có bộ lọc hai chiều, phiên phân trang ổn định và ghi nhận hồ sơ thực sự được hiển thị.
+
+Xem [chi tiết triển khai và cách kiểm thử](Data%20Analysis/HEARTCONNECT_IMPLEMENTATION.md). Khởi động lại backend để bổ sung schema; chạy `npm test` trong `backend` để kiểm tra trên database trong bộ nhớ.
+
 ## 🌟 Tác Giả
 
 - Phát triển bởi: **MQV**

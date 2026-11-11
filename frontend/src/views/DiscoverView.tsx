@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DiscoverCard, MatchModal } from '../components/dating';
@@ -6,91 +6,97 @@ import { Button, Loading, EmptyState, SEO, AuthPromptModal } from '../components
 import { useMatches } from '../hooks/useMatches';
 import { useAuth } from '../hooks/useAuth';
 import { userService } from '../services';
-import { User } from '../models';
+import { useAlert } from '../contexts/AlertContext';
+import { useDiscoveryFeed } from '../hooks/useDiscoveryFeed';
 
 const DiscoverView = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const [showAuthPromptModal, setShowAuthPromptModal] = useState(false);
+  const feed = useDiscoveryFeed(currentUser);
+  const { users, isLoading, loadError, loadMore, refresh, hasMore, isLoadingMore, locationRequired } = feed;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitting = useRef(false);
+  const { showAlert } = useAlert();
+  const actionGeneration = useRef(0);
+  const cardElement = useRef<HTMLDivElement>(null);
   const { likeUser, dislikeUser, superLikeUser, showMatchModal, newMatch, closeMatchModal } = useMatches();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const recommended = await userService.getRecommendedUsers(currentUser?.id || '');
-        setUsers(recommended || []);
-      } catch (error) {
-        console.error('Error fetching recommended users:', error);
-      } finally {
-        setIsLoading(false);
+    setCurrentIndex(0);
+    actionGeneration.current++;
+    submitting.current = false;
+    setIsSubmitting(false);
+  }, [feed.key, feed.revision]);
+
+  useEffect(() => {
+    if (hasMore && !loadError && currentIndex >= users.length - 4) void loadMore();
+  }, [currentIndex, users.length, hasMore, loadError, loadMore]);
+
+  const currentCard = users[currentIndex] || null;
+  useEffect(() => {
+    const element = cardElement.current;
+    if (!element || !currentCard?.discoverySessionId || showMatchModal || !('IntersectionObserver' in window)) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let recorded = false;
+    const observer = new IntersectionObserver(entries => {
+      if (timer) clearTimeout(timer);
+      if (entries[0]?.isIntersecting && entries[0].intersectionRatio >= 0.6 && !recorded) {
+        timer = setTimeout(() => {
+          recorded = true;
+          void userService.recordDiscoveryImpression(currentCard.discoverySessionId!, currentCard.id)
+            .catch(() => { recorded = false; });
+        }, 500);
       }
-    };
-    fetchUsers();
-  }, [currentUser?.id]);
+    }, { threshold: [0, 0.6] });
+    observer.observe(element);
+    return () => { observer.disconnect(); if (timer) clearTimeout(timer); };
+  }, [currentCard?.id, currentCard?.discoverySessionId, showMatchModal, isLoading]);
 
   const handleNext = () => {
     setCurrentIndex(prev => prev + 1);
   };
 
-  const handleLike = async () => {
+  const handleAction = async (action: (id: string) => Promise<unknown>) => {
     if (!currentUser) {
       setShowAuthPromptModal(true);
       return;
     }
     const user = users[currentIndex];
-    if (!user) return;
+    if (!user || submitting.current) return;
+    submitting.current = true;
+    const generation = ++actionGeneration.current;
+    setIsSubmitting(true);
     try {
-      await likeUser(user.id);
-    } catch (err) {
-      console.error('Error liking user:', err);
+      await action(user.id);
+      if (generation === actionGeneration.current) handleNext();
+    } catch (error: any) {
+      if (generation === actionGeneration.current) showAlert(error.response?.data?.error || t('discover.action_error'), 'error');
+    } finally {
+      if (generation === actionGeneration.current) { submitting.current = false; setIsSubmitting(false); }
     }
-    handleNext();
   };
 
-  const handleDislike = async () => {
-    if (!currentUser) {
-      setShowAuthPromptModal(true);
-      return;
-    }
-    const user = users[currentIndex];
-    if (!user) return;
-    try {
-      await dislikeUser(user.id);
-    } catch (err) {
-      console.error('Error disliking user:', err);
-    }
-    handleNext();
-  };
-
-  const handleSuperLike = async () => {
-    if (!currentUser) {
-      setShowAuthPromptModal(true);
-      return;
-    }
-    const user = users[currentIndex];
-    if (!user) return;
-    try {
-      await superLikeUser(user.id);
-    } catch (err) {
-      console.error('Error superliking user:', err);
-    }
-    handleNext();
-  };
+  const handleLike = () => handleAction(likeUser);
+  const handleDislike = () => handleAction(dislikeUser);
+  const handleSuperLike = () => handleAction(superLikeUser);
 
   if (isLoading) return <Loading text={t('discover.loading')} />;
 
-  const currentCard = currentIndex < users.length ? users[currentIndex] : null;
 
   return (
     <div className="discover-view fade-in d-flex flex-column align-items-center justify-content-center h-100 py-3">
       <SEO title={t('discover.title')} description={t('discover.seo_desc')} />
+      {currentUser && <button className="btn btn-link mb-2" onClick={() => navigate('/settings')}>
+        <i className="bi bi-sliders me-2" />{t('discover.preferences')}
+      </button>}
       {currentCard ? (
-        <div className="discover-container d-flex flex-column align-items-center" style={{ maxWidth: '420px', width: '100%' }}>
+        <div ref={cardElement} className="discover-container d-flex flex-column align-items-center" style={{ maxWidth: '420px', width: '100%' }}>
           <DiscoverCard 
+            key={currentCard.id}
+            disabled={isSubmitting}
             user={currentCard} 
             onLike={handleLike}
             onDislike={handleDislike}
@@ -112,7 +118,7 @@ const DiscoverView = () => {
               onClick={() => {
                 if (currentIndex > 0) setCurrentIndex(prev => prev - 1);
               }}
-              disabled={currentIndex === 0}
+              disabled={currentIndex === 0 || isSubmitting}
             >
               <i className="bi bi-arrow-counterclockwise fs-4"></i>
             </button>
@@ -121,6 +127,7 @@ const DiscoverView = () => {
               className="btn btn-light text-danger shadow-sm rounded-circle p-3 border hover-shadow"
               title={t('common.pass')}
               onClick={handleDislike}
+              disabled={isSubmitting}
             >
               <i className="bi bi-x-lg fs-4"></i>
             </button>
@@ -129,6 +136,7 @@ const DiscoverView = () => {
               className="btn-info rounded-circle shadow p-3 text-white" 
               title="Super Like"
               onClick={handleSuperLike}
+              disabled={isSubmitting}
             >
               <i className="bi bi-star-fill fs-4 text-white"></i>
             </Button>
@@ -138,17 +146,21 @@ const DiscoverView = () => {
               title={t('discover.like_btn')}
               style={{ background: 'linear-gradient(45deg, #ff4b2b, #ff416c)', border: 'none' }}
               onClick={handleLike}
+              disabled={isSubmitting}
             >
               <i className="bi bi-heart-fill fs-4"></i>
             </Button>
           </div>
         </div>
-      ) : (
-        <EmptyState 
-          icon="bi bi-heartbreak" 
-          title={t('discover.no_more_users')} 
-          description={t('discover.no_more_users_desc')} 
-        />
+      ) : isLoadingMore ? <Loading text={t('discover.loading')} /> : (
+        <div className="text-center">
+          <EmptyState
+            icon={loadError ? 'bi bi-wifi-off' : 'bi bi-heartbreak'}
+            title={t(loadError ? 'discover.load_error' : 'discover.no_more_users')}
+            description={t(loadError ? 'discover.load_error_desc' : locationRequired ? 'discover.location_required' : 'discover.no_more_users_desc')}
+          />
+          <Button onClick={() => hasMore ? void loadMore() : refresh()}>{t('discover.refresh')}</Button>
+        </div>
       )}
 
       {/* Modal chúc mừng tương hợp */}

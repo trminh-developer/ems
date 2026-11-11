@@ -16,7 +16,7 @@ const useMockDb =
 let sequelize: Sequelize;
 
 if (useMockDb) {
-  const sqlitePath = path.resolve(
+  const sqlitePath = process.env.SQLITE_STORAGE || path.resolve(
     __dirname,
     "../../Database/dating_app.sqlite",
   );

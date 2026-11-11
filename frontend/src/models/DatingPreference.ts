@@ -5,6 +5,10 @@ export interface DatingPreference {
   ageRange: { min: number; max: number };
   maxDistance: number; // km
   relationshipGoal: RelationshipGoal;
+  acceptedGoals?: RelationshipGoal[];
+  goalRequired?: boolean;
+  distanceRequired?: boolean;
+  distanceHalfLife?: number;
 }
 
 export enum RelationshipGoal {

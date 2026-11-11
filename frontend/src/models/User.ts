@@ -38,7 +38,17 @@ export interface User {
   status?: 'ACTIVE' | 'BANNED' | 'DELETED';
   createdAt?: string;
   datingPreference?: DatingPreference;
-  matchPercentage?: number;
+  matchPercentage?: number | null;
+  datingVisible?: boolean;
+  locationUpdatedAt?: string;
+  discoverySessionId?: string;
+  compatibility?: {
+    score: number | null;
+    coldStart: boolean;
+    reasons: string[];
+    sharedInterests: string[];
+    distanceKm: number | null;
+  };
 
   // Backend raw snake_case fields
   first_name?: string;

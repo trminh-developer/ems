@@ -199,8 +199,15 @@ const ProfileView = () => {
     }
   };
 
-  const handleBlock = () => {
-    showAlert('Đã chặn người dùng này.', 'warning');
+  const handleBlock = async () => {
+    if (!currentUser || !user) return;
+    try {
+      await userService.blockUser(currentUser.id, user.id);
+      showAlert('Đã chặn người dùng này.', 'warning');
+      navigate('/discover');
+    } catch (error: any) {
+      showAlert(error.response?.data?.error || t('discover.action_error'), 'error');
+    }
   };
 
   const handleReport = () => {
@@ -209,9 +216,13 @@ const ProfileView = () => {
 
   const handleLike = async () => {
     if (!user) return;
-    await likeUser(user.id);
-    showAlert('Đã thả tim và tương hợp thành công! 💕 Bây giờ bạn có thể nhắn tin.', 'success');
-    if (loadConversations) await loadConversations();
+    try {
+      const matched = await likeUser(user.id);
+      showAlert(t(matched ? 'discover.mutual_match' : 'discover.like_sent'), 'success');
+      if (matched && loadConversations) await loadConversations();
+    } catch (error: any) {
+      showAlert(error.response?.data?.error || t('discover.action_error'), 'error');
+    }
   };
 
   if (isLoading) return <Loading text={t('profile.loading')} />;

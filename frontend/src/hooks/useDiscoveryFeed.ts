@@ -1,0 +1,74 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { User } from '../models';
+import { userService } from '../services';
+
+export function useDiscoveryFeed(user?: User | null) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [locationRequired, setLocationRequired] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const cursor = useRef<string | null>(null);
+  const generation = useRef(0);
+  const inFlight = useRef(false);
+  const key = JSON.stringify([user?.id, user?.datingPreference, user?.location, user?.locationUpdatedAt,
+    user?.interests, user?.relationshipGoal, user?.dateOfBirth, user?.datingVisible]);
+  const refresh = useCallback(() => setRevision(value => value + 1), []);
+
+  useEffect(() => {
+    const current = ++generation.current;
+    cursor.current = null;
+    inFlight.current = true;
+    setUsers([]);
+    setIsLoading(true);
+    setIsLoadingMore(false);
+    setLoadError(false);
+    setHasMore(false);
+    setLocationRequired(false);
+    const load = async () => {
+      try {
+        const page = user?.id ? await userService.getDiscoveryFeed() :
+          { users: await userService.getRecommendedUsers('', 20), nextCursor: null, locationRequired: false };
+        if (generation.current !== current) return;
+        setUsers(page.users);
+        cursor.current = page.nextCursor;
+        setHasMore(!!page.nextCursor);
+        setLocationRequired(page.locationRequired);
+      } catch {
+        if (generation.current === current) setLoadError(true);
+      } finally {
+        if (generation.current === current) { inFlight.current = false; setIsLoading(false); }
+      }
+    };
+    void load();
+    return () => { generation.current++; };
+  }, [key, revision]);
+
+  const loadMore = useCallback(async () => {
+    if (!cursor.current || inFlight.current || !user?.id) return;
+    const current = generation.current;
+    inFlight.current = true;
+    setIsLoadingMore(true);
+    setLoadError(false);
+    try {
+      const page = await userService.getDiscoveryFeed(cursor.current);
+      if (generation.current !== current) return;
+      setUsers(previous => {
+        const ids = new Set(previous.map(profile => profile.id));
+        return [...previous, ...page.users.filter(profile => !ids.has(profile.id))];
+      });
+      cursor.current = page.nextCursor;
+      setHasMore(!!page.nextCursor);
+    } catch (error: any) {
+      if (generation.current !== current) return;
+      if (error.response?.data?.code === 'REFRESH_FEED') refresh();
+      else setLoadError(true);
+    } finally {
+      if (generation.current === current) { inFlight.current = false; setIsLoadingMore(false); }
+    }
+  }, [user?.id, refresh]);
+
+  return { users, isLoading, loadError, isLoadingMore, locationRequired, hasMore, loadMore, refresh, key, revision };
+}

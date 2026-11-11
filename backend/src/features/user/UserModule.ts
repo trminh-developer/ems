@@ -8,17 +8,21 @@ import {
   updateUserProfile,
   blockUser,
   reportUser,
+  getDiscoveryFeed,
+  postDiscoveryImpression,
 } from "./UserController";
-import { requireAuth } from "../../middlewares/authMiddleware";
+import { requireAuth, optionalAuth } from "../../middlewares/authMiddleware";
 
 const router = Router();
 
-router.get("/api/users", getRecommendedUsers);
-router.get("/api/users/recommended", getRecommendedUsers);
+router.get("/api/users", optionalAuth, getRecommendedUsers);
+router.get("/api/users/recommended", optionalAuth, getRecommendedUsers);
+router.get('/api/users/discover', requireAuth, getDiscoveryFeed);
+router.post('/api/users/discover/:sessionId/impressions', requireAuth, postDiscoveryImpression);
 router.get("/api/users/nearby", getNearbyUsers);
 router.get("/api/users/search", searchUsers);
-router.get("/api/users/username/:username", getUserByUsername);
-router.get("/api/users/:id", getUserById);
+router.get("/api/users/username/:username", optionalAuth, getUserByUsername);
+router.get("/api/users/:id", optionalAuth, getUserById);
 
 // Protect update route
 router.put("/api/users/:id", requireAuth, updateUserProfile);

@@ -1,8 +1,18 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models";
+import { Op } from 'sequelize';
 
 const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
+
+async function touchActivity(user: any) {
+  const cutoff = new Date(Date.now() - 5 * 60 * 1000);
+  if (!user.last_active || new Date(user.last_active) < cutoff) {
+    await User.update({ last_active: new Date() }, { where: {
+      id: user.id, [Op.or]: [{ last_active: null }, { last_active: { [Op.lt]: cutoff } }],
+    }, silent: true });
+  }
+}
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -41,6 +51,7 @@ export const requireAuth = async (
         .json({ error: "Forbidden: Account has been suspended or deleted" });
     }
 
+    await touchActivity(user);
     req.user = user;
     next();
   } catch (error) {
@@ -66,6 +77,7 @@ export const optionalAuth = async (
         (user as any).status !== "BANNED" &&
         (user as any).status !== "DELETED"
       ) {
+        await touchActivity(user);
         req.user = user;
       }
     }

@@ -22,6 +22,8 @@ User.init(
     country: { type: DataTypes.STRING },
     latitude: { type: DataTypes.FLOAT },
     longitude: { type: DataTypes.FLOAT },
+    location_updated_at: { type: DataTypes.DATE },
+    dating_visible: { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: false },
     bio: { type: DataTypes.TEXT },
     profession: { type: DataTypes.STRING },
     education: { type: DataTypes.STRING },
@@ -46,7 +48,11 @@ User.init(
     name_changed_at: { type: DataTypes.DATE },
     username_changed_at: { type: DataTypes.DATE },
   },
-  { sequelize, modelName: "User", tableName: "users", timestamps: true },
+  { sequelize, modelName: "User", tableName: "users", timestamps: true,
+    indexes: [{ fields: ['status', 'role', 'dating_visible', 'date_of_birth'] },
+      { fields: ['status', 'dating_visible', 'last_active', 'id'] },
+      { fields: ['status', 'dating_visible', 'createdAt', 'id'] },
+      { fields: ['latitude', 'longitude'] }] },
 );
 
 class UserPreference extends Model {}
@@ -62,12 +68,18 @@ UserPreference.init(
     age_min: { type: DataTypes.INTEGER },
     age_max: { type: DataTypes.INTEGER },
     max_distance: { type: DataTypes.INTEGER },
+    relationship_goal: { type: DataTypes.STRING },
+    accepted_goals: { type: DataTypes.JSON },
+    goal_required: { type: DataTypes.BOOLEAN, defaultValue: false },
+    distance_required: { type: DataTypes.BOOLEAN, defaultValue: false },
+    distance_half_life: { type: DataTypes.FLOAT, defaultValue: 10 },
   },
   {
     sequelize,
     modelName: "UserPreference",
     tableName: "user_preferences",
     timestamps: false,
+    indexes: [{ fields: ['user_id'] }],
   },
 );
 
@@ -102,6 +114,7 @@ UserInterest.init(
     modelName: "UserInterest",
     tableName: "user_interests",
     timestamps: false,
+    indexes: [{ fields: ['interest_id', 'user_id'] }],
   },
 );
 
@@ -115,11 +128,87 @@ Match.init(
     },
     user1_id: { type: DataTypes.UUID, allowNull: false },
     user2_id: { type: DataTypes.UUID, allowNull: false },
+    pair_key: { type: DataTypes.STRING(201), allowNull: true },
     match_percentage: { type: DataTypes.FLOAT },
     matched_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
-  { sequelize, modelName: "Match", tableName: "matches", timestamps: false },
+  { sequelize, modelName: "Match", tableName: "matches", timestamps: false,
+    indexes: [{ fields: ['pair_key'], unique: true }, { fields: ['user1_id', 'user2_id'] }, { fields: ['user2_id'] }] },
 );
+
+class UserSwipe extends Model {}
+UserSwipe.init(
+  {
+    user_id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
+    target_id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
+    action: { type: DataTypes.STRING, allowNull: false },
+    updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+    expires_at: { type: DataTypes.DATE },
+  },
+  { sequelize, modelName: 'UserSwipe', tableName: 'user_swipes', timestamps: false,
+    indexes: [{ fields: ['target_id', 'action'] }] },
+);
+
+class UserBlock extends Model {}
+UserBlock.init(
+  {
+    user_id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
+    target_id: { type: DataTypes.UUID, primaryKey: true, allowNull: false },
+  },
+  { sequelize, modelName: 'UserBlock', tableName: 'user_blocks', timestamps: false,
+    indexes: [{ fields: ['target_id'] }] },
+);
+
+class PairState extends Model {}
+PairState.init({
+  user_low_id: { type: DataTypes.UUID, primaryKey: true },
+  user_high_id: { type: DataTypes.UUID, primaryKey: true },
+  state: { type: DataTypes.STRING, defaultValue: 'open', allowNull: false },
+}, { sequelize, modelName: 'PairState', tableName: 'pair_states', timestamps: false,
+  indexes: [{ fields: ['user_high_id', 'state'] }] });
+
+class DatingRequest extends Model {}
+DatingRequest.init({
+  user_id: { type: DataTypes.UUID, primaryKey: true },
+  request_id: { type: DataTypes.STRING(100), primaryKey: true },
+  fingerprint: { type: DataTypes.STRING(64), allowNull: false },
+  response: { type: DataTypes.JSON, allowNull: false },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, { sequelize, modelName: 'DatingRequest', tableName: 'dating_requests', timestamps: false });
+
+class DiscoverySession extends Model {}
+DiscoverySession.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  fingerprint: { type: DataTypes.STRING(64), allowNull: false },
+  entries: { type: DataTypes.JSON, allowNull: false },
+  delivered_count: { type: DataTypes.INTEGER, defaultValue: 0 },
+  expires_at: { type: DataTypes.DATE, allowNull: false },
+}, { sequelize, modelName: 'DiscoverySession', tableName: 'discovery_sessions', timestamps: false,
+  indexes: [{ fields: ['user_id', 'expires_at'] }] });
+
+class DiscoveryImpression extends Model {}
+DiscoveryImpression.init({
+  session_id: { type: DataTypes.UUID, primaryKey: true },
+  target_id: { type: DataTypes.UUID, primaryKey: true },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  shown_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+  algorithm_version: { type: DataTypes.STRING, allowNull: false },
+  features: { type: DataTypes.JSON },
+}, { sequelize, modelName: 'DiscoveryImpression', tableName: 'discovery_impressions', timestamps: false,
+  indexes: [{ fields: ['user_id', 'shown_at'] }] });
+
+class DatingEvent extends Model {}
+DatingEvent.init({
+  id: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4 },
+  user_id: { type: DataTypes.UUID, allowNull: false },
+  target_id: { type: DataTypes.UUID, allowNull: false },
+  type: { type: DataTypes.STRING, allowNull: false },
+  algorithm_version: { type: DataTypes.STRING, allowNull: false },
+  features: { type: DataTypes.JSON },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+}, { sequelize, modelName: 'DatingEvent', tableName: 'dating_events', timestamps: false,
+  indexes: [{ fields: ['type', 'created_at'] }, { fields: ['user_id', 'target_id'] }] });
 
 class Conversation extends Model {}
 Conversation.init(
@@ -207,6 +296,8 @@ Status.init(
     user_id: { type: DataTypes.UUID, allowNull: false },
     content: { type: DataTypes.TEXT },
     media_urls: { type: DataTypes.JSON },
+    is_hidden: { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: false },
+    hidden_at: { type: DataTypes.DATE },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
@@ -416,6 +507,13 @@ export {
   UserPreference,
   Interest,
   UserInterest,
+  UserSwipe,
+  UserBlock,
+  PairState,
+  DatingRequest,
+  DiscoverySession,
+  DiscoveryImpression,
+  DatingEvent,
   Match,
   Conversation,
   Message,

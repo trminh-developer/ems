@@ -18,20 +18,20 @@ const SettingsView = () => {
 
   // Initialize state from user data
   const [onlineStatus, setOnlineStatus] = useState(user?.isOnline ?? true);
-  const [preferredGender, setPreferredGender] = useState(
-    user?.datingPreference?.preferredGender?.[0] || Gender.FEMALE,
+  const [preferredGender, setPreferredGender] = useState<Gender | 'ALL'>(
+    user?.datingPreference?.preferredGender?.length === 1 ? user.datingPreference.preferredGender[0]! : 'ALL',
   );
   const [ageMin, setAgeMin] = useState(
     user?.datingPreference?.ageRange?.min || 18,
   );
   const [ageMax, setAgeMax] = useState(
-    user?.datingPreference?.ageRange?.max || 30,
+    user?.datingPreference?.ageRange?.max || 100,
   );
   const [maxDistance, setMaxDistance] = useState(
-    user?.datingPreference?.maxDistance || 20,
+    user?.datingPreference?.maxDistance || 100,
   );
   const [relationshipGoal, setRelationshipGoal] = useState(
-    user?.relationshipGoal || RelationshipGoal.NOT_SURE,
+    user?.datingPreference?.relationshipGoal || user?.relationshipGoal || RelationshipGoal.NOT_SURE,
   );
   const [showToast, setShowToast] = useState(false);
 
@@ -169,12 +169,12 @@ useEffect(() => {
     if (user) {
       setOnlineStatus(user.isOnline ?? true);
       setPreferredGender(
-        user.datingPreference?.preferredGender?.[0] || Gender.FEMALE,
+        user.datingPreference?.preferredGender?.length === 1 ? user.datingPreference.preferredGender[0]! : 'ALL',
       );
       setAgeMin(user.datingPreference?.ageRange?.min || 18);
-      setAgeMax(user.datingPreference?.ageRange?.max || 30);
-      setMaxDistance(user.datingPreference?.maxDistance || 20);
-      setRelationshipGoal(user.relationshipGoal || RelationshipGoal.NOT_SURE);
+      setAgeMax(user.datingPreference?.ageRange?.max || 100);
+      setMaxDistance(user.datingPreference?.maxDistance || 100);
+      setRelationshipGoal(user.datingPreference?.relationshipGoal || user.relationshipGoal || RelationshipGoal.NOT_SURE);
       if (!isEditingUsername) {
         setEditUsername(user.username || "");
       }
@@ -227,12 +227,12 @@ useEffect(() => {
   };
 
   const handleGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value as Gender;
+    const val = e.target.value as Gender | 'ALL';
     setPreferredGender(val);
     saveChanges({
       datingPreference: {
         ...user?.datingPreference,
-        preferredGender: [val],
+        preferredGender: val === 'ALL' ? [] : [val],
       },
     });
   };
@@ -262,7 +262,7 @@ useEffect(() => {
   const handleGoalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value as RelationshipGoal;
     setRelationshipGoal(val);
-    saveChanges({ relationshipGoal: val });
+    saveChanges({ relationshipGoal: val, datingPreference: { ...user?.datingPreference, relationshipGoal: val } });
   };
 
   const handleGetLocation = () => {
@@ -272,9 +272,10 @@ useEffect(() => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
-        saveChanges({
+        const saved = await saveChanges({
+          refreshLocation: true,
           location: {
             ...user?.location,
             city: user?.location?.city || "Unknown",
@@ -283,7 +284,7 @@ useEffect(() => {
             longitude,
           },
         });
-        showAlert("Đã cập nhật vị trí chính xác của bạn!", "success");
+        if (saved) showAlert("Đã cập nhật vị trí chính xác của bạn!", "success");
       },
       (error) => {
         showAlert(
@@ -458,6 +459,7 @@ useEffect(() => {
                   value={preferredGender}
                   onChange={handleGenderChange}
                 >
+                  <option value="ALL">{t('discover.all_genders')}</option>
                   <option value={Gender.FEMALE}>{t('common.female')}</option>
                   <option value={Gender.MALE}>{t('common.male')}</option>
                   <option value={Gender.OTHER}>{t('common.other')}</option>
@@ -476,7 +478,7 @@ useEffect(() => {
                     min="18"
                     max={ageMax}
                     onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)}
-                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], maxDistance, relationshipGoal } as any })}
+                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], maxDistance, relationshipGoal } as any })}
                   />
                   <span className="text-muted">-</span>
                   <input
@@ -486,7 +488,7 @@ useEffect(() => {
                     min={ageMin}
                     max="100"
                     onChange={(e) => setAgeMax(parseInt(e.target.value) || 30)}
-                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], maxDistance, relationshipGoal } as any })}
+                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], maxDistance, relationshipGoal } as any })}
                   />
                 </div>
               </div>
@@ -504,9 +506,15 @@ useEffect(() => {
                 max="100"
                 value={maxDistance}
                 onChange={(e) => setMaxDistance(parseInt(e.target.value))}
-                onMouseUp={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], relationshipGoal } as any })}
-                onTouchEnd={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: [preferredGender], relationshipGoal } as any })}
+                onMouseUp={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], relationshipGoal } as any })}
+                onTouchEnd={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], relationshipGoal } as any })}
+                onKeyUp={(event) => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) void saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance } }); }}
               />
+              <label className="form-check mt-2 small">
+                <input className="form-check-input" type="checkbox" checked={user?.datingPreference?.distanceRequired ?? false}
+                  onChange={event => void saveChanges({ datingPreference: { ...user?.datingPreference, distanceRequired: event.target.checked } })} />
+                <span className="form-check-label">{t('discover.strict_distance')}</span>
+              </label>
             </div>
 
             <div className="settings-item flex-column align-items-stretch border-0 p-0">
@@ -522,6 +530,25 @@ useEffect(() => {
                   <option value={RelationshipGoal.FRIENDSHIP}>New Friends</option>
                   <option value={RelationshipGoal.NOT_SURE}>Not Sure Yet</option>
                 </select>
+              </div>
+              <label className="form-check mt-2 small">
+                <input className="form-check-input" type="checkbox" checked={user?.datingPreference?.goalRequired ?? false}
+                  onChange={event => void saveChanges({ datingPreference: { ...user?.datingPreference, goalRequired: event.target.checked } })} />
+                <span className="form-check-label">{t('discover.strict_goal')}</span>
+              </label>
+              <label className="form-label small mt-2">{t('discover.accepted_goals')}</label>
+              <div className="d-flex flex-wrap gap-3">
+                {[RelationshipGoal.LONG_TERM, RelationshipGoal.SHORT_TERM, RelationshipGoal.FRIENDSHIP].filter(goal => goal !== relationshipGoal).map(goal => (
+                  <label className="form-check small" key={goal}>
+                    <input className="form-check-input" type="checkbox" checked={user?.datingPreference?.acceptedGoals?.includes(goal) ?? false}
+                      onChange={event => {
+                        const current = user?.datingPreference?.acceptedGoals || [];
+                        const acceptedGoals = event.target.checked ? [...current, goal] : current.filter(value => value !== goal);
+                        void saveChanges({ datingPreference: { ...user?.datingPreference, acceptedGoals } });
+                      }} />
+                    <span className="form-check-label">{goal}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -804,7 +831,7 @@ useEffect(() => {
                         id_card_image: idCardImage, // Real app would use actual file upload base64
                         selfie_image: recordedVideo
                       });
-                    } catch (e) {
+                    } catch (e: any) {
                       console.error('Failed to submit verification', e); alert('Lỗi gửi xác thực: ' + (e.response?.data?.error || e.message || e)); setIsVerificationPending(false);
                     }
                   }
