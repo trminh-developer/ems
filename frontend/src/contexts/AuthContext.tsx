@@ -68,8 +68,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Khi mở app: kiểm tra session → fetch data MỚI NHẤT từ Supabase
   useEffect(() => {
     const initAuth = async () => {
-      dispatch({ type: 'INIT_START' });
+      const cachedUser = authService.getCurrentUser();
       const userId = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+
+      // Render ngay lap tuc neu da co thong tin user (Zero-delay render)
+      if (cachedUser && userId) {
+        dispatch({ type: 'INIT_FINISH', payload: cachedUser });
+      } else {
+        dispatch({ type: 'INIT_START' });
+      }
       if (userId) {
         try {
           const freshUser = await authService.refreshUser(userId);

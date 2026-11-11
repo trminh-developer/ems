@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import axios from "axios";
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
@@ -137,22 +138,41 @@ if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);
 }
 
-// Sync database and start server
+// Start server immediately to bind port and satisfy health checks
+app.listen(PORT, () => {
+  console.log(`Backend server is running on http://localhost:${PORT}`);
+
+  // Keep-alive self-ping for Render Free Tier (pings every 14 minutes to prevent sleep)
+  const renderUrl =
+    process.env.RENDER_EXTERNAL_URL ||
+    (process.env.NODE_ENV === "production"
+      ? "https://heartconnect-qa29.onrender.com"
+      : null);
+
+  if (renderUrl) {
+    console.log(
+      `[KeepAlive] Registered background self-ping to ${renderUrl}/api/health every 14 mins`,
+    );
+    setInterval(async () => {
+      try {
+        await axios.get(`${renderUrl}/api/health`);
+        console.log(
+          `[KeepAlive] Self-ping successful at ${new Date().toISOString()}`,
+        );
+      } catch (e: any) {
+        console.warn(`[KeepAlive] Ping failed: ${e.message}`);
+      }
+    }, 14 * 60 * 1000);
+  }
+});
+
+// Sync database and seed mock data asynchronously in the background
 sequelize
   .sync()
   .then(async () => {
     console.log("Database synced successfully");
     await seedMockData();
-    app.listen(PORT, () => {
-      console.log(`Backend server is running on http://localhost:${PORT}`);
-    });
   })
   .catch((err) => {
     console.error("Failed to sync database:", err);
-    // Vẫn bật server kể cả khi DB lỗi để lấy log
-    app.listen(PORT, () => {
-      console.log(
-        `Backend server is running (DB Error) on http://localhost:${PORT}`,
-      );
-    });
   });
