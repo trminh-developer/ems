@@ -1,21 +1,20 @@
 import axios from "axios";
 
 // Tự động phát hiện môi trường:
-// Nếu đang chạy trên thiết bị khác (devtunnels, LAN IP) mà URL chứa localhost -> dùng "/api" để qua proxy
+// - Nếu ở localhost -> dùng "/api" để qua Vite dev proxy
+// - Nếu ở production (server deploy như Vercel / Firebase) -> ưu tiên VITE_API_URL, nếu không có thì trỏ trực tiếp đến Render backend
 const getBaseURL = (): string => {
   const envUrl = (import.meta.env.VITE_API_URL as string) || '';
-  if (!envUrl || envUrl === '/api') return '/api';
+  if (envUrl && envUrl !== '/api') return envUrl;
   
   if (
     typeof window !== 'undefined' &&
-    envUrl.includes('localhost') &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ) {
     return '/api';
   }
   
-  return envUrl;
+  return 'https://heartconnect-qa29.onrender.com/api';
 };
 
 const apiClient = axios.create({
