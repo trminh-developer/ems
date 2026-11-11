@@ -5,6 +5,7 @@ import Avatar from '../common/Avatar';
 import { calculateAge } from '../../utils/helpers';
 import Button from '../common/Button';
 import InterestBadge from './InterestBadge';
+import UserBadge from './UserBadge';
 
 interface UserCardProps {
   user: User;
@@ -24,6 +25,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onLike, onMessage, onC
         
         <h5 className="mb-1 fw-bold">
           {(user.firstName || user.username)} {user.lastName}, {age}
+          <UserBadge user={user} />
         </h5>
         
         <p className="text-muted small mb-2 d-flex align-items-center gap-1">

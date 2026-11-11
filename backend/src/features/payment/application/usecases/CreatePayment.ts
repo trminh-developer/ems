@@ -1,6 +1,8 @@
-import { ITransactionRepository } from "../ports/ITransactionRepository";
-import { IPaymentGateway } from "../ports/IPaymentGateway";
-import { Transaction } from "../../domain/entities/Transaction";
+import { randomUUID } from 'crypto';
+import { ITransactionRepository } from '../ports/ITransactionRepository';
+import { IPaymentGateway } from '../ports/IPaymentGateway';
+import { Transaction } from '../../domain/entities/Transaction';
+import { getPremiumPlan } from '../../domain/PremiumPlans';
 
 export class CreatePaymentUseCase {
   constructor(
@@ -8,29 +10,18 @@ export class CreatePaymentUseCase {
     private paymentGateways: Record<string, IPaymentGateway>,
   ) {}
 
-  async execute(
-    provider: "VNPAY" | "MOMO" | "CARD" | "PAYPAL",
-    orderId: string,
-    amount: number,
-    description: string,
-    userId: string,
-    planId: string,
-    ipAddr: string,
-  ): Promise<string> {
-    const transaction = new Transaction(
-      orderId,
-      userId,
-      planId,
-      amount,
-      "PENDING",
-      provider,
-      new Date(),
-    );
-    await this.transactionRepo.save(transaction);
-
+  async execute(provider: string, userId: string, planId: string, ipAddr: string): Promise<{ paymentUrl: string; orderId: string }> {
+    const plan = getPremiumPlan(planId);
     const gateway = this.paymentGateways[provider];
-    if (!gateway) throw new Error("Provider not supported");
-
-    return await gateway.createPaymentUrl(orderId, amount, description, ipAddr);
+    if (!gateway) throw new Error('Provider not supported');
+    const orderId = randomUUID();
+    await this.transactionRepo.save(new Transaction(orderId, userId, planId, plan.price, 'PENDING', provider, new Date()));
+    try {
+      const paymentUrl = await gateway.createPaymentUrl(orderId, plan.price, `Thanh toan Premium ${plan.title}`, ipAddr);
+      return { paymentUrl, orderId };
+    } catch (error) {
+      await this.transactionRepo.settle(orderId, 'FAILED');
+      throw error;
+    }
   }
 }

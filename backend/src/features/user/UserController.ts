@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { User } from "../../models";
+import { User, sequelize } from "../../models";
+import { UniqueConstraintError } from 'sequelize';
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { z } from "zod";
 import { updateProfileSchema } from "../../validators/userValidator";
@@ -94,11 +95,38 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
         .json({ error: "Forbidden: You can only update your own profile" });
     }
 
-    const user: any = await User.findByPk(userIdToUpdate);
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const updateData: any = {};
     const body = updateProfileSchema.parse(req.body);
+    const user = await sequelize.transaction(async (transaction) => {
+    const user: any = await User.findByPk(userIdToUpdate, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!user) throw Object.assign(new Error('User not found'), { statusCode: 404 });
+    const updateData: any = {};
+    const now = new Date();
+    const cooldown = 7 * 24 * 60 * 60 * 1000;
+    const checkCooldown = (lastChanged: Date | null, field: string, label: string) => {
+      const nextAllowedAt = lastChanged ? new Date(new Date(lastChanged).getTime() + cooldown) : null;
+      if (nextAllowedAt && now < nextAllowedAt) {
+        throw Object.assign(new Error(`Bạn chỉ có thể đổi ${label} sau 7 ngày. Có thể đổi lại từ ${nextAllowedAt.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}.`), {
+          statusCode: 429, field, nextAllowedAt: nextAllowedAt.toISOString(),
+        });
+      }
+    };
+    const nameChanged = (body.firstName !== undefined && body.firstName !== (user.first_name || '')) ||
+      (body.lastName !== undefined && body.lastName !== (user.last_name || ''));
+    if (nameChanged) {
+      checkCooldown(user.name_changed_at, 'name', 'tên hiển thị');
+      updateData.name_changed_at = now;
+    }
+    if (body.username !== undefined && body.username !== user.username) {
+      checkCooldown(user.username_changed_at, 'username', 'username');
+      updateData.username_changed_at = now;
+    }
+    if (body.appLogo !== undefined && body.appLogo !== (user.app_logo || '')) {
+      const activePremium = user.is_premium && user.premium_expires_at && new Date(user.premium_expires_at) > now;
+      if (body.appLogo && !activePremium) {
+        throw Object.assign(new Error('Bạn cần gói Premium còn hiệu lực để đổi logo.'), { statusCode: 403 });
+      }
+      updateData.app_logo = body.appLogo;
+    }
 
     // Whitelist only safe fields
     if (body.username !== undefined) updateData.username = body.username;
@@ -144,11 +172,12 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
               icon: i.icon || "bi-star",
               category: i.category || "other",
             },
+            transaction,
           });
           interestRecords.push(record);
         }
       }
-      await user.setInterests(interestRecords);
+      await user.setInterests(interestRecords, { transaction });
     }
 
     // Update preferences if any
@@ -168,17 +197,24 @@ export const updateUserProfile = async (req: AuthRequest, res: Response) => {
           body.datingPreference.relationshipGoal;
     }
 
-    await user.update(updateData);
+    await user.update(updateData, { transaction });
 
     const { Interest } = require("../../models");
     await user.reload({
+      transaction,
       include: [
         { model: Interest, as: "interests", through: { attributes: [] } },
       ],
     });
+    return user;
+    });
 
     return res.json({ message: "Profile updated successfully", user });
   } catch (error: any) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ error: error.message, field: error.field, nextAllowedAt: error.nextAllowedAt });
+    }
+    if (error instanceof UniqueConstraintError) return res.status(409).json({ error: 'Username đã được sử dụng.' });
     if (error instanceof z.ZodError) {
       console.error("ZodError:", JSON.stringify(error.issues));
       return res.status(400).json({

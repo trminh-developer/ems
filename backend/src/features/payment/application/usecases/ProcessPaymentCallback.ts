@@ -14,24 +14,20 @@ export class ProcessPaymentCallbackUseCase {
     const gateway = this.paymentGateways[provider];
     if (!gateway) throw new Error("Provider not supported");
 
-    const isValid = gateway.verifyCallback(queryData);
     const orderId = gateway.getOrderId(queryData);
-    const status = gateway.getResponseStatus(queryData);
+    if (typeof orderId !== 'string' || !orderId) throw new Error('Invalid order ID');
+    const tx = await this.transactionRepo.findById(orderId);
+    if (!tx || tx.provider !== provider) throw new Error('Invalid transaction or provider');
+    const isValid = await gateway.verifyCallback(queryData, tx);
 
     if (!isValid) {
       throw new Error("Invalid signature");
     }
 
-    if (status === "SUCCESS") {
-      await this.transactionRepo.updateStatus(orderId, "SUCCESS");
-      const tx = await this.transactionRepo.findById(orderId);
-      if (tx) {
-        await this.transactionRepo.upgradeUserPremium(tx.userId, tx.planId);
-      }
-    } else {
-      await this.transactionRepo.updateStatus(orderId, "FAILED");
-    }
+    if (Number(gateway.getAmount(queryData)) !== Number(tx.amount)) throw new Error('Payment amount mismatch');
+    const status = gateway.getResponseStatus(queryData);
+    await this.transactionRepo.settle(orderId, status);
 
-    return { success: status === "SUCCESS", orderId };
+    return { success: status === "SUCCESS" || tx.status === 'SUCCESS', orderId };
   }
 }

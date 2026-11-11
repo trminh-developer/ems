@@ -54,8 +54,9 @@ export const setCurrentUser = (user: User | null): void => {
   }
 };
 
-export const updateUserInList = async (user: User): Promise<void> => {
-  await apiClient.put(`/users/${user.id}`, user);
+export const updateUserInList = async (user: User): Promise<User> => {
+  const res = await apiClient.put(`/users/${user.id}`, user);
+  return mapUser(res.data.user);
 };
 
 export const forgotPassword = async (email: string) => { await apiClient.post('/auth/forgot-password', { email }); };

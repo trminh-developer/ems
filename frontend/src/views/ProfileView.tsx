@@ -9,6 +9,7 @@ import { useMatches } from '../hooks/useMatches';
 import { useAlert } from '../contexts/AlertContext';
 import { userService, authService, feedService } from '../services';
 import { interests as predefinedInterests } from '../data';
+import { nextIdentityChange } from '../utils/premium';
 
 const ProfileView = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,11 +33,12 @@ const ProfileView = () => {
     avatar: '',
     coverPhoto: '',
     dateOfBirth: '',
-    interests: [] as any[],
-    isVerified: false
+    interests: [] as any[]
   });
   const [newInterest, setNewInterest] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const nextNameChange = nextIdentityChange(currentUser?.nameChangedAt);
   
   // Crop states
   const [cropImageSrc, setCropImageSrc] = useState<string>('');
@@ -64,8 +66,7 @@ const ProfileView = () => {
             avatar: currentUser.avatar || '',
             coverPhoto: currentUser.coverPhoto || '',
             dateOfBirth: currentUser.dateOfBirth || '',
-            interests: currentUser.interests || [],
-            isVerified: currentUser.isVerified || false
+            interests: currentUser.interests || []
           });
         } else if (id) {
           let fetchedUser = await userService.getUserByUsername(id);
@@ -147,8 +148,11 @@ const ProfileView = () => {
   };
 
   const handleSaveProfile = async () => {
+    if (!currentUser || isSaving) return;
+    setIsSaving(true);
     try {
-      const updatedUser = await userService.updateProfile(currentUser?.id || '', {
+      const updatedUser = await updateUser({
+        ...currentUser,
         firstName: editForm.firstName,
         lastName: editForm.lastName,
         bio: editForm.bio,
@@ -161,28 +165,18 @@ const ProfileView = () => {
         avatar: editForm.avatar,
         coverPhoto: editForm.coverPhoto,
         dateOfBirth: editForm.dateOfBirth,
-        interests: editForm.interests,
-        isVerified: editForm.isVerified
+        interests: editForm.interests
       });
 
       setUser(updatedUser);
-      updateUser(updatedUser);
       setIsEditModalOpen(false);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving profile", error);
-      // Fallback update
-      const fallbackUser = {
-        ...user,
-        ...editForm,
-        location: { city: editForm.city, country: editForm.country }
-      };
-      setUser(fallbackUser);
-      updateUser(fallbackUser);
-      setIsEditModalOpen(false);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
+      showAlert(error.response?.data?.error || error.message || 'Không thể lưu hồ sơ.', 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -284,14 +278,17 @@ const ProfileView = () => {
         <div className="row">
           <div className="col-md-6 mb-3">
             <label className="form-label">{t('profile.first_name')}</label>
-            <input type="text" className="form-control" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
+            <input type="text" className="form-control" name="firstName" value={editForm.firstName} onChange={handleEditChange} disabled={!!nextNameChange} maxLength={50} />
           </div>
           <div className="col-md-6 mb-3">
             <label className="form-label">{t('profile.last_name')}</label>
-            <input type="text" className="form-control" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
+            <input type="text" className="form-control" name="lastName" value={editForm.lastName} onChange={handleEditChange} disabled={!!nextNameChange} maxLength={50} />
           </div>
         </div>
 
+        <p className="small text-muted">
+          {nextNameChange ? `Có thể đổi tên lại từ ${nextNameChange.toLocaleString('vi-VN')}.` : 'Sau khi đổi tên, bạn cần chờ 7 ngày để đổi lại.'}
+        </p>
         <div className="mb-3">
           <label className="form-label">{t('profile.birth_date')}</label>
           <input 
@@ -399,7 +396,7 @@ const ProfileView = () => {
         
         <div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
           <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>{t('common.cancel')}</Button>
-          <Button variant="primary" onClick={handleSaveProfile}>{t('common.save')}</Button>
+          <Button variant="primary" onClick={handleSaveProfile} disabled={isSaving}>{isSaving ? 'Đang lưu...' : t('common.save')}</Button>
         </div>
       </Modal>
 

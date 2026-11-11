@@ -5,6 +5,7 @@ import { Gender, RelationshipGoal } from "../models";
 import { useAlert } from "../contexts/AlertContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
+import { isPremiumActive, nextIdentityChange } from '../utils/premium';
 
 const SettingsView = () => {
   const { user, logout, updateUser } = useAuth();
@@ -36,6 +37,10 @@ const SettingsView = () => {
 
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editUsername, setEditUsername] = useState(user?.username || "");
+  const [isSavingUsername, setIsSavingUsername] = useState(false);
+  const [isSavingLogo, setIsSavingLogo] = useState(false);
+  const nextUsernameChange = nextIdentityChange(user?.usernameChangedAt);
+  const premiumActive = isPremiumActive(user);
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -177,11 +182,41 @@ useEffect(() => {
   }, [user]);
 
   // Helper to trigger save and show toast
-  const saveChanges = (updatedFields: any) => {
+  const saveChanges = async (updatedFields: any): Promise<boolean> => {
     if (user) {
-      updateUser({ ...user, ...updatedFields }).catch(e => alert(e.response?.data?.error || e.message));
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
+      try {
+        await updateUser({ ...user, ...updatedFields });
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+        return true;
+      } catch (error: any) {
+        showAlert(error.response?.data?.error || error.message || 'Không thể lưu thay đổi.', 'error');
+      }
+    }
+    return false;
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type) || file.size > 1024 * 1024) {
+      showAlert('Chọn ảnh PNG, JPEG, WebP hoặc GIF có dung lượng tối đa 1 MB.', 'error');
+      return;
+    }
+    setIsSavingLogo(true);
+    try {
+      const appLogo = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Không thể đọc ảnh.'));
+        reader.readAsDataURL(file);
+      });
+      await saveChanges({ appLogo });
+    } catch (error: any) {
+      showAlert(error.message, 'error');
+    } finally {
+      setIsSavingLogo(false);
     }
   };
 
@@ -281,13 +316,18 @@ useEffect(() => {
                   type="text"
                   className="form-control form-control-sm"
                   value={editUsername}
+                  minLength={3}
+                  maxLength={30}
+                  disabled={isSavingUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
                 />
                 <Button
                   className="btn-primary btn-sm"
-                  onClick={() => {
-                    saveChanges({ username: editUsername });
-                    setIsEditingUsername(false);
+                  disabled={isSavingUsername || !!nextUsernameChange}
+                  onClick={async () => {
+                    setIsSavingUsername(true);
+                    if (await saveChanges({ username: editUsername.trim() })) setIsEditingUsername(false);
+                    setIsSavingUsername(false);
                   }}
                 >
                   {t('common.save')}
@@ -305,13 +345,35 @@ useEffect(() => {
             ) : (
               <div className="d-flex align-items-center gap-2">
                 <span className="text-muted fw-bold">@{user?.username}</span>
-                <i
-                  className="bi bi-pencil cursor-pointer text-primary ms-2"
-                  style={{ cursor: "pointer" }}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 ms-2"
+                  aria-label="Đổi username"
+                  disabled={!!nextUsernameChange}
                   onClick={() => setIsEditingUsername(true)}
-                ></i>
+                ><i className="bi bi-pencil" /></button>
               </div>
             )}
+          </div>
+          <p className="small text-muted">
+            {nextUsernameChange ? `Có thể đổi username lại từ ${nextUsernameChange.toLocaleString('vi-VN')}.` : 'Sau khi đổi username, bạn cần chờ 7 ngày để đổi lại.'}
+          </p>
+          <div className="border rounded-3 p-3 my-3">
+            <h6>Logo ứng dụng <span className="badge bg-warning text-dark">Premium</span></h6>
+            <p className="small text-muted">Logo hiển thị riêng cho tài khoản của bạn trong thời gian gói Premium còn hiệu lực. Bạn có thể đổi bất cứ lúc nào.</p>
+            <img src={premiumActive && user?.appLogo ? user.appLogo : '/logo-heartconnect.png'} alt="Logo hiện tại" height="48" className="mb-3" style={{ maxWidth: 160, objectFit: 'contain' }} />
+            {premiumActive ? (
+              <div className="d-flex flex-column gap-2">
+                <input type="file" className="form-control" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Chọn logo ứng dụng" onChange={handleLogoUpload} disabled={isSavingLogo} />
+                <small className="text-muted">PNG, JPEG, WebP hoặc GIF, tối đa 1 MB.</small>
+                {isSavingLogo && <small>Đang lưu logo...</small>}
+                {user?.appLogo && <Button variant="outline" disabled={isSavingLogo} onClick={async () => {
+                  setIsSavingLogo(true);
+                  await saveChanges({ appLogo: '' });
+                  setIsSavingLogo(false);
+                }}>Dùng logo mặc định</Button>}
+              </div>
+            ) : <a href="/premium">Nâng cấp Premium để đổi logo</a>}
           </div>
           <Button
             className="btn-link p-0 text-decoration-none mt-2 d-block"

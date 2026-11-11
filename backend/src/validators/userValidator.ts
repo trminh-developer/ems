@@ -12,9 +12,13 @@ export const registerSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  username: z.string().min(3).max(30).nullish(),
-  firstName: z.string().min(1).max(50).nullish(),
-  lastName: z.string().max(50).nullish(),
+  username: z.string().trim().min(3).max(30).regex(/^[a-zA-Z0-9_.-]+$/, 'Username chỉ gồm chữ, số, dấu chấm, gạch dưới và gạch ngang.').optional(),
+  firstName: z.string().trim().min(1).max(50).optional(),
+  lastName: z.string().trim().max(50).optional(),
+  appLogo: z.string().max(1500000).refine(
+    (value) => value === '' || /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(value),
+    'Logo phải là ảnh PNG, JPEG, WebP hoặc GIF, tối đa 1 MB.',
+  ).optional(),
   password: z.string().min(6).nullish(),
   dateOfBirth: z
     .string()

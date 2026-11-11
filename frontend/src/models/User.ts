@@ -28,6 +28,12 @@ export interface User {
   isOnline: boolean;
   lastActive: string;
   isVerified?: boolean;
+  isPremium?: boolean;
+  premiumExpiresAt?: string;
+  premiumPlanId?: string;
+  appLogo?: string;
+  nameChangedAt?: string;
+  usernameChangedAt?: string;
   role?: 'ADMIN' | 'CENSOR' | 'USER';
   status?: 'ACTIVE' | 'BANNED' | 'DELETED';
   createdAt?: string;

@@ -11,8 +11,9 @@ export class MoMoGateway implements IPaymentGateway {
     const accessKey = process.env.MOMO_ACCESS_KEY || "";
     const secretKey = process.env.MOMO_SECRET_KEY || "";
     const partnerCode = process.env.MOMO_PARTNER_CODE || "";
+    if (!accessKey || !secretKey || !partnerCode) throw new Error('Chưa cấu hình thông tin MoMo sandbox.');
     const redirectUrl =
-      process.env.MOMO_REDIRECT_URL || "http://localhost:5173/payment/result";
+      `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/payments/momo/return`;
     const ipnUrl =
       process.env.MOMO_IPN_URL ||
       "https://YOUR_NGROK_URL/api/payments/momo/ipn";
@@ -52,7 +53,9 @@ export class MoMoGateway implements IPaymentGateway {
 
     const response = await axios.post(endpoint, requestBody, {
       headers: { "Content-Type": "application/json" },
+      timeout: 20000,
     });
+    if (Number(response.data.resultCode) !== 0 || !response.data.payUrl) throw new Error(response.data.message || 'MoMo không trả về liên kết thanh toán.');
     return response.data.payUrl;
   }
 
@@ -74,19 +77,20 @@ export class MoMoGateway implements IPaymentGateway {
     } = data;
     const accessKey = process.env.MOMO_ACCESS_KEY || "";
     const secretKey = process.env.MOMO_SECRET_KEY || "";
+    if (!accessKey || !secretKey || partnerCode !== process.env.MOMO_PARTNER_CODE || typeof signature !== 'string') return false;
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
     const expectedSignature = crypto
       .createHmac("sha256", secretKey)
       .update(rawSignature)
       .digest("hex");
-    return signature === expectedSignature;
+    return signature.length === expectedSignature.length && crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
   }
 
   getOrderId(data: any): string {
     return data.orderId;
   }
   getResponseStatus(data: any): "SUCCESS" | "FAILED" {
-    return data.resultCode === 0 ? "SUCCESS" : "FAILED";
+    return Number(data.resultCode) === 0 ? "SUCCESS" : "FAILED";
   }
   getAmount(data: any): number {
     return data.amount;

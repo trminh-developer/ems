@@ -87,6 +87,7 @@ app.use(
 app.use(cookieParser());
 
 // Limit payload size to prevent DoS (Checklist #7, #8)
+app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
@@ -120,6 +121,7 @@ app.use(adminModule);
 
 import sequelize from "./config/db";
 import { seedMockData } from "./utils/seedMockData";
+import { ensureUserColumns } from "./config/ensureUserColumns";
 
 // Health check
 app.get("/api", (req, res) => {
@@ -170,6 +172,7 @@ app.listen(PORT, () => {
 sequelize
   .sync()
   .then(async () => {
+    await ensureUserColumns();
     console.log("Database synced successfully");
     await seedMockData();
   })

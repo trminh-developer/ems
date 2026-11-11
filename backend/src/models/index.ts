@@ -41,6 +41,10 @@ User.init(
     violation_count: { type: DataTypes.INTEGER, defaultValue: 0 },
     is_premium: { type: DataTypes.BOOLEAN, defaultValue: false },
     premium_expires_at: { type: DataTypes.DATE },
+    premium_plan_id: { type: DataTypes.STRING },
+    app_logo: { type: DataTypes.TEXT("long") },
+    name_changed_at: { type: DataTypes.DATE },
+    username_changed_at: { type: DataTypes.DATE },
   },
   { sequelize, modelName: "User", tableName: "users", timestamps: true },
 );

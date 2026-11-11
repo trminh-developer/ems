@@ -9,6 +9,8 @@ import { User } from '../../models';
 import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { isPremiumActive } from '../../utils/premium';
+import UserBadge from '../user/UserBadge';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -96,7 +98,7 @@ export const Navbar: React.FC = () => {
   return (
     <nav className="app-navbar d-flex align-items-center justify-content-between px-3 px-md-4">
       <Link to="/" className="navbar-brand text-decoration-none d-flex align-items-center gap-2">
-        <img src="/logo-heartconnect.png" alt="HeartConnect Logo" height="36" />
+        <img src={isPremiumActive(user) && user?.appLogo ? user.appLogo : '/logo-heartconnect.png'} alt="HeartConnect Logo" height="36" style={{ maxWidth: 100, objectFit: 'contain' }} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = '/logo-heartconnect.png'; }} />
         <span className="fw-bold fs-4 text-dark d-none d-sm-block">HeartConnect</span>
       </Link>
 
@@ -121,7 +123,7 @@ export const Navbar: React.FC = () => {
                     <div className="d-flex align-items-center gap-2">
                       <Avatar src={u.avatar || ''} alt={u.firstName} size="sm" isOnline={u.isOnline} />
                       <div className="d-flex flex-column">
-                        <span className="fw-medium text-dark" style={{ fontSize: '14px' }}>{u.firstName} {u.lastName}</span>
+                        <span className="fw-medium text-dark" style={{ fontSize: '14px' }}>{u.firstName} {u.lastName}<UserBadge user={u} /></span>
                         <span className="text-muted" style={{ fontSize: '12px' }}>@{u.username}</span>
                       </div>
                     </div>

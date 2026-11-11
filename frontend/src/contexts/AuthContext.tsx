@@ -54,7 +54,8 @@ export interface AuthContextType extends AuthState {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
   register: (data: any) => Promise<any>;
   logout: () => Promise<void>;
-  updateUser: (user: User) => Promise<void>;
+  updateUser: (user: User) => Promise<User>;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,6 +102,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     initAuth();
   }, []);
+
+  useEffect(() => {
+    if (!state.user?.isPremium || !state.user.premiumExpiresAt) return;
+    const remaining = new Date(state.user.premiumExpiresAt).getTime() - Date.now();
+    if (!Number.isFinite(remaining)) return;
+    const timer = window.setTimeout(() => {
+      if (remaining > 2147483647) {
+        dispatch({ type: 'UPDATE_USER', payload: { ...state.user! } });
+      } else {
+        const expiredUser = { ...state.user!, isPremium: false };
+        authService.setCurrentUser(expiredUser);
+        dispatch({ type: 'UPDATE_USER', payload: expiredUser });
+      }
+    }, Math.max(0, Math.min(remaining, 2147483647)));
+    return () => window.clearTimeout(timer);
+  }, [state.user]);
 
   const login = async (email: string, password: string, rememberMe: boolean = false) => {
       dispatch({ type: 'LOGIN_START' });
@@ -155,17 +172,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Cập nhật: ghi lên Supabase TRƯỚC → sau đó mới cập nhật UI
   const updateUser = async (user: User) => {
     try {
-      await authService.updateUserInList(user);
-      authService.setCurrentUser(user);
-      dispatch({ type: 'UPDATE_USER', payload: user });
+      const savedUser = await authService.updateUserInList(user);
+      authService.setCurrentUser(savedUser);
+      dispatch({ type: 'UPDATE_USER', payload: savedUser });
+      return savedUser;
     } catch (err) {
       console.error('Lỗi lưu dữ liệu lên server:', err);
       throw err;
     }
   };
 
+  const refreshUser = async () => {
+    if (!state.user) return;
+    const freshUser = await authService.refreshUser(state.user.id);
+    if (!freshUser) throw new Error('Không thể tải lại thông tin tài khoản.');
+    authService.setCurrentUser(freshUser);
+    dispatch({ type: 'UPDATE_USER', payload: freshUser });
+  };
+
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout, updateUser, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,11 +4,14 @@ import path from "path";
 
 dotenv.config();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const useMockDb =
-  process.env.USE_MOCK_DB === "true" ||
-  process.env.DATABASE_TYPE === "mock" ||
-  !process.env.DATABASE_URL ||
-  process.env.DATABASE_URL.startsWith("sqlite");
+  !isProduction &&
+  (process.env.USE_MOCK_DB === "true" ||
+    process.env.DATABASE_TYPE === "mock" ||
+    !process.env.DATABASE_URL ||
+    process.env.DATABASE_URL.startsWith("sqlite"));
 
 let sequelize: Sequelize;
 
@@ -25,8 +28,8 @@ if (useMockDb) {
   });
 } else {
   const dbUrl = process.env.DATABASE_URL!;
-  const isProduction =
-    process.env.NODE_ENV === "production" ||
+  const needsSsl =
+    isProduction ||
     dbUrl.includes("aivencloud") ||
     dbUrl.includes("render");
 
@@ -38,7 +41,7 @@ if (useMockDb) {
       acquire: 30000,
       idle: 10000,
     },
-    dialectOptions: isProduction
+    dialectOptions: needsSsl
       ? {
           ssl: {
             require: true,

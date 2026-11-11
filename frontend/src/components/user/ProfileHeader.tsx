@@ -4,6 +4,7 @@ import Avatar from '../common/Avatar';
 import Button from '../common/Button';
 import { calculateAge } from '../../utils/helpers';
 import { ImageViewerModal } from '../common';
+import UserBadge from './UserBadge';
 
 interface ProfileHeaderProps {
   user: User;
@@ -61,8 +62,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, isOwnProfile
         <div className="profile-info mt-2">
           <h2 className="mb-1 fw-bold d-flex align-items-center gap-2">
             {(user.firstName || user.username)} {(user.lastName || '')}, {age}
-            {user.isVerified && <i className="bi bi-patch-check-fill text-primary fs-5"></i>}
+            <UserBadge user={user} />
           </h2>
+          <p className="text-muted mb-2">@{user.username}</p>
           
           <div className="text-muted d-flex flex-wrap gap-3 mb-3">
             {user.location && (user.location?.city || user.location?.country) && (

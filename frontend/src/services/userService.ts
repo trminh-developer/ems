@@ -51,7 +51,7 @@ export const reportUser = async (reporterId: string, reportedId: string, reason:
 
 export const updateProfile = async (id: string, data: Partial<User>): Promise<User> => {
   const res = await apiClient.put(`/users/${id}`, data);
-  return mapUser(res.data);
+  return mapUser(res.data.user);
 };
 
 
