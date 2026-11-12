@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "allowScripts": {
+    "@sentry/node-cpu-profiler@2.4.4": true,
+    "bcrypt@6.0.0": true,
+    "esbuild@0.28.2": true,
+    "fsevents@2.3.3": true,
+    "sqlite3@6.0.1": true
+  },
   "scripts": {
     "start": "node dist/server.js",
     "dev": "nodemon --exec tsx src/server.ts",
