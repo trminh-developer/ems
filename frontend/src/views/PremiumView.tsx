@@ -4,42 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../components/common';
 import { useAuth } from '../hooks/useAuth';
 import { isPremiumActive } from '../utils/premium';
+import { premiumPlans as plans } from '../features/payment/domain/premiumPlans';
 
 const PremiumView: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string>('1_month');
-
-  const plans = [
-    {
-      id: '1_month',
-      title: '1 Month',
-      titleVi: '1 Tháng',
-      price: 99000,
-      priceLabel: '99,000đ',
-      discount: '',
-      popular: false
-    },
-    {
-      id: '6_months',
-      title: '6 Months',
-      titleVi: '6 Tháng',
-      price: 499000,
-      priceLabel: '499,000đ',
-      discount: '15% OFF',
-      popular: true
-    },
-    {
-      id: '12_months',
-      title: '12 Months',
-      titleVi: '12 Tháng',
-      price: 899000,
-      priceLabel: '899,000đ',
-      discount: '25% OFF',
-      popular: false
-    }
-  ];
 
   const features = [
     { icon: 'bi-patch-check-fill text-primary', title: 'Tích xanh Premium', desc: 'Hiển thị tích xanh trong suốt thời hạn gói 1, 6 hoặc 12 tháng.' },
@@ -130,7 +101,7 @@ const PremiumView: React.FC = () => {
               {t('premium.continue_btn')} <i className="bi bi-arrow-right ms-2"></i>
             </Button>
             <div className="text-center mt-3">
-              <small className="text-muted">MoMo & VNPay</small>
+              <small className="text-muted">Chuyển khoản ngân hàng qua QR · MoMo · Thẻ · PayPal</small>
             </div>
           </div>
         </div>

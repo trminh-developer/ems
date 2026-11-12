@@ -3,6 +3,7 @@ import sequelize from './db';
 
 // sync() alone does not add fields to existing databases.
 export async function ensureUserColumns() {
+  await ensurePaymentColumns();
   const query = sequelize.getQueryInterface();
   const tables = await query.showAllTables();
   if (!tables.includes('users')) return;
@@ -42,5 +43,23 @@ export async function ensureUserColumns() {
     const statuses = await query.describeTable('statuses');
     if (!statuses.is_hidden) await query.addColumn('statuses', 'is_hidden', { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false });
     if (!statuses.hidden_at) await query.addColumn('statuses', 'hidden_at', { type: DataTypes.DATE, allowNull: true });
+  }
+}
+
+export async function ensurePaymentColumns() {
+  const query = sequelize.getQueryInterface();
+  const tables = await query.showAllTables();
+  if (tables.includes('transactions')) {
+    const payments = await query.describeTable('transactions');
+    const paymentAdditions = {
+      payment_details: DataTypes.JSON, provider_reference: DataTypes.STRING(100), paid_at: DataTypes.DATE, confirmed_by: DataTypes.STRING,
+    };
+    for (const [name, type] of Object.entries(paymentAdditions)) {
+      if (!payments[name]) await query.addColumn('transactions', name, { type, allowNull: true });
+    }
+    const indexes = await query.showIndex('transactions') as { name: string }[];
+    if (!indexes.some(index => index.name === 'transactions_provider_reference_unique')) {
+      await query.addIndex('transactions', ['provider_reference'], { name: 'transactions_provider_reference_unique', unique: true });
+    }
   }
 }

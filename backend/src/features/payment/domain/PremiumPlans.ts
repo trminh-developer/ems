@@ -1,7 +1,7 @@
 export const PREMIUM_PLANS = {
-  '1_month': { months: 1, price: 99000, title: '1 Tháng' },
-  '6_months': { months: 6, price: 499000, title: '6 Tháng' },
-  '12_months': { months: 12, price: 899000, title: '12 Tháng' },
+  '1_month': { months: 1, price: 3000, title: '1 Tháng' },
+  '6_months': { months: 6, price: 6000, title: '6 Tháng' },
+  '12_months': { months: 12, price: 9000, title: '12 Tháng' },
 } as const;
 
 export function getPremiumPlan(planId: string) {

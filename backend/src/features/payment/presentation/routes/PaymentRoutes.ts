@@ -1,9 +1,18 @@
 import { Router } from "express";
 import { PaymentController } from "../controllers/PaymentController";
 import { requireAuth } from '../../../../middlewares/authMiddleware';
+import { BankPaymentController } from '../controllers/BankPaymentController';
 
 export const setupPaymentRoutes = (controller: PaymentController): Router => {
   const router = Router();
+  const bank = new BankPaymentController();
+  router.get('/methods', bank.methods);
+  router.post('/bank/create', requireAuth, (req, res) => controller.create(req, res, 'BANK'));
+  router.get('/bank/pending', requireAuth, bank.pending);
+  router.get('/bank/:orderId', requireAuth, bank.details);
+  router.post('/bank/:orderId/submit', requireAuth, bank.submit);
+  router.post('/bank/:orderId/confirm', requireAuth, bank.confirm);
+  router.post('/sepay/ipn', (req, res) => controller.sepayIpn(req, res));
   router.post("/vnpay/create", requireAuth, (req, res) => controller.create(req, res, 'VNPAY'));
   router.get("/vnpay/return", (req, res) => controller.paymentReturn(req, res, 'VNPAY'));
   router.get("/vnpay/ipn", (req, res) => controller.vnpayIpn(req, res));

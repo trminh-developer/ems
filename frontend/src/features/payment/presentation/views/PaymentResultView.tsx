@@ -14,6 +14,7 @@ const PaymentResultView: React.FC = () => {
   refreshRef.current = refreshUser;
   const [status, setStatus] = useState<PaymentStatus>('checking');
   const [retry, setRetry] = useState(0);
+  const [manual, setManual] = useState(false);
   const orderId = searchParams.get('orderId');
   const cancelled = searchParams.get('status') === 'cancelled';
 
@@ -27,6 +28,7 @@ const PaymentResultView: React.FC = () => {
       try {
         const response = await apiClient.get(`/payments/${encodeURIComponent(orderId)}/status`);
         if (disposed) return;
+        setManual(response.data.confirmationMode === 'manual');
         if (response.data.status === 'SUCCESS') {
           await refreshRef.current();
           if (disposed) return;
@@ -36,6 +38,8 @@ const PaymentResultView: React.FC = () => {
           setStatus('failed');
         } else if (cancelled) {
           setStatus('cancelled');
+        } else if (response.data.confirmationMode === 'manual') {
+          setStatus('pending');
         } else if (++attempts < 8) {
           timer = setTimeout(check, 2000);
         } else {
@@ -55,7 +59,7 @@ const PaymentResultView: React.FC = () => {
     success: ['Thanh toán thành công!', 'Gói Premium đã được kích hoạt. Tích xanh và tùy chọn đổi logo đã sẵn sàng trong Cài đặt.'],
     failed: ['Thanh toán thất bại', 'Giao dịch chưa thành công. Vui lòng chọn lại phương thức thanh toán.'],
     cancelled: ['Đã hủy thanh toán', 'Giao dịch chưa được xác nhận thanh toán. Bạn có thể quay lại chọn gói.'],
-    pending: ['Đang chờ xác nhận', 'Chưa nhận được xác nhận từ cổng thanh toán. Bạn có thể kiểm tra lại sau ít phút.'],
+    pending: ['Đang chờ xác nhận', manual ? 'Đơn chuyển khoản đang chờ quản trị viên đối soát tiền nhận được. Bạn có thể kiểm tra lại sau.' : 'Chưa nhận được xác nhận từ cổng thanh toán. Bạn có thể kiểm tra lại sau ít phút.'],
     error: ['Chưa thể xác nhận giao dịch', 'Không thể tải trạng thái thanh toán. Vui lòng kiểm tra lại.'],
   } as const;
   const [title, message] = messages[status];
@@ -75,6 +79,7 @@ const PaymentResultView: React.FC = () => {
                 <Button variant="primary" onClick={() => setRetry(value => value + 1)}>Kiểm tra lại</Button>
               )}
               {status !== 'success' && <Button variant="outline" onClick={() => navigate('/premium')}>Chọn gói Premium</Button>}
+              {manual && status === 'pending' && orderId && <Button variant="outline" onClick={() => navigate(`/payment/bank/${encodeURIComponent(orderId)}`)}>Xem QR và mã giao dịch</Button>}
               <Button variant="secondary" onClick={() => navigate('/')}>Trang chủ</Button>
             </div>
           </div>

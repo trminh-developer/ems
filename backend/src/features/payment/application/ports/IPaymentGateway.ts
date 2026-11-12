@@ -1,6 +1,8 @@
 import { Transaction } from '../../domain/entities/Transaction';
+import type { BankTransferDetails } from '../../domain/BankTransfer';
 
 export interface IPaymentGateway {
+  getPaymentDetails?(orderId: string, amount: number, planId: string): Promise<BankTransferDetails>;
   createPaymentUrl(
     orderId: string,
     amount: number,

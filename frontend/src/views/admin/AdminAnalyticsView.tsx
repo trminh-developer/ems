@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useAdminData } from '../../hooks/useAdminData';
 import { AdminAnalytics } from '../../services/adminService';
+import { BankReconciliation } from '../../features/payment/presentation/components/BankReconciliation';
 import { AdminBadge, AdminChart, AdminEmpty, AdminError, AdminHeader, AdminLoading, AdminMetric, AdminPeriod, AdminPersona, AdminSectionTitle, RefreshButton, date, money, number } from '../../components/admin/AdminUI';
 const planName = (plan: string) => ({ '1_month': '1 tháng', '6_months': '6 tháng', '12_months': '12 tháng' }[plan] || plan);
 function Analytics() {
@@ -20,8 +21,9 @@ function Analytics() {
       <section className="admin-panel padded"><AdminSectionTitle title="Các gói được lựa chọn" description={'Giao dịch thành công trong ' + days + ' ngày.'} />
         {state.loading ? <AdminLoading /> : data?.plans.length ? <div className="admin-distribution">{data.plans.map(plan => <div key={plan.planId} className="admin-distribution-row"><div className="admin-distribution-label"><span>Premium {planName(plan.planId)}</span><strong>{number(Number(plan.count))} lượt</strong></div><div className="admin-bar"><span style={{ width: Number(plan.count) / Math.max(1, data.successful) * 100 + '%' }} /></div><p className="admin-note mt-2">{money(Number(plan.amount))}</p></div>)}</div> : <AdminEmpty title="Chưa có giao dịch thành công" description="Các gói được mua sẽ được tổng hợp tại đây." icon="credit-card" />}
       </section></div>
+    <BankReconciliation onConfirmed={state.refresh} />
     <section className="admin-panel"><div className="admin-panel-heading"><AdminSectionTitle title="Giao dịch gần đây" description="10 giao dịch mới nhất trong khoảng thời gian đã chọn." /></div>
-      {state.loading ? <AdminLoading /> : data?.transactions.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Thành viên</th><th>Gói Premium</th><th>Cổng thanh toán</th><th>Số tiền</th><th>Trạng thái</th><th>Thời gian</th></tr></thead><tbody>{data.transactions.map(tx => <tr key={tx.id}><td><AdminPersona user={tx.user} /></td><td>{planName(tx.planId)}</td><td>{tx.provider.toUpperCase()}</td><td className="nowrap">{money(tx.amount)}</td><td><AdminBadge value={tx.status} /></td><td className="nowrap">{date(tx.createdAt, true)}</td></tr>)}</tbody></table></div> : <AdminEmpty title="Chưa có giao dịch trong giai đoạn này" icon="credit-card" />}
+      {state.loading ? <AdminLoading /> : data?.transactions.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Thành viên</th><th>Gói Premium</th><th>Cổng thanh toán</th><th>Số tiền</th><th>Trạng thái</th><th>Thời gian</th></tr></thead><tbody>{data.transactions.map(tx => <tr key={tx.id}><td><AdminPersona user={tx.user} /></td><td>{planName(tx.planId)}</td><td>{tx.provider === 'BANK' ? 'Chuyển khoản QR' : tx.provider.toUpperCase()}</td><td className="nowrap">{money(tx.amount)}</td><td><AdminBadge value={tx.status} /></td><td className="nowrap">{date(tx.createdAt, true)}</td></tr>)}</tbody></table></div> : <AdminEmpty title="Chưa có giao dịch trong giai đoạn này" icon="credit-card" />}
     </section>
   </>;
 }

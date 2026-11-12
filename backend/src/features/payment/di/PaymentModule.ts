@@ -3,6 +3,7 @@ import { VNPayGateway } from "../infrastructure/gateways/VNPayGateway";
 import { MoMoGateway } from "../infrastructure/gateways/MoMoGateway";
 import { StripeGateway } from "../infrastructure/gateways/StripeGateway";
 import { PayPalGateway } from "../infrastructure/gateways/PayPalGateway";
+import { BankGateway } from '../infrastructure/gateways/BankGateway';
 import { CreatePaymentUseCase } from "../application/usecases/CreatePayment";
 import { ProcessPaymentCallbackUseCase } from "../application/usecases/ProcessPaymentCallback";
 import { PaymentController } from "../presentation/controllers/PaymentController";
@@ -11,6 +12,7 @@ import { setupPaymentRoutes } from "../presentation/routes/PaymentRoutes";
 export const initPaymentModule = () => {
   const transactionRepo = new SequelizeTransactionRepository();
   const gateways = {
+    BANK: new BankGateway(),
     VNPAY: new VNPayGateway(),
     MOMO: new MoMoGateway(),
     CARD: new StripeGateway(),

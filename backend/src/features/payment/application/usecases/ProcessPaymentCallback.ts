@@ -26,7 +26,7 @@ export class ProcessPaymentCallbackUseCase {
 
     if (Number(gateway.getAmount(queryData)) !== Number(tx.amount)) throw new Error('Payment amount mismatch');
     const status = gateway.getResponseStatus(queryData);
-    await this.transactionRepo.settle(orderId, status);
+    await this.transactionRepo.settle(orderId, status, provider === 'BANK' && queryData.verifiedReference ? { reference: queryData.verifiedReference } : undefined);
 
     return { success: status === "SUCCESS" || tx.status === 'SUCCESS', orderId };
   }

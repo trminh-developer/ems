@@ -1,1 +1,1 @@
-export type PaymentMethod = 'vnpay' | 'momo' | 'card' | 'paypal';
+export type PaymentMethod = 'bank' | 'momo' | 'card' | 'paypal';

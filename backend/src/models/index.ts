@@ -476,6 +476,10 @@ Transaction.init(
     amount: { type: DataTypes.FLOAT, allowNull: false },
     status: { type: DataTypes.STRING, defaultValue: "PENDING" },
     provider: { type: DataTypes.STRING, allowNull: false },
+    payment_details: { type: DataTypes.JSON, allowNull: true },
+    provider_reference: { type: DataTypes.STRING(100), allowNull: true },
+    paid_at: { type: DataTypes.DATE, allowNull: true },
+    confirmed_by: { type: DataTypes.STRING, allowNull: true },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
@@ -483,6 +487,7 @@ Transaction.init(
     modelName: "Transaction",
     tableName: "transactions",
     timestamps: false,
+    indexes: [{ name: 'transactions_provider_reference_unique', unique: true, fields: ['provider_reference'] }],
   },
 );
 

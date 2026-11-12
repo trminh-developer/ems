@@ -15,7 +15,8 @@ export class CreatePaymentUseCase {
     const gateway = this.paymentGateways[provider];
     if (!gateway) throw new Error('Provider not supported');
     const orderId = randomUUID();
-    await this.transactionRepo.save(new Transaction(orderId, userId, planId, plan.price, 'PENDING', provider, new Date()));
+    const paymentDetails = await gateway.getPaymentDetails?.(orderId, plan.price, planId);
+    await this.transactionRepo.save(new Transaction(orderId, userId, planId, plan.price, 'PENDING', provider, new Date(), paymentDetails));
     try {
       const paymentUrl = await gateway.createPaymentUrl(orderId, plan.price, `Thanh toan Premium ${plan.title}`, ipAddr);
       return { paymentUrl, orderId };

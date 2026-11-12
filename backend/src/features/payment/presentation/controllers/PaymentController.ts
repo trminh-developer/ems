@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
+import { timingSafeEqual } from 'node:crypto';
 import { AuthRequest } from '../../../../middlewares/authMiddleware';
 import { CreatePaymentUseCase } from '../../application/usecases/CreatePayment';
 import { ProcessPaymentCallbackUseCase } from '../../application/usecases/ProcessPaymentCallback';
 import { Transaction } from '../../../../models';
+import { getSePayConfig } from '../../infrastructure/sepayConfig';
 
 export class PaymentController {
+  private bankChecks = new Map<string, Promise<unknown>>();
   constructor(
     private createPaymentUseCase: CreatePaymentUseCase,
     private processCallbackUseCase: ProcessPaymentCallbackUseCase,
@@ -29,9 +32,37 @@ export class PaymentController {
     try {
       const tx: any = await Transaction.findOne({ where: { id: req.params.orderId, user_id: req.user.id } });
       if (!tx) return res.status(404).json({ error: 'Không tìm thấy giao dịch.' });
-      return res.json({ orderId: tx.id, status: tx.status, planId: tx.plan_id });
+      const manual = tx.provider === 'BANK' && tx.payment_details?.mode === 'direct';
+      if (tx.provider === 'BANK' && tx.status === 'PENDING' && !manual) {
+        let check = this.bankChecks.get(tx.id);
+        if (!check) {
+          check = this.processCallbackUseCase.execute('BANK', { orderId: tx.id }).catch(() => undefined).finally(() => this.bankChecks.delete(tx.id));
+          this.bankChecks.set(tx.id, check);
+        }
+        await check;
+        await tx.reload();
+      }
+      return res.json({ orderId: tx.id, status: tx.status, planId: tx.plan_id, confirmationMode: manual ? 'manual' : 'automatic' });
     } catch (error) {
       return res.status(500).json({ error: 'Không thể kiểm tra giao dịch.' });
+    }
+  }
+
+  async sepayIpn(req: Request, res: Response) {
+    try {
+      const config = getSePayConfig();
+      const expected = Buffer.from(process.env.SEPAY_IPN_SECRET || config.secret_key);
+      const supplied = Buffer.from(req.get('X-Secret-Key') || '');
+      if (!supplied.length || supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return res.sendStatus(401);
+      if (req.body?.notification_type !== 'ORDER_PAID') return res.json({ success: true });
+      const orderId = req.body?.order?.order_invoice_number;
+      if (typeof orderId !== 'string' || !/^[a-f0-9-]{36}$/i.test(orderId)) return res.status(400).json({ error: 'Mã đơn hàng không hợp lệ.' });
+      // Re-read the order through the authenticated SePay API before granting Premium.
+      await this.processCallbackUseCase.execute('BANK', { orderId });
+      return res.json({ success: true });
+    } catch (error: any) {
+      console.warn('SePay IPN verification failed:', error.message);
+      return res.status(error.statusCode || 422).json({ error: 'Chưa xác nhận được giao dịch SePay.' });
     }
   }
 

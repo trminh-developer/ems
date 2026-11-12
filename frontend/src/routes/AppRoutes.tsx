@@ -20,6 +20,7 @@ const FeedView = lazy(() => import('../views/FeedView'));
 const PremiumView = lazy(() => import('../views/PremiumView'));
 const PaymentView = lazy(() => import('../features/payment/presentation/views/PaymentView'));
 const PaymentResultView = lazy(() => import('../features/payment/presentation/views/PaymentResultView'));
+const BankPaymentView = lazy(() => import('../features/payment/presentation/views/BankPaymentView'));
 
 // Admin
 const AdminLoginView = lazy(() => import('../views/admin/AdminLoginView'));
@@ -95,6 +96,7 @@ const AppRoutes = () => (
           <Route path="/premium" element={<PremiumView />} />
           <Route path="/payment" element={<PaymentView />} />
           <Route path="/payment/result" element={<PaymentResultView />} />
+          <Route path="/payment/bank/:orderId" element={<BankPaymentView />} />
         </Route>
       </Route>
       
