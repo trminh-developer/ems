@@ -39,7 +39,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
       await deleteMessage(message.id);
       showAlert('Đã xóa tin nhắn phía bạn', 'info');
     } catch (e) {
-      showAlert('Xóa tin nhắn thất bại', 'danger');
+      showAlert('Xóa tin nhắn thất bại', 'error');
     }
     setDropdownOpen(false);
   };
@@ -49,7 +49,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = React.memo(({ message
       await recallMessage(message.id);
       showAlert('Đã thu hồi tin nhắn', 'warning');
     } catch (e: any) {
-      showAlert(e?.response?.data?.error || 'Thu hồi tin nhắn thất bại', 'danger');
+      showAlert(e?.response?.data?.error || 'Thu hồi tin nhắn thất bại', 'error');
     }
     setDropdownOpen(false);
   };

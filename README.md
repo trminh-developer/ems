@@ -1,9 +1,9 @@
 ## 💖 HeartConnect
 
 <div align="center">
-    ![Node](https://img.shields.io/badge/node-%3E%3D240-brightgreen)
+    ![Node](https://img.shields.io/badge/node-24.x-brightgreen)
     ![TypeScript](https://img.shields.io/badge/TypeScript-7.x-blue)
-    ![Deploy](https://img.shields.io/badge/deploy-Firebase-red)
+    ![Deploy](https://img.shields.io/badge/deploy-Vercel-black)
 </div>
 
 # 💖 HeartConnect - Ứng Dụng Hẹn Hò
@@ -42,6 +42,24 @@ Tài liệu cổng thanh toán: [VNPay](https://sandbox.vnpayment.vn/apis/docs/t
 Triển khai theo `Data Analysis/THUẬT TOÁN HEARTCONNECT.docx`: Jaccard, điểm hai chiều với trọng số 40/30/20/10 và trung bình điều hòa; match chỉ tạo khi hai người cùng thích. Discover có bộ lọc hai chiều, phiên phân trang ổn định và ghi nhận hồ sơ thực sự được hiển thị.
 
 Xem [chi tiết triển khai và cách kiểm thử](Data%20Analysis/HEARTCONNECT_IMPLEMENTATION.md). Khởi động lại backend để bổ sung schema; chạy `npm test` trong `backend` để kiểm tra trên database trong bộ nhớ.
+
+## CI/CD trên GitLab và Vercel
+
+- `.gitlab-ci.yml` chạy trên Node.js 24, cài dependency bằng `npm ci` theo lockfile, kiểm tra TypeScript frontend, build backend, chạy toàn bộ test backend bằng SQLite trong bộ nhớ rồi build frontend. Pipeline chạy khi push nhánh hoặc tạo/cập nhật merge request; tránh chạy trùng pipeline push khi đã có merge request.
+- Vercel dùng kết nối GitLab của project `heartconnect`: push vào `main` tạo bản production; các nhánh khác tạo bản preview. `vercel.json` ở gốc chạy cùng lệnh `npm run ci` trước mỗi deployment, nên lỗi typecheck, test hoặc build sẽ chặn bản deploy đó. Không cần lưu `VERCEL_TOKEN` trong GitLab.
+- Cấu hình project Vercel: **Root Directory** để trống (gốc repository), **Framework Preset** là Vite, **Node.js Version** là 24.x, **Production Branch** là `main`. Install Command và Build Command lấy từ `vercel.json`; Output Directory là `frontend/dist`. Không chuyển Root Directory sang `frontend`, vì bộ kiểm tra cần cả backend.
+- Đặt `VITE_API_URL=/api` cho cả Production và Preview trong Vercel. API được proxy sang backend Render qua rewrite hiện có; CI không khởi động server production và không dùng database thật.
+- Xem kết quả tại **GitLab → Build → Pipelines** và **Vercel → Deployments → Build Logs**. Backend tiếp tục được triển khai riêng trên Render.
+
+Chạy cùng bộ kiểm tra ở máy local từ gốc repository:
+
+```bash
+npm ci --include=dev --prefix frontend
+npm ci --include=dev --prefix backend
+npm run ci
+```
+
+Tham khảo: [Vercel for GitLab](https://vercel.com/docs/git/vercel-for-gitlab), [Vercel Build Configuration](https://vercel.com/docs/builds/configure-a-build), [GitLab workflow rules](https://docs.gitlab.com/ci/yaml/workflow/).
 
 ## 🌟 Tác Giả
 

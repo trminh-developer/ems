@@ -1,0 +1,38 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+stages:
+  - verify
+
+default:
+  image: node:24-bookworm
+  interruptible: true
+  cache:
+    key:
+      prefix: node-24
+      files:
+        - frontend/package-lock.json
+        - backend/package-lock.json
+    paths:
+      - .npm/
+
+variables:
+  npm_config_cache: '$CI_PROJECT_DIR/.npm'
+  npm_config_audit: 'false'
+  npm_config_fund: 'false'
+
+verify:
+  stage: verify
+  script:
+    - npm ci --include=dev --prefer-offline --prefix frontend
+    - npm ci --include=dev --prefer-offline --prefix backend
+    - npm run ci
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 day
