@@ -6,7 +6,7 @@
   },
   "scripts": {
     "build": "npm run build --prefix frontend",
-    "ci": "npm run typecheck --prefix frontend && npm run build --prefix backend && npm test --prefix backend && npm run build"
+    "ci": "node scripts/prepare-ci.cjs && npm run typecheck --prefix frontend && npm run build --prefix backend && npm test --prefix backend && npm run build"
   },
   "dependencies": {
     "react-router-dom": "^7.18.4"
