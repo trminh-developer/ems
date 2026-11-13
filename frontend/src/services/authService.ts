@@ -23,14 +23,7 @@ export const register = async (data: any): Promise<User> => {
 };
 
 export const logout = async (): Promise<void> => {
-  const refreshToken = localStorage.getItem('hc_refresh_token');
-  if (refreshToken) {
-    try {
-      await apiClient.post('/auth/logout', { token: refreshToken });
-    } catch (e) {
-      console.warn('Logout backend failed', e);
-    }
-  }
+  await apiClient.post('/auth/logout', {});
 };
 
 export const refreshUser = async (id: string): Promise<User | null> => {

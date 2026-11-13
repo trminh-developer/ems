@@ -53,6 +53,7 @@ const ProfileView = () => {
     const fetchUser = async () => {
       setIsLoading(true);
       try {
+        let targetUserId = isOwnProfile && currentUser ? currentUser.id : '';
         if (isOwnProfile && currentUser) {
           setUser(currentUser);
           setEditForm({
@@ -73,11 +74,11 @@ const ProfileView = () => {
           if (!fetchedUser) {
             fetchedUser = await userService.getUserById(id);
           }
-          if (fetchedUser) setUser(fetchedUser);
+          setUser(fetchedUser);
+          targetUserId = fetchedUser?.id || '';
         }
         
         // Fetch statuses to populate gallery
-        const targetUserId = isOwnProfile && currentUser ? currentUser.id : (id || '');
         if (targetUserId) {
           const statuses = await feedService.getStatuses(targetUserId);
           const allPhotos = (statuses as any[]).reduce<string[]>((acc: string[], status: any) => {
@@ -209,8 +210,14 @@ const ProfileView = () => {
     }
   };
 
-  const handleReport = () => {
-    showAlert('Đã báo cáo người dùng này!', 'info');
+  const handleReport = async () => {
+    if (!currentUser || !user) return;
+    try {
+      await userService.reportUser(currentUser.id, user.id, 'Báo cáo từ hồ sơ');
+      showAlert('Đã gửi báo cáo tới quản trị viên.', 'info');
+    } catch (error: any) {
+      showAlert(error.response?.data?.error || 'Không thể gửi báo cáo.', 'error');
+    }
   };
 
   const handleLike = async () => {

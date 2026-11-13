@@ -28,7 +28,7 @@ const REFRESH_COOKIE_OPTIONS = {
 export class AuthController {
   public async login(req: Request, res: Response) {
     try {
-      const { email, password } = req.body;
+      const { email, password } = z.object({ email: z.string().trim().email(), password: z.string().min(1) }).parse(req.body);
 
       const user = await User.findOne({ where: { email }, include: profileIncludes() });
 
@@ -40,6 +40,10 @@ export class AuthController {
       const isMatch = await bcrypt.compare(password, (user as any).password);
       if (!isMatch) {
         return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      if (['BANNED', 'DELETED'].includes(user.get('status') as string)) {
+        return res.status(403).json({ error: 'Account has been suspended or deleted' });
       }
 
       await user.update({ last_active: new Date(), is_online: true });
@@ -64,6 +68,7 @@ export class AuthController {
       // Also return access token in JSON (fallback for current frontend)
       return res.json({ accessToken, refreshToken, user: data });
     } catch (e: any) {
+      if (e instanceof z.ZodError) return res.status(400).json({ error: e.issues.map(issue => issue.message).join(', ') });
       return res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -121,7 +126,7 @@ export class AuthController {
       if (error instanceof z.ZodError) {
         return res
           .status(400)
-          .json({ error: (error as any).errors[0].message });
+          .json({ error: error.issues.map(issue => issue.message).join(', ') });
       }
       return res.status(400).json({ error: "Error creating user" });
     }

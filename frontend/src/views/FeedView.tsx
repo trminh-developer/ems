@@ -7,7 +7,7 @@ import { Loading, EmptyState } from '../components/common';
 
 const FeedView = () => {
   const { t } = useTranslation();
-  const { statuses, isLoading, toggleLike } = useFeed();
+  const { statuses, isLoading, isUploading, createStatus, toggleLike, addComment, getComments } = useFeed();
 
   return (
     <div className="container-fluid py-4 fade-in">
@@ -17,7 +17,7 @@ const FeedView = () => {
           
           <StoryTray />
           
-          <CreateStatus />
+          <CreateStatus createStatus={createStatus} isUploading={isUploading} />
           
           {isLoading ? (
             <div className="text-center py-5">
@@ -30,6 +30,8 @@ const FeedView = () => {
                   key={status.id} 
                   status={status} 
                   onLike={toggleLike}
+                  onComment={addComment}
+                  getComments={getComments}
                 />
               ))}
             </div>

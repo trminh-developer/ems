@@ -51,6 +51,10 @@ Xem [chi tiết triển khai và cách kiểm thử](Data%20Analysis/HEARTCONNEC
 
 ## CI/CD trên GitLab và Vercel
 
+- Frontend Vercel và backend Render được triển khai riêng. Push thành công hoặc `/api/health` trả 200 chưa chứng minh backend đã cập nhật. Backend mới trả `apiVersion: 2` và `commit` (SHA từ `RENDER_GIT_COMMIT`) trong health; health trả 503 cho tới khi database và migration sẵn sàng.
+- Với service Render hiện có `heartconnect-qa29`, kiểm tra repository là `trminh-developer/dating-app`, branch `main`, Node.js 24. Nếu dùng runtime Node với Root Directory ở gốc repo: Build Command là `npm ci --include=dev --prefix backend && node scripts/prepare-ci.cjs && npm run build --prefix backend && npm test --prefix backend`; Start Command là `npm start --prefix backend`; Health Check Path là `/api/health`. Giữ các biến môi trường database, JWT và thanh toán trong Render.
+- Sau khi backend và frontend deploy, chạy `npm run smoke:deployment -- https://heartconnect.vercel.app <SHA-commit-backend>`. Lệnh kiểm tra các API công khai, các route có xác thực và phiên bản backend; trả mã lỗi nếu route còn 404 hoặc backend cũ. Các request ghi dùng phiên chưa đăng nhập và phải bị chặn 401, không tạo dữ liệu thật.
+
 - `.gitlab-ci.yml` chạy trên Node.js 24, cài dependency bằng `npm ci` theo lockfile, kiểm tra TypeScript frontend, build backend, chạy toàn bộ test backend bằng SQLite trong bộ nhớ rồi build frontend. Pipeline chạy khi push nhánh hoặc tạo/cập nhật merge request; tránh chạy trùng pipeline push khi đã có merge request.
 - `allowScripts` trong mỗi `package.json` cho phép các script cài đặt cần thiết ở đúng phiên bản đã khóa (như SQLite và esbuild) khi dùng npm mới. Khi nâng phiên bản các package này, cập nhật mục tương ứng cùng lockfile.
 - `scripts/prepare-ci.cjs` kiểm tra SQLite trước khi chạy test. Nếu binary tải sẵn yêu cầu glibc mới hơn máy CI Linux, script biên dịch lại SQLite bằng `node-gyp` trên chính máy đó; cần Python và bộ biên dịch C++ (có trên máy build Vercel và image GitLab đang dùng).

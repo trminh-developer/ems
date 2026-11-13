@@ -4,6 +4,15 @@ import { datingTransaction, lockPair } from "../match/transactions";
 import { datingError } from "../match/swipes";
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { Op } from "sequelize";
+import { z } from 'zod';
+import { publicProfileAttributes } from '../match/profiles';
+
+async function conversationFor(conversationId: string, userId: string) {
+  const conversation: any = await Conversation.findByPk(conversationId, { include: [{ model: Match }] });
+  if (!conversation) throw datingError('Conversation not found', 404);
+  if (![conversation.Match?.user1_id, conversation.Match?.user2_id].includes(userId)) throw datingError('Forbidden', 403);
+  return conversation;
+}
 
 export const getConversations = async (req: AuthRequest, res: Response) => {
   try {
@@ -24,8 +33,8 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
             [Op.or]: [{ user1_id: userId }, { user2_id: userId }],
           },
           include: [
-            { model: User, as: "User1" },
-            { model: User, as: "User2" },
+            { model: User, as: "User1", attributes: publicProfileAttributes },
+            { model: User, as: "User2", attributes: publicProfileAttributes },
           ],
         },
         {
@@ -35,10 +44,11 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
       ],
     });
 
+    const unread = await Notification.findAll({ where: { user_id: userId, is_read: false, type: { [Op.in]: ['message', 'MESSAGE'] } }, attributes: ['from_user_id'] });
     const formatted = conversations.map((c: any) => {
       const conv = c.toJSON();
       const match = conv.Match;
-      const participants = [];
+      const participants: any[] = [];
       if (match.User1) participants.push(match.User1);
       if (match.User2) participants.push(match.User2);
       // Find latest message not deleted for this user
@@ -68,7 +78,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
         id: conv.id,
         participants: participants,
         lastMessage: lastMessage,
-        unreadCount: 0,
+        unreadCount: unread.filter(notification => participants.some(participant => participant.id !== userId && participant.id === notification.get('from_user_id'))).length,
         updatedAt: conv.updated_at,
       };
     });
@@ -130,7 +140,10 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
 
 export const sendMessage = async (req: AuthRequest, res: Response) => {
   try {
-    const { conversationId, content, type } = req.body;
+    const { conversationId, content, type } = z.object({
+      conversationId: z.string().min(1), content: z.string().trim().min(1).max(30000000),
+      type: z.string().transform(value => value.toLowerCase()).pipe(z.enum(['text', 'image', 'emoji', 'location'])).default('text'),
+    }).parse(req.body);
     const senderId = req.user?.id;
     if (!senderId) return res.status(401).json({ error: 'Unauthorized' });
     const initial: any = await Conversation.findByPk(conversationId, { include: [{ model: Match }] });
@@ -158,13 +171,21 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     });
     return res.json(msg);
   } catch (error: any) {
+    if (error instanceof z.ZodError) return res.status(400).json({ error: error.issues.map(issue => issue.message).join(', ') });
     if (!error.statusCode) console.error('Send message failed:', error);
     return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
   }
 };
 
-export const markAsRead = async (req: Request, res: Response) => {
-  return res.json({ success: true });
+export const markAsRead = async (req: AuthRequest, res: Response) => {
+  try {
+    const conversation = await conversationFor(req.params.conversationId as string, req.user.id);
+    const otherId = [conversation.Match.user1_id, conversation.Match.user2_id].find(id => id !== req.user.id);
+    await Notification.update({ is_read: true }, { where: { user_id: req.user.id, from_user_id: otherId, type: { [Op.in]: ['message', 'MESSAGE'] }, is_read: false } });
+    return res.json({ success: true });
+  } catch (error: any) {
+    return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
+  }
 };
 
 export const deleteMessage = async (req: AuthRequest, res: Response) => {
@@ -179,6 +200,8 @@ export const deleteMessage = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: "Message not found" });
     }
 
+    await conversationFor(msg.conversation_id, userId);
+
     let delFor = msg.deleted_for;
     if (typeof delFor === "string") {
       try {
@@ -190,6 +213,7 @@ export const deleteMessage = async (req: AuthRequest, res: Response) => {
     if (!Array.isArray(delFor)) {
       delFor = [];
     }
+    delFor = [...delFor];
 
     if (!delFor.includes(userId)) {
       delFor.push(userId);
@@ -198,7 +222,7 @@ export const deleteMessage = async (req: AuthRequest, res: Response) => {
 
     return res.json({ success: true, messageId });
   } catch (e: any) {
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(e.statusCode || 500).json({ error: e.statusCode ? e.message : 'Internal server error' });
   }
 };
 

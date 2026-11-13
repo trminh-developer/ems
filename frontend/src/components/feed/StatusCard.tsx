@@ -1,40 +1,51 @@
 import React, { useState } from 'react';
 import { Status } from '../../models';
 import { Avatar, Button, Input } from '../common';
-import { useFeed } from '../../hooks';
+import { useAlert } from '../../contexts/AlertContext';
 import { useNavigate } from 'react-router-dom';
 import UserBadge from '../user/UserBadge';
 
 interface StatusCardProps {
   status: Status;
   onLike: (id: string) => void;
+  onComment: (id: string, content: string) => Promise<any>;
+  getComments: (id: string) => Promise<any[]>;
 }
 
-export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike }) => {
+export const StatusCard: React.FC<StatusCardProps> = ({ status, onLike, onComment, getComments }) => {
   const [showComments, setShowComments] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState<any[]>([]);
   const [isCommentsLoaded, setIsCommentsLoaded] = useState(false);
   
-  const { getComments, addComment } = useFeed();
+  const { showAlert } = useAlert();
   const navigate = useNavigate();
 
   const handleToggleComments = async () => {
     if (!showComments && !isCommentsLoaded) {
-      const data = await getComments(status.id);
-      setComments(data);
-      setIsCommentsLoaded(true);
+      try {
+        const data = await getComments(status.id);
+        setComments(data);
+        setIsCommentsLoaded(true);
+      } catch (error: any) {
+        showAlert(error.response?.data?.error || 'Không thể tải bình luận.', 'error');
+        return;
+      }
     }
     setShowComments(!showComments);
   };
 
   const handlePostComment = async () => {
     if (!commentText.trim()) return;
-    const newComment = await addComment(status.id, commentText);
-    if (newComment) {
-      setComments([...comments, newComment]);
-      setCommentText('');
+    try {
+      const newComment = await onComment(status.id, commentText);
+      if (newComment) {
+        setComments(previous => [...previous, newComment]);
+        setCommentText('');
+      }
+    } catch (error: any) {
+      showAlert(error.response?.data?.error || 'Không thể gửi bình luận.', 'error');
     }
   };
 

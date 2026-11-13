@@ -30,7 +30,8 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     case 'LOAD_CONVERSATIONS_SUCCESS':
       return { ...state, conversations: action.payload, isLoading: false };
     case 'SELECT_CONVERSATION':
-      return { ...state, activeConversation: action.payload.conversation, messages: action.payload.messages };
+      return { ...state, activeConversation: action.payload.conversation, messages: action.payload.messages,
+        conversations: state.conversations.map(conversation => conversation.id === action.payload.conversation.id ? { ...conversation, unreadCount: 0 } : conversation) };
     case 'NEW_MESSAGE':
       return { ...state, messages: [...state.messages, action.payload] };
     case 'DELETE_MESSAGE': {
@@ -121,6 +122,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (conversation) {
       sessionStorage.setItem('activeConversationId', conversationId);
       const messages = await messageService.getMessages(conversationId);
+      if (conversation.unreadCount > 0) await messageService.markAsRead(conversationId, getCurrentUserId());
+      conversationsRef.current = conversationsRef.current.map(item => item.id === conversationId ? { ...item, unreadCount: 0 } : item);
       dispatch({ type: 'SELECT_CONVERSATION', payload: { conversation, messages } });
     }
   };
@@ -133,11 +136,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const deleteMessage = async (messageId: string) => {
-    dispatch({ type: 'DELETE_MESSAGE', payload: messageId });
     try {
       await messageService.deleteMessage(messageId);
+      dispatch({ type: 'DELETE_MESSAGE', payload: messageId });
     } catch (error) {
       console.error('Error deleting message:', error);
+      throw error;
     }
   };
 

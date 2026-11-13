@@ -14,7 +14,7 @@ export const createStatus = async (userId: string, content: string, mediaUrls?: 
 };
 
 export const toggleLike = async (statusId: string, userId: string, isLiked: boolean) => {
-  const res = await apiClient.post('/feed/like', { statusId, userId, isLiked });
+  const res = await apiClient.post('/feed/like', { statusId, userId, isLiked: !isLiked });
   return res.data;
 };
 

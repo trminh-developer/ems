@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { User, UserPreference, UserBlock, DatingEvent, sequelize } from "../../models";
-import { UniqueConstraintError } from 'sequelize';
+import { User, UserPreference, UserBlock, DatingEvent, Report, sequelize } from "../../models";
+import { UniqueConstraintError, Op } from 'sequelize';
 import { AuthRequest } from "../../middlewares/authMiddleware";
 import { z } from "zod";
 import { updateProfileSchema } from "../../validators/userValidator";
@@ -60,8 +60,8 @@ export const getRecommendedUsers = async (req: AuthRequest, res: Response) => {
 
 export const getNearbyUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.findAll({ limit: 20 });
-    return res.json(users);
+    const users = await User.findAll({ where: { status: 'ACTIVE', role: 'USER' }, limit: 20, include: profileIncludes() });
+    return res.json(users.map(publicProfile));
   } catch (error: any) {
     console.error(error);
     return res
@@ -72,9 +72,14 @@ export const getNearbyUsers = async (req: Request, res: Response) => {
 
 export const searchUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.findAll({ limit: 20 });
-    return res.json(users);
+    const q = z.string().trim().max(150).parse(req.query.q ?? '');
+    const users = await User.findAll({
+      where: { status: 'ACTIVE', role: 'USER', ...(q ? { [Op.or]: ['username', 'first_name', 'last_name', 'bio'].map(field => ({ [field]: { [Op.like]: `%${q}%` } })) } : {}) },
+      limit: 50, include: profileIncludes(), order: [['username', 'ASC']],
+    });
+    return res.json(users.map(publicProfile));
   } catch (error: any) {
+    if (error instanceof z.ZodError) return res.status(400).json({ error: 'Từ khóa tìm kiếm không hợp lệ.' });
     console.error(error);
     return res
       .status(500)
@@ -278,8 +283,17 @@ export const blockUser = async (req: AuthRequest, res: Response) => {
     return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
   }
 };
-export const reportUser = async (req: Request, res: Response) => {
-  res.json({ success: true });
+export const reportUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const body = z.object({ reportedId: z.string().min(1), reason: z.string().trim().min(1).max(255), details: z.string().trim().max(5000).optional() }).parse(req.body);
+    if (body.reportedId === req.user.id) return res.status(400).json({ error: 'Không thể tự báo cáo tài khoản của bạn.' });
+    if (!await User.findByPk(body.reportedId)) return res.status(404).json({ error: 'User not found' });
+    const report = await Report.create({ reporter_id: req.user.id, reported_user_id: body.reportedId, reason: body.reason, description: body.details, status: 'PENDING' });
+    return res.json({ success: true, report: { id: report.get('id'), status: report.get('status') } });
+  } catch (error) {
+    if (error instanceof z.ZodError) return res.status(400).json({ error: error.issues.map(issue => issue.message).join(', ') });
+    return res.status(500).json({ error: 'Không thể gửi báo cáo.' });
+  }
 };
 
 export const getDiscoveryFeed = async (req: AuthRequest, res: Response) => {

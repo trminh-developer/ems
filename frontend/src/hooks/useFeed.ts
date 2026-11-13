@@ -3,9 +3,11 @@ import { feedService } from '../services';
 import { Status, StatusComment } from '../models';
 import { useAuth } from './useAuth';
 import { uploadOptimizedImage } from '../utils/helpers';
+import { useAlert } from '../contexts/AlertContext';
 
 export const useFeed = (userId?: string) => {
   const { user } = useAuth();
+  const { showAlert } = useAlert();
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -77,10 +79,9 @@ export const useFeed = (userId?: string) => {
     }));
 
     // Real API call
-    const success = await feedService.toggleLike(statusId, user.id, isLiked || false);
-    
-    // Revert if failed
-    if (!success) {
+    try {
+      await feedService.toggleLike(statusId, user.id, isLiked || false);
+    } catch (error: any) {
       setStatuses(prev => prev.map(s => {
         if (s.id === statusId) {
           return {
@@ -91,6 +92,7 @@ export const useFeed = (userId?: string) => {
         }
         return s;
       }));
+      showAlert(error.response?.data?.error || 'Không thể cập nhật lượt thích.', 'error');
     }
   };
 

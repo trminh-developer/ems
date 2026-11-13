@@ -1,11 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { Avatar, Button } from '../common';
 import { useAuth } from '../../hooks';
-import { useFeed } from '../../hooks';
 
-export const CreateStatus: React.FC = () => {
+interface CreateStatusProps {
+  createStatus: (content: string, files: File[]) => Promise<unknown>;
+  isUploading: boolean;
+}
+
+export const CreateStatus: React.FC<CreateStatusProps> = ({ createStatus, isUploading }) => {
   const { user } = useAuth();
-  const { createStatus, isUploading } = useFeed();
   const [content, setContent] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -72,6 +75,7 @@ export const CreateStatus: React.FC = () => {
             className="form-control border-0 ms-2"
             placeholder={`Bạn đang nghĩ gì thế, ${user?.firstName || 'bạn'}?`}
             rows={3}
+            maxLength={5000}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             style={{ resize: 'none', backgroundColor: '#f8f9fa' }}
@@ -103,14 +107,14 @@ export const CreateStatus: React.FC = () => {
             <input 
               type="file" 
               multiple 
-              accept="image/*,video/*" 
+              accept="image/*"
               className="d-none" 
               ref={fileInputRef}
               onChange={handleFileChange}
             />
             <Button variant="outline" className="me-2" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
               <i className="bi bi-image text-success me-2"></i>
-              Ảnh/Video
+              Ảnh
             </Button>
           </div>
           <Button 

@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import { Status, StatusLike, StatusComment, User } from "../../models";
 import { AuthRequest } from "../../middlewares/authMiddleware";
+import { z } from 'zod';
+
+const feedError = (res: Response, error: any) => {
+  if (error instanceof z.ZodError) return res.status(400).json({ error: error.issues.map(issue => issue.message).join(', ') });
+  return res.status(error.statusCode || 500).json({ error: error.statusCode ? error.message : 'Internal server error' });
+};
 
 // Regex to check if base64 string is a valid image (jpeg, jpg, png, webp, gif, svg)
 const isBase64Image = (str: string) => {
@@ -94,7 +100,10 @@ export const getStatuses = async (req: AuthRequest, res: Response) => {
 
 export const createStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const { content, mediaUrls } = req.body;
+    const { content, mediaUrls } = z.object({
+      content: z.string().trim().max(5000).default(''),
+      mediaUrls: z.array(z.string().refine(isBase64Image, 'Only image uploads are allowed')).max(10).default([]),
+    }).refine(body => !!body.content || body.mediaUrls.length > 0, 'Nội dung bài viết không được để trống.').parse(req.body);
     // ALWAYS use the authenticated user's ID
     const userId = req.user?.id;
 
@@ -150,22 +159,22 @@ export const createStatus = async (req: AuthRequest, res: Response) => {
 
     return res.json({ success: true, status: formattedStatus });
   } catch (err: any) {
-    console.error("Error in createStatus:", err);
-    return res
-      .status(500)
-      .json({ error: err.message || "Internal server error" });
+    if (!(err instanceof z.ZodError)) console.error("Error in createStatus:", err);
+    return feedError(res, err);
   }
 };
 
 export const toggleLike = async (req: AuthRequest, res: Response) => {
   try {
-    const { statusId, isLiked } = req.body;
+    const { statusId, isLiked } = z.object({ statusId: z.string().min(1), isLiked: z.boolean() }).parse(req.body);
     const userId = req.user?.id;
 
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
+    if (!await Status.findOne({ where: { id: statusId, is_hidden: false } })) return res.status(404).json({ error: 'Status not found' });
+
     if (isLiked) {
-      await StatusLike.create({ status_id: statusId, user_id: userId });
+      await StatusLike.findOrCreate({ where: { status_id: statusId, user_id: userId } });
     } else {
       await StatusLike.destroy({
         where: { status_id: statusId, user_id: userId },
@@ -173,16 +182,18 @@ export const toggleLike = async (req: AuthRequest, res: Response) => {
     }
     return res.json({ success: true });
   } catch (err) {
-    return res.status(500).json({ error: "Internal server error" });
+    return feedError(res, err);
   }
 };
 
 export const addComment = async (req: AuthRequest, res: Response) => {
   try {
-    const { statusId, content } = req.body;
+    const { statusId, content } = z.object({ statusId: z.string().min(1), content: z.string().trim().min(1).max(5000) }).parse(req.body);
     const userId = req.user?.id;
 
     if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    if (!await Status.findOne({ where: { id: statusId, is_hidden: false } })) return res.status(404).json({ error: 'Status not found' });
 
     const comment = await StatusComment.create({
       status_id: statusId,
@@ -191,7 +202,7 @@ export const addComment = async (req: AuthRequest, res: Response) => {
     });
     return res.json({ success: true, comment });
   } catch (err) {
-    return res.status(500).json({ error: "Internal server error" });
+    return feedError(res, err);
   }
 };
 

@@ -38,7 +38,7 @@ const SearchView = () => {
     const performSearch = async () => {
       setIsSearching(true);
       try {
-        let allUsers = await userService.getUsers();
+        const allUsers = await userService.searchUsers(query);
         
         const q = query.toLowerCase().trim();
         const filtered = allUsers.filter(u => {
@@ -46,7 +46,7 @@ const SearchView = () => {
           const matchName = (u.firstName || '').toLowerCase().includes(q) || (u.lastName || '').toLowerCase().includes(q);
           const matchBio = (u.bio || '').toLowerCase().includes(q);
           const matchQuery = q ? (matchName || matchBio || matchUsername) : true;
-          const matchGender = gender === 'all' || u.gender === gender;
+          const matchGender = gender === 'all' || u.gender?.toLowerCase() === gender;
           const age = Number(calculateAge(u.dateOfBirth));
           const matchAge = age >= ageMin && age <= ageMax;
           const matchOnline = onlineStatus === 'all' ? true : onlineStatus === 'online' ? u.isOnline : !u.isOnline;

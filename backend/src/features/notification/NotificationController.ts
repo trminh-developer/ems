@@ -11,7 +11,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
     const { Notification, User } = require("../../models");
     const notifications = await Notification.findAll({
       where: { user_id: userId },
-      include: [{ model: User, as: "FromUser" }],
+      include: [{ model: User, as: "FromUser", attributes: ['id', 'username', 'first_name', 'last_name', 'avatar'] }],
       order: [["created_at", "DESC"]],
     });
 
