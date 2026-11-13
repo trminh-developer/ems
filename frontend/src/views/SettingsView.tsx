@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button, Toast, Modal, Input } from "../components/common";
 import { useAuth } from "../hooks/useAuth";
-import { Gender, RelationshipGoal } from "../models";
+import { Gender, RelationshipGoal, UserProfileUpdate } from "../models";
 import { useAlert } from "../contexts/AlertContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
@@ -182,10 +182,10 @@ useEffect(() => {
   }, [user]);
 
   // Helper to trigger save and show toast
-  const saveChanges = async (updatedFields: any): Promise<boolean> => {
+  const saveChanges = async (updatedFields: UserProfileUpdate): Promise<boolean> => {
     if (user) {
       try {
-        await updateUser({ ...user, ...updatedFields });
+        await updateUser(updatedFields);
         setShowToast(true);
         setTimeout(() => setShowToast(false), 2000);
         return true;
@@ -231,7 +231,6 @@ useEffect(() => {
     setPreferredGender(val);
     saveChanges({
       datingPreference: {
-        ...user?.datingPreference,
         preferredGender: val === 'ALL' ? [] : [val],
       },
     });
@@ -242,7 +241,6 @@ useEffect(() => {
     setAgeMax(max);
     saveChanges({
       datingPreference: {
-        ...user?.datingPreference,
         ageRange: { min, max },
       },
     });
@@ -253,7 +251,6 @@ useEffect(() => {
     setMaxDistance(val);
     saveChanges({
       datingPreference: {
-        ...user?.datingPreference,
         maxDistance: val,
       },
     });
@@ -262,7 +259,7 @@ useEffect(() => {
   const handleGoalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value as RelationshipGoal;
     setRelationshipGoal(val);
-    saveChanges({ relationshipGoal: val, datingPreference: { ...user?.datingPreference, relationshipGoal: val } });
+    saveChanges({ relationshipGoal: val, datingPreference: { relationshipGoal: val } });
   };
 
   const handleGetLocation = () => {
@@ -478,7 +475,7 @@ useEffect(() => {
                     min="18"
                     max={ageMax}
                     onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)}
-                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], maxDistance, relationshipGoal } as any })}
+                    onBlur={() => handleAgeChange(ageMin, ageMax)}
                   />
                   <span className="text-muted">-</span>
                   <input
@@ -488,7 +485,7 @@ useEffect(() => {
                     min={ageMin}
                     max="100"
                     onChange={(e) => setAgeMax(parseInt(e.target.value) || 30)}
-                    onBlur={() => saveChanges({ datingPreference: { ...user?.datingPreference, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], maxDistance, relationshipGoal } as any })}
+                    onBlur={() => handleAgeChange(ageMin, ageMax)}
                   />
                 </div>
               </div>
@@ -506,13 +503,13 @@ useEffect(() => {
                 max="100"
                 value={maxDistance}
                 onChange={(e) => setMaxDistance(parseInt(e.target.value))}
-                onMouseUp={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], relationshipGoal } as any })}
-                onTouchEnd={() => saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance, ageRange: { min: ageMin, max: ageMax }, preferredGender: preferredGender === 'ALL' ? [] : [preferredGender], relationshipGoal } as any })}
-                onKeyUp={(event) => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) void saveChanges({ datingPreference: { ...user?.datingPreference, maxDistance } }); }}
+                onMouseUp={() => saveChanges({ datingPreference: { maxDistance } })}
+                onTouchEnd={() => saveChanges({ datingPreference: { maxDistance } })}
+                onKeyUp={(event) => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) void saveChanges({ datingPreference: { maxDistance } }); }}
               />
               <label className="form-check mt-2 small">
                 <input className="form-check-input" type="checkbox" checked={user?.datingPreference?.distanceRequired ?? false}
-                  onChange={event => void saveChanges({ datingPreference: { ...user?.datingPreference, distanceRequired: event.target.checked } })} />
+                  onChange={event => void saveChanges({ datingPreference: { distanceRequired: event.target.checked } })} />
                 <span className="form-check-label">{t('discover.strict_distance')}</span>
               </label>
             </div>
@@ -533,7 +530,7 @@ useEffect(() => {
               </div>
               <label className="form-check mt-2 small">
                 <input className="form-check-input" type="checkbox" checked={user?.datingPreference?.goalRequired ?? false}
-                  onChange={event => void saveChanges({ datingPreference: { ...user?.datingPreference, goalRequired: event.target.checked } })} />
+                  onChange={event => void saveChanges({ datingPreference: { goalRequired: event.target.checked } })} />
                 <span className="form-check-label">{t('discover.strict_goal')}</span>
               </label>
               <label className="form-label small mt-2">{t('discover.accepted_goals')}</label>
@@ -544,7 +541,7 @@ useEffect(() => {
                       onChange={event => {
                         const current = user?.datingPreference?.acceptedGoals || [];
                         const acceptedGoals = event.target.checked ? [...current, goal] : current.filter(value => value !== goal);
-                        void saveChanges({ datingPreference: { ...user?.datingPreference, acceptedGoals } });
+                        void saveChanges({ datingPreference: { acceptedGoals } });
                       }} />
                     <span className="form-check-label">{goal}</span>
                   </label>

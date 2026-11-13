@@ -152,9 +152,8 @@ const ProfileView = () => {
     setIsSaving(true);
     try {
       const updatedUser = await updateUser({
-        ...currentUser,
-        firstName: editForm.firstName,
-        lastName: editForm.lastName,
+        firstName: editForm.firstName !== currentUser.firstName ? editForm.firstName : undefined,
+        lastName: editForm.lastName !== currentUser.lastName ? editForm.lastName : undefined,
         bio: editForm.bio,
         location: {
           city: editForm.city,

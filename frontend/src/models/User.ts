@@ -31,7 +31,7 @@ export interface User {
   isPremium?: boolean;
   premiumExpiresAt?: string;
   premiumPlanId?: string;
-  appLogo?: string;
+  appLogo?: string | null;
   nameChangedAt?: string;
   usernameChangedAt?: string;
   role?: 'ADMIN' | 'CENSOR' | 'USER';
@@ -57,3 +57,16 @@ export interface User {
   violation_count?: number;
   created_at?: string;
 }
+
+export type UserProfileUpdate = Partial<Pick<User,
+  'username' | 'firstName' | 'lastName' | 'avatar' | 'coverPhoto' | 'dateOfBirth' |
+  'bio' | 'profession' | 'education' | 'interests' | 'photos' | 'relationshipGoal' |
+  'isOnline' | 'datingVisible' | 'appLogo'
+>> & {
+  location?: Partial<UserLocation>;
+  datingPreference?: Partial<Omit<DatingPreference, 'ageRange'>> & {
+    ageRange?: Partial<DatingPreference['ageRange']>;
+  };
+  password?: string;
+  refreshLocation?: boolean;
+};

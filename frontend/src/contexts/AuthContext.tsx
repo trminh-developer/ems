@@ -1,5 +1,5 @@
 ﻿import React, { createContext, useReducer, useEffect, ReactNode } from 'react';
-import { User, Gender, RelationshipGoal } from '../models';
+import { User, UserProfileUpdate } from '../models';
 import { authService } from '../services';
 
 interface AuthState {
@@ -54,7 +54,7 @@ export interface AuthContextType extends AuthState {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
   register: (data: any) => Promise<any>;
   logout: () => Promise<void>;
-  updateUser: (user: User) => Promise<User>;
+  updateUser: (changes: UserProfileUpdate) => Promise<User>;
   refreshUser: () => Promise<void>;
 }
 
@@ -170,9 +170,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Cập nhật: ghi lên Supabase TRƯỚC → sau đó mới cập nhật UI
-  const updateUser = async (user: User) => {
+  const updateUser = async (changes: UserProfileUpdate) => {
+    if (!state.user) throw new Error('Vui lòng đăng nhập để cập nhật thông tin.');
     try {
-      const savedUser = await authService.updateUserInList(user);
+      const savedUser = await authService.updateUserInList(state.user.id, changes);
       authService.setCurrentUser(savedUser);
       dispatch({ type: 'UPDATE_USER', payload: savedUser });
       return savedUser;

@@ -1,5 +1,6 @@
 ﻿import { User } from '../models';
 import apiClient from './apiClient';
+import type { UserProfileUpdate } from '../models';
 
 import { mapUser } from '../utils/helpers';
 
@@ -54,8 +55,8 @@ export const setCurrentUser = (user: User | null): void => {
   }
 };
 
-export const updateUserInList = async (user: User): Promise<User> => {
-  const res = await apiClient.put(`/users/${user.id}`, user);
+export const updateUserInList = async (id: string, changes: UserProfileUpdate): Promise<User> => {
+  const res = await apiClient.put(`/users/${id}`, changes);
   return mapUser(res.data.user);
 };
 

@@ -143,6 +143,57 @@ test('preferences persist, normalize UI enums, reload in auth and filter in both
   }
 });
 
+test('profile and settings saves accept the unset app logo returned by the API', async () => {
+  const a = await user('editor');
+  const original = await request('/auth/me', a.id);
+  assert.equal(original.data.app_logo, null);
+
+  for (const changes of [
+    { bio: 'Updated profile', profession: 'Developer' },
+    { isOnline: false },
+    { datingPreference: { preferredGender: ['FEMALE'], maxDistance: 25 } },
+  ]) {
+    const saved = await request('/users/' + a.id, a.id, 'PUT', { ...changes, appLogo: original.data.app_logo });
+    assert.equal(saved.status, 200, saved.data.error);
+    assert.equal(saved.data.user.app_logo, null);
+    assert.equal(saved.data.user.password, undefined);
+  }
+
+  const reloaded = await request('/auth/me', a.id);
+  assert.equal(reloaded.data.bio, 'Updated profile');
+  assert.equal(reloaded.data.profession, 'Developer');
+  assert.equal(reloaded.data.is_online, false);
+  assert.deepEqual(reloaded.data.UserPreference.preferred_gender, ['female']);
+  assert.equal(reloaded.data.UserPreference.max_distance, 25);
+});
+
+test('partial profile edits preserve identity cooldowns, GPS and unrelated preferences', async () => {
+  const changedAt = new Date();
+  const a = await user('editor', { name_changed_at: changedAt, username_changed_at: changedAt, latitude: 0, longitude: 0 });
+  await models.UserPreference.create({ user_id: a.id, age_min: 24, age_max: 35, max_distance: 100, preferred_gender: ['female'] });
+
+  const saved = await request('/users/' + a.id, a.id, 'PUT', { bio: 'Bio during cooldown', location: { city: 'HCM' } });
+  assert.equal(saved.status, 200, saved.data.error);
+  assert.equal(saved.data.user.first_name, 'editor');
+  assert.equal(saved.data.user.username, 'editor');
+  assert.equal(saved.data.user.name_changed_at, changedAt.toISOString());
+  assert.equal(saved.data.user.username_changed_at, changedAt.toISOString());
+  assert.equal(saved.data.user.latitude, 0);
+  assert.equal(saved.data.user.longitude, 0);
+
+  const preference = await request('/users/' + a.id, a.id, 'PUT', { datingPreference: { maxDistance: 15 } });
+  assert.equal(preference.status, 200, preference.data.error);
+  assert.equal(preference.data.user.UserPreference.max_distance, 15);
+  assert.equal(preference.data.user.UserPreference.age_min, 24);
+  assert.equal(preference.data.user.UserPreference.age_max, 35);
+  assert.deepEqual(preference.data.user.UserPreference.preferred_gender, ['female']);
+
+  const renamed = await request('/users/' + a.id, a.id, 'PUT', { firstName: 'Changed' });
+  assert.equal(renamed.status, 429);
+  assert.equal(renamed.data.field, 'name');
+  assert.equal((await request('/users/' + a.id, a.id, 'PUT', { username: 'changed' })).status, 429);
+});
+
 test('ranking precedes limit, exposes shared evidence and refills without replaying earlier cards', async () => {
   const a = await user('viewer', { relationship_goal: 'LONG_TERM' });
   const music = await models.Interest.create({ name: 'Music' });

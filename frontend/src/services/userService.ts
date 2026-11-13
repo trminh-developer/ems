@@ -1,5 +1,6 @@
 import { User } from '../models';
 import apiClient from './apiClient';
+import type { UserProfileUpdate } from '../models';
 
 import { mapUser } from '../utils/helpers';
 
@@ -65,7 +66,7 @@ export const reportUser = async (reporterId: string, reportedId: string, reason:
   await apiClient.post('/users/report', { reporterId, reportedId, reason, details });
 };
 
-export const updateProfile = async (id: string, data: Partial<User>): Promise<User> => {
+export const updateProfile = async (id: string, data: UserProfileUpdate): Promise<User> => {
   const res = await apiClient.put(`/users/${id}`, data);
   return mapUser(res.data.user);
 };

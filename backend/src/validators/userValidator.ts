@@ -22,7 +22,7 @@ export const updateProfileSchema = z.object({
   appLogo: z.string().max(1500000).refine(
     (value) => value === '' || /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(value),
     'Logo phải là ảnh PNG, JPEG, WebP hoặc GIF, tối đa 1 MB.',
-  ).optional(),
+  ).nullish(),
   password: z.string().min(6).nullish(),
   dateOfBirth: z
     .string()
