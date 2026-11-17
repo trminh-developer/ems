@@ -30,6 +30,7 @@ async function runProduction(source: string, environment: Record<string, string>
 }
 
 for (const [name, environment] of [
+  ['the default ignores a deleted MySQL host without a local .env', { DATABASE_URL: staleDatabaseUrl }],
   ['USE_MOCK_DB overrides a deleted MySQL host', { USE_MOCK_DB: 'true', DATABASE_URL: staleDatabaseUrl }],
   ['DATABASE_TYPE=mock overrides a deleted MySQL host', { DATABASE_TYPE: 'mock', DATABASE_URL: staleDatabaseUrl }],
   ['an absent DATABASE_URL uses mock data', {}],
@@ -53,16 +54,30 @@ for (const [name, environment] of [
   });
 }
 
-test('production: an explicit MySQL URL remains available when mock mode is off', async () => {
+test('production: the default SQLite path is in the writable temporary directory', async () => {
   await runProduction(`
+    const assert = require('node:assert/strict');
+    const path = require('node:path');
+    const os = require('node:os');
+    const sequelize = require('./src/config/db.ts').default;
+    assert.equal(sequelize.getDialect(), 'sqlite');
+    assert.equal(sequelize.options.storage, path.join(os.tmpdir(), 'heartconnect.sqlite'));
+    sequelize.close().catch(error => { console.error(error); process.exitCode = 1; });
+  `, { SQLITE_STORAGE: '' });
+});
+
+for (const environment of [{ USE_MOCK_DB: 'false' }, { DATABASE_TYPE: 'mysql' }]) {
+  test('production: an explicit MySQL URL remains available with ' + Object.keys(environment)[0], async () => {
+    await runProduction(`
     const assert = require('node:assert/strict');
     const sequelize = require('./src/config/db.ts').default;
     assert.equal(sequelize.getDialect(), 'mysql');
     assert.equal(sequelize.config.host, 'deleted.example.invalid');
     assert.equal(sequelize.options.dialectOptions.ssl.require, true);
     sequelize.close().catch(error => { console.error(error); process.exitCode = 1; });
-  `, { USE_MOCK_DB: 'false', DATABASE_URL: staleDatabaseUrl });
-});
+    `, { ...environment, DATABASE_URL: staleDatabaseUrl });
+  });
+}
 
 test('production mock startup seeds demo accounts and supports login and authenticated cookies without MySQL', async () => {
   const result = await runProduction(`
