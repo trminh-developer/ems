@@ -54,6 +54,8 @@ if (useMockDb) {
     connectionUrl = parsed.toString();
   }
   sequelize = new Sequelize(connectionUrl, {
+    // Static loading lets Vercel trace the PostgreSQL driver into the function bundle.
+    ...(isPostgres ? { dialectModule: require('pg') } : {}),
     logging: false,
     pool: {
       max: isPostgres ? 2 : 10,
