@@ -25,8 +25,8 @@ Dating App là một ứng dụng hẹn hò trực tuyến hiện đại, đư�
 
 1. **Clone repository:**
    ```bash
-   git clone https://gitlab.com/trminh-developer/dating-app.git
-   cd dating-app
+   git clone https://github.com/trminh-developer/ems.git
+   cd ems
    ```
 
 2. **Cài đặt thư viện:**

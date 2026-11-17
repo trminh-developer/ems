@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+services:
+  - type: web
+    name: heartconnect-qa29
+    runtime: node
+    plan: free
+    repo: https://github.com/trminh-developer/ems.git
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: npm ci --include=dev --prefix frontend && npm ci --include=dev --prefix backend && npm run ci
+    startCommand: npm start --prefix backend
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '24'
+      - key: FRONTEND_URL
+        value: https://heartconnect.vercel.app
+      - key: USE_MOCK_DB
+        value: 'true'
+      - key: SQLITE_STORAGE
+        value: /tmp/heartconnect.sqlite
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_SECRET
+        sync: false

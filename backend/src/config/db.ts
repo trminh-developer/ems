@@ -5,13 +5,14 @@ import path from "path";
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
+const dbUrl = process.env.DATABASE_URL?.trim();
 
+// Mock data must also work on a deployed demo, even if an old MySQL URL remains.
 const useMockDb =
-  !isProduction &&
-  (process.env.USE_MOCK_DB === "true" ||
-    process.env.DATABASE_TYPE === "mock" ||
-    !process.env.DATABASE_URL ||
-    process.env.DATABASE_URL.startsWith("sqlite"));
+  process.env.USE_MOCK_DB === "true" ||
+  process.env.DATABASE_TYPE === "mock" ||
+  !dbUrl ||
+  dbUrl.startsWith("sqlite");
 
 let sequelize: Sequelize;
 
@@ -27,7 +28,6 @@ if (useMockDb) {
     logging: false,
   });
 } else {
-  const dbUrl = process.env.DATABASE_URL!;
   const needsSsl =
     isProduction ||
     dbUrl.includes("aivencloud") ||

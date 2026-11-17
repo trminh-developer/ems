@@ -16,6 +16,7 @@ import feedModule from './features/feed/FeedModule';
 import notificationModule from './features/notification/NotificationModule';
 import adminModule from './features/admin/AdminModule';
 import { createCorsOptions } from './config/cors';
+import { createDocsRouter } from './docs/router';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ export function createApp(isReady = () => true) {
   }
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(compression(), cors(createCorsOptions()), cookieParser());
+  app.use(createDocsRouter());
   app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
   app.use(express.json({ limit: '50mb' }), express.urlencoded({ limit: '50mb', extended: true }));
 

@@ -9,6 +9,7 @@ const app = createApp(() => ready);
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => {
   console.log(`Backend server is listening on port ${port}; waiting for database initialization.`);
+  console.log(`API documentation: http://localhost:${port}/docs`);
 });
 
 async function start() {

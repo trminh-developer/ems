@@ -25,6 +25,14 @@ Dự án cung cấp một trải nghiệm liền mạch với các tính năng c
 
 ---
 
+## Trang thử API (Swagger UI)
+
+- Chạy `npm ci --prefix backend`, sau đó `npm run dev --prefix backend` và mở **http://localhost:3000/docs** (thay cổng nếu cấu hình `PORT` khác). Không cần chạy frontend để dùng trang này.
+- Trang liệt kê các API nghiệp vụ theo nhóm, có tham số, JSON mẫu và mã phản hồi. Mở API → **Try it out** → nhập dữ liệu → **Execute** để xem HTTP status và JSON thực tế. Tài liệu OpenAPI nằm tại `/openapi.json`; CSS/JavaScript của Swagger được phục vụ từ backend.
+- Dùng **Auth → POST /auth/login** đăng nhập bằng tài khoản hiện có trong hệ thống. Mẫu local điền sẵn tài khoản ADMIN từ dữ liệu seed. Cookie được gửi tự động trên cùng trang; cũng có thể sao chép `accessToken` vào **Authorize**. API quản trị cần tài khoản ADMIN/CENSOR tương ứng.
+- Thành công thường trả 200, dữ liệu sai trả 400; tạo tài khoản/yêu cầu xác thực trả 201. Các lỗi đăng nhập, quyền truy cập, tài nguyên và giao thức callback được ghi theo mã thực tế của từng API. Ba API quên mật khẩu/OTP/đặt lại mật khẩu hiện là stub, được đánh dấu rõ trong tài liệu.
+- Chạy `npm test --prefix backend` để kiểm thử API bằng database trong bộ nhớ. Việc **Execute** trong Swagger sử dụng database của server đang chạy theo cấu hình môi trường.
+
 ## Thanh toán QR ngân hàng và quyền Premium
 
 - Cấu hình `backend/.env` theo `backend/.env.example`, đặt `PAYMENT_MODE=sandbox` và `BACKEND_URL` trỏ đến backend công khai khi nhận callback/IPN. VNPay/MoMo dùng thông tin merchant sandbox; Stripe dùng `sk_test_...`; PayPal dùng tài khoản sandbox.
@@ -49,19 +57,21 @@ Triển khai theo `Data Analysis/THUẬT TOÁN HEARTCONNECT.docx`: Jaccard, đi�
 
 Xem [chi tiết triển khai và cách kiểm thử](Data%20Analysis/HEARTCONNECT_IMPLEMENTATION.md). Khởi động lại backend để bổ sung schema; chạy `npm test` trong `backend` để kiểm tra trên database trong bộ nhớ.
 
-## CI/CD trên GitLab và Vercel
+## Repository GitHub và triển khai
 
 - Frontend Vercel và backend Render được triển khai riêng. Push thành công hoặc `/api/health` trả 200 chưa chứng minh backend đã cập nhật. Backend mới trả `apiVersion: 2` và `commit` (SHA từ `RENDER_GIT_COMMIT`) trong health; health trả 503 cho tới khi database và migration sẵn sàng.
-- Với service Render hiện có `heartconnect-qa29`, kiểm tra repository là `trminh-developer/dating-app`, branch `main`, Node.js 24. Nếu dùng runtime Node với Root Directory ở gốc repo: Build Command là `npm ci --include=dev --prefix backend && node scripts/prepare-ci.cjs && npm run build --prefix backend && npm test --prefix backend`; Start Command là `npm start --prefix backend`; Health Check Path là `/api/health`. Giữ các biến môi trường database, JWT và thanh toán trong Render.
+- Repository hiện tại là [trminh-developer/ems trên GitHub](https://github.com/trminh-developer/ems.git). Với service Render hiện có `heartconnect-qa29`, đổi liên kết repository sang URL này, branch `main`, Node.js 24. Nếu dùng runtime Node với Root Directory ở gốc repo: Build Command là `npm ci --include=dev --prefix frontend && npm ci --include=dev --prefix backend && npm run ci`; Start Command là `npm start --prefix backend`; Health Check Path là `/api/health`. Bộ test backend kiểm tra cả phần ánh xạ profile của frontend nên cần cài dependencies ở cả hai thư mục. Giữ các biến môi trường database, JWT và thanh toán trong Render.
+- Bản demo dùng dữ liệu mock SQLite, không cần Aiven. Trong **Render → Environment**, đặt `NODE_ENV=production`, `USE_MOCK_DB=true`, `SQLITE_STORAGE=/tmp/heartconnect.sqlite`; có thể xóa `DATABASE_URL` cũ. Mock được ưu tiên ngay cả trong production và khi còn URL MySQL cũ. Database SQLite mới tự nạp dữ liệu từ `backend/Database/*.json` khi khởi động. File trong `/tmp` là dữ liệu tạm, sẽ mất khi Render Free deploy lại, khởi động lại hoặc cho service ngủ; dữ liệu JSON được nạp lại vào database mới ([Render Free](https://render.com/docs/free#local-files-lost-on-redeploy)). Nếu Root Directory hiện tại là `backend`, dùng Build Command `npm ci --include=dev && node ../scripts/prepare-ci.cjs && npm run build` và Start Command `npm start`.
+- `render.yaml` cung cấp cấu hình Blueprint cho service này: runtime Node, plan Free, tự deploy nhánh `main`, chạy toàn bộ CI trước khi khởi động và bật SQLite mock. Giữ nguyên `JWT_SECRET`/`REFRESH_SECRET` từ service cũ; các biến `sync: false` được nhập trong Render, không ghi vào repository. Nếu cần tạo service thay thế, đổi tên service trong Blueprint; chỉ cập nhật rewrite API của Vercel sau khi URL backend mới vượt qua kiểm tra triển khai. Tham khảo [Render Blueprint](https://render.com/docs/blueprint-spec).
 - Sau khi backend và frontend deploy, chạy `npm run smoke:deployment -- https://heartconnect.vercel.app <SHA-commit-backend>`. Lệnh kiểm tra các API công khai, các route có xác thực và phiên bản backend; trả mã lỗi nếu route còn 404 hoặc backend cũ. Các request ghi dùng phiên chưa đăng nhập và phải bị chặn 401, không tạo dữ liệu thật.
 
-- `.gitlab-ci.yml` chạy trên Node.js 24, cài dependency bằng `npm ci` theo lockfile, kiểm tra TypeScript frontend, build backend, chạy toàn bộ test backend bằng SQLite trong bộ nhớ rồi build frontend. Pipeline chạy khi push nhánh hoặc tạo/cập nhật merge request; tránh chạy trùng pipeline push khi đã có merge request.
+- `.gitlab-ci.yml` là cấu hình CI dành cho GitLab còn lưu trong repository. Bộ kiểm tra chung `npm run ci` kiểm tra TypeScript frontend, build backend, chạy toàn bộ test backend bằng SQLite trong bộ nhớ rồi build frontend; lệnh này tiếp tục được dùng khi build trên Vercel và trong Blueprint Render.
 - `allowScripts` trong mỗi `package.json` cho phép các script cài đặt cần thiết ở đúng phiên bản đã khóa (như SQLite và esbuild) khi dùng npm mới. Khi nâng phiên bản các package này, cập nhật mục tương ứng cùng lockfile.
-- `scripts/prepare-ci.cjs` kiểm tra SQLite trước khi chạy test. Nếu binary tải sẵn yêu cầu glibc mới hơn máy CI Linux, script biên dịch lại SQLite bằng `node-gyp` trên chính máy đó; cần Python và bộ biên dịch C++ (có trên máy build Vercel và image GitLab đang dùng).
-- Vercel dùng kết nối GitLab của project `heartconnect`: push vào `main` tạo bản production; các nhánh khác tạo bản preview. `vercel.json` ở gốc chạy cùng lệnh `npm run ci` trước mỗi deployment, nên lỗi typecheck, test hoặc build sẽ chặn bản deploy đó. Không cần lưu `VERCEL_TOKEN` trong GitLab.
+- `scripts/prepare-ci.cjs` kiểm tra SQLite trước khi chạy test. Nếu binary tải sẵn yêu cầu glibc mới hơn máy CI Linux, script biên dịch lại SQLite bằng `node-gyp` trên chính máy đó; cần Python và bộ biên dịch C++.
+- Trong Vercel, kết nối project `heartconnect` với repository GitHub `trminh-developer/ems`: push vào `main` tạo bản production; các nhánh khác tạo bản preview. `vercel.json` ở gốc chạy cùng lệnh `npm run ci` trước mỗi deployment, nên lỗi typecheck, test hoặc build sẽ chặn bản deploy đó.
 - Cấu hình project Vercel: **Root Directory** để trống (gốc repository), **Framework Preset** là Vite, **Node.js Version** là 24.x, **Production Branch** là `main`. Install Command và Build Command lấy từ `vercel.json`; Output Directory là `frontend/dist`. Không chuyển Root Directory sang `frontend`, vì bộ kiểm tra cần cả backend.
 - Đặt `VITE_API_URL=/api` cho cả Production và Preview trong Vercel. API được proxy sang backend Render qua rewrite hiện có; CI không khởi động server production và không dùng database thật.
-- Xem kết quả tại **GitLab → Build → Pipelines** và **Vercel → Deployments → Build Logs**. Backend tiếp tục được triển khai riêng trên Render.
+- Xem kết quả tại **Vercel → Deployments → Build Logs** và log triển khai của service backend trên Render.
 
 Chạy cùng bộ kiểm tra ở máy local từ gốc repository:
 
@@ -71,7 +81,7 @@ npm ci --include=dev --prefix backend
 npm run ci
 ```
 
-Tham khảo: [Vercel for GitLab](https://vercel.com/docs/git/vercel-for-gitlab), [Vercel Build Configuration](https://vercel.com/docs/builds/configure-a-build), [GitLab workflow rules](https://docs.gitlab.com/ci/yaml/workflow/).
+Tham khảo: [Vercel for GitHub](https://vercel.com/docs/git/vercel-for-github), [Vercel Build Configuration](https://vercel.com/docs/builds/configure-a-build).
 
 ## 🌟 Tác Giả
 
