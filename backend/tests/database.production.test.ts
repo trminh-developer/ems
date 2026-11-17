@@ -17,6 +17,8 @@ async function runProduction(source: string, environment: Record<string, string>
       USE_MOCK_DB: '',
       DATABASE_TYPE: '',
       DATABASE_URL: '',
+      POSTGRES_URL: '',
+      DATABASE_SSL_CA: '',
       SQLITE_STORAGE: ':memory:',
       SENTRY_DSN: '',
       JWT_SECRET: 'production-mock-test',
@@ -36,6 +38,7 @@ for (const [name, environment] of [
   ['an absent DATABASE_URL uses mock data', {}],
   ['a blank DATABASE_URL uses mock data', { DATABASE_URL: '   ' }],
   ['a SQLite URL uses mock data', { DATABASE_URL: 'sqlite::memory:' }],
+  ['explicit mock mode isolates tests from PostgreSQL', { USE_MOCK_DB: 'true', DATABASE_URL: 'postgres://demo:unused@postgres.example.invalid/app' }],
 ] as const) {
   test('production: ' + name, async () => {
     await runProduction(`
@@ -78,6 +81,37 @@ for (const environment of [{ USE_MOCK_DB: 'false' }, { DATABASE_TYPE: 'mysql' }]
     `, { ...environment, DATABASE_URL: staleDatabaseUrl });
   });
 }
+
+for (const [name, environment] of [
+  ['DATABASE_URL', { DATABASE_URL: 'postgres://demo:unused@postgres.example.invalid:5432/app' }],
+  ['postgresql URI', { DATABASE_URL: 'postgresql://demo:unused@postgres.example.invalid:5432/app', DATABASE_TYPE: 'postgres', USE_MOCK_DB: 'false' }],
+  ['POSTGRES_URL', { POSTGRES_URL: 'postgres://demo:unused@postgres.example.invalid:5432/app' }],
+] as const) {
+  test('production: PostgreSQL is selected from ' + name, async () => {
+    await runProduction(`
+      const assert = require('node:assert/strict');
+      const sequelize = require('./src/config/db.ts').default;
+      assert.equal(sequelize.getDialect(), 'postgres');
+      assert.equal(sequelize.config.host, 'postgres.example.invalid');
+      assert.equal(sequelize.config.database, 'app');
+      assert.equal(sequelize.options.pool.max, 2);
+      assert.equal(sequelize.options.pool.min, 0);
+      assert.equal(sequelize.options.dialectOptions.ssl.rejectUnauthorized, true);
+      sequelize.close().catch(error => { console.error(error); process.exitCode = 1; });
+    `, environment);
+  });
+}
+
+test('production: PostgreSQL keeps the configured CA when the URI includes sslmode', async () => {
+  await runProduction(`
+    const assert = require('node:assert/strict');
+    const sequelize = require('./src/config/db.ts').default;
+    assert.equal(sequelize.getDialect(), 'postgres');
+    assert.equal(sequelize.options.dialectOptions.ssl.ca, 'TEST\\nCA');
+    assert.equal(sequelize.options.dialectOptions.ssl.rejectUnauthorized, true);
+    sequelize.close().catch(error => { console.error(error); process.exitCode = 1; });
+  `, { DATABASE_URL: 'postgres://demo:unused@postgres.example.invalid/app?sslmode=require', DATABASE_SSL_CA: 'TEST\\nCA' });
+});
 
 test('production mock startup seeds demo accounts and supports login and authenticated cookies without MySQL', async () => {
   const result = await runProduction(`

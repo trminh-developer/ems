@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { postgresSeedRows } from './seedIds';
 import {
   User,
   Interest,
@@ -16,6 +17,7 @@ import {
   VerificationRequest,
   Transaction,
   SystemSetting,
+  sequelize,
 } from "../models";
 
 export async function seedMockData(force: boolean = false) {
@@ -34,7 +36,8 @@ export async function seedMockData(force: boolean = false) {
     const readJson = (filename: string) => {
       const p = path.join(dbDir, filename);
       if (fs.existsSync(p)) {
-        return JSON.parse(fs.readFileSync(p, "utf8"));
+        const rows = JSON.parse(fs.readFileSync(p, "utf8"));
+        return sequelize.getDialect() === 'postgres' ? postgresSeedRows(rows) : rows;
       }
       return [];
     };
@@ -55,102 +58,101 @@ export async function seedMockData(force: boolean = false) {
     const transactions = readJson("transactions.json");
     const settings = readJson("system_settings.json");
 
-    if (users.length > 0) {
-      for (const u of users) {
-        await User.upsert(u);
+    await sequelize.transaction(async transaction => {
+      if (users.length > 0) {
+        for (const u of users) {
+          await User.upsert(u, { transaction });
+        }
       }
-    }
 
-    if (interests.length > 0) {
-      for (const item of interests) {
-        await Interest.upsert(item);
+      if (interests.length > 0) {
+        for (const item of interests) {
+          await Interest.upsert(item, { transaction });
+        }
       }
-    }
 
-    if (userInterests.length > 0) {
-      for (const ui of userInterests) {
-        try {
-          await UserInterest.upsert(ui);
-        } catch (e) {}
+      if (userInterests.length > 0) {
+        for (const ui of userInterests) {
+          await UserInterest.upsert(ui, { transaction });
+        }
       }
-    }
 
-    if (userPrefs.length > 0) {
-      for (const up of userPrefs) {
-        await UserPreference.upsert(up);
+      if (userPrefs.length > 0) {
+        for (const up of userPrefs) {
+          await UserPreference.upsert(up, { transaction });
+        }
       }
-    }
 
-    if (matches.length > 0) {
-      for (const m of matches) {
-        await Match.upsert(m);
+      if (matches.length > 0) {
+        for (const m of matches) {
+          await Match.upsert(m, { transaction });
+        }
       }
-    }
 
-    if (conversations.length > 0) {
-      for (const c of conversations) {
-        await Conversation.upsert(c);
+      if (conversations.length > 0) {
+        for (const c of conversations) {
+          await Conversation.upsert(c, { transaction });
+        }
       }
-    }
 
-    if (messages.length > 0) {
-      for (const msg of messages) {
-        await Message.upsert(msg);
+      if (messages.length > 0) {
+        for (const msg of messages) {
+          await Message.upsert(msg, { transaction });
+        }
       }
-    }
 
-    if (statuses.length > 0) {
-      for (const st of statuses) {
-        await Status.upsert(st);
+      if (statuses.length > 0) {
+        for (const st of statuses) {
+          await Status.upsert(st, { transaction });
+        }
       }
-    }
 
-    if (statusLikes.length > 0) {
-      for (const sl of statusLikes) {
-        try {
-          await StatusLike.upsert(sl);
-        } catch (e) {}
+      if (statusLikes.length > 0) {
+        for (const sl of statusLikes) {
+          await StatusLike.upsert(sl, { transaction });
+        }
       }
-    }
 
-    if (statusComments.length > 0) {
-      for (const sc of statusComments) {
-        await StatusComment.upsert(sc);
+      if (statusComments.length > 0) {
+        for (const sc of statusComments) {
+          await StatusComment.upsert(sc, { transaction });
+        }
       }
-    }
 
-    if (notifications.length > 0) {
-      for (const n of notifications) {
-        await Notification.upsert(n);
+      if (notifications.length > 0) {
+        for (const n of notifications) {
+          await Notification.upsert(n, { transaction });
+        }
       }
-    }
 
-    if (reports.length > 0) {
-      for (const r of reports) {
-        await Report.upsert(r);
+      if (reports.length > 0) {
+        for (const r of reports) {
+          await Report.upsert(r, { transaction });
+        }
       }
-    }
 
-    if (verifications.length > 0) {
-      for (const v of verifications) {
-        await VerificationRequest.upsert(v);
+      if (verifications.length > 0) {
+        for (const v of verifications) {
+          await VerificationRequest.upsert(v, { transaction });
+        }
       }
-    }
 
-    if (transactions.length > 0) {
-      for (const tx of transactions) {
-        await Transaction.upsert(tx);
+      if (transactions.length > 0) {
+        for (const tx of transactions) {
+          await Transaction.upsert(tx, { transaction });
+        }
       }
-    }
 
-    if (settings.length > 0) {
-      for (const s of settings) {
-        await SystemSetting.upsert(s);
+      if (settings.length > 0) {
+        for (const s of settings) {
+          await SystemSetting.upsert(s, { transaction });
+        }
       }
-    }
 
+    });
     console.log("[MockDB] Successfully seeded mock data into database!");
   } catch (error) {
     console.error("[MockDB] Error seeding mock data:", error);
+    throw error;
   }
 }

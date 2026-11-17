@@ -17,6 +17,7 @@ import notificationModule from './features/notification/NotificationModule';
 import adminModule from './features/admin/AdminModule';
 import { createCorsOptions } from './config/cors';
 import { createDocsRouter } from './docs/router';
+import sequelize from './config/db';
 
 dotenv.config();
 
@@ -38,7 +39,8 @@ export function createApp(isReady = () => true) {
     const ready = isReady();
     res.status(ready ? 200 : 503).json({
       status: ready ? 'OK' : 'STARTING', message: ready ? 'Backend is running' : 'Database is not ready',
-      apiVersion: 2, commit: process.env.RENDER_GIT_COMMIT || process.env.APP_COMMIT || null,
+      apiVersion: 2, database: sequelize.getDialect(),
+      commit: process.env.VERCEL_GIT_COMMIT_SHA || process.env.RENDER_GIT_COMMIT || process.env.APP_COMMIT || null,
     });
   });
   app.use('/api', (_req, res, next) => {

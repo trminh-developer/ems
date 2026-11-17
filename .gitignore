@@ -9,3 +9,4 @@ dist-test/
 .env.*
 !.env.example
 .DS_Store
+backend/public/docs/assets/

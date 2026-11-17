@@ -18,11 +18,11 @@ services:
       - key: FRONTEND_URL
         value: https://heartconnect.vercel.app
       - key: USE_MOCK_DB
-        value: 'true'
+        value: 'false'
       - key: DATABASE_TYPE
-        value: mock
-      - key: SQLITE_STORAGE
-        value: /tmp/heartconnect.sqlite
+        value: postgres
+      - key: DATABASE_URL
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: REFRESH_SECRET

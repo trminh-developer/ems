@@ -1,8 +1,7 @@
 ﻿import axios from 'axios';
 import { createApp } from './app';
 import sequelize from './config/db';
-import { ensureUserColumns } from './config/ensureUserColumns';
-import { seedMockData } from './utils/seedMockData';
+import { initializeDatabase } from './config/initializeDatabase';
 
 let ready = false;
 const app = createApp(() => ready);
@@ -13,10 +12,7 @@ const server = app.listen(port, () => {
 });
 
 async function start() {
-  await ensureUserColumns();
-  await sequelize.sync();
-  await ensureUserColumns();
-  await seedMockData();
+  await initializeDatabase();
   ready = true;
   console.log('Database initialized; API is ready.');
 
